@@ -10,6 +10,8 @@ import {
   type PendingUpload,
 } from "../../lib/athletes/athleteTools";
 import { useAthleteStore } from "../../store/athleteStore";
+import { useMemoryStore } from "../../store/memoryStore";
+import { MemoryPanel } from "./MemoryPanel";
 import { buildSystemPrompt } from "../../lib/systemPrompt";
 import { VoiceOrb, type VoiceState } from "./VoiceOrb";
 import {
@@ -23,6 +25,12 @@ import {
 import { startMicMeter, type MicMeter } from "../../lib/micLevel";
 
 const MAX_TOOL_TURNS = 6;
+/**
+ * Number of past chat messages resent to the API. The transcript is a rolling
+ * window, not the memory: anything that must survive beyond it belongs in the
+ * memory store, which is injected into the system prompt in full.
+ */
+const MAX_HISTORY_MESSAGES = 24;
 const NOT_CONFIGURED_SPOKEN = "JARVIS ist noch nicht verbunden. Trag deinen API-Key ein.";
 const NOT_CONFIGURED_TEXT =
   "JARVIS ist noch nicht verbunden. Lege eine .env mit ANTHROPIC_API_KEY an und starte den Dev-Server neu — dann läuft das Gespräch über den lokalen Proxy (siehe README).";
@@ -41,8 +49,11 @@ export function ChatScreen() {
   const [handsFree, setHandsFree] = useState(true);
   const [voiceOut, setVoiceOut] = useState(true);
   const [uploads, setUploads] = useState<PendingUpload[]>([]);
+  const [view, setView] = useState<"chat" | "memory">("chat");
   const attachRef = useRef<HTMLInputElement>(null);
   const refreshAthletes = useAthleteStore((s) => s.refreshAthletes);
+  const loadMemory = useMemoryStore((s) => s.load);
+  const memoryCount = useMemoryStore((s) => s.entries.length);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const stopListeningRef = useRef<(() => void) | null>(null);
@@ -73,6 +84,12 @@ export function ChatScreen() {
   }, []);
 
   useEffect(() => {
+    // Loaded up front, not only when the panel opens: the memory block goes
+    // into the system prompt on every turn, including the very first one.
+    void loadMemory();
+  }, [loadMemory]);
+
+  useEffect(() => {
     // Must be reset on mount, not only set on unmount: StrictMode mounts,
     // unmounts and remounts in dev, which would otherwise leave this stuck
     // at true and make every completion callback bail out forever.
@@ -91,10 +108,12 @@ export function ChatScreen() {
       addChatMessage("user", userText + noteSuffix);
 
       const history = store.getState().chatMessages;
-      const system = buildSystemPrompt(store.getState().getEmpireStatus());
+      const memories = useMemoryStore.getState().entries;
+      const system = buildSystemPrompt(store.getState().getEmpireStatus(), memories);
 
       let messages: AnthropicMessage[] = history
         .filter((m) => m.role === "user" || m.role === "assistant")
+        .slice(-MAX_HISTORY_MESSAGES)
         .map((m) => ({ role: m.role as "user" | "assistant", content: m.content }));
 
       // Attach the images to the latest user turn so the model can see them.
@@ -180,6 +199,8 @@ export function ChatScreen() {
         setUploads([]);
         clearPendingUploads();
         void refreshAthletes();
+        // JARVIS may have written memories during the tool loop.
+        void loadMemory();
         finishTurn(reply, false);
       } catch (err) {
         clearPendingUploads();
@@ -194,7 +215,7 @@ export function ChatScreen() {
         finishTurn(isUnconfigured ? NOT_CONFIGURED_SPOKEN : "Da ist etwas schiefgelaufen.", true);
       }
     },
-    [addChatMessage, askAssistant, refreshAthletes, sttSupported, ttsSupported, uploads]
+    [addChatMessage, askAssistant, loadMemory, refreshAthletes, sttSupported, ttsSupported, uploads]
   );
 
   const startVoiceTurn = useCallback(() => {
@@ -270,6 +291,7 @@ export function ChatScreen() {
     <div className="flex h-full min-h-0 flex-col gap-3">
       <SectionTitle
         right={
+          view === "chat" &&
           chatMessages.length > 0 && (
             <button onClick={clearChat} className="font-mono text-xs text-white/40 hover:text-white/70">
               Verlauf löschen
@@ -280,7 +302,24 @@ export function ChatScreen() {
         JARVIS
       </SectionTitle>
 
-      <div className="flex shrink-0 flex-col items-center">
+      <div className="flex shrink-0 gap-1.5">
+        {(["chat", "memory"] as const).map((v) => (
+          <button
+            key={v}
+            onClick={() => setView(v)}
+            className={clsx(
+              "rounded-lg px-3 py-1.5 font-display text-sm tracking-wide uppercase transition",
+              view === v ? "ge-glow-red bg-ge-red/15 text-ge-red" : "bg-white/5 text-white/50 hover:text-white"
+            )}
+          >
+            {v === "chat" ? "Chat" : `Gedächtnis${memoryCount > 0 ? ` (${memoryCount})` : ""}`}
+          </button>
+        ))}
+      </div>
+
+      {view === "memory" && <MemoryPanel />}
+
+      <div className={clsx("flex shrink-0 flex-col items-center", view !== "chat" && "hidden")}>
         <button onClick={onMicPress} disabled={busy} className="disabled:cursor-not-allowed" aria-label="Mikrofon">
           <VoiceOrb state={voiceState} level={micLevel} />
         </button>
@@ -305,7 +344,7 @@ export function ChatScreen() {
         </div>
       </div>
 
-      <Card className="flex min-h-0 flex-1 flex-col p-0">
+      <Card className={clsx("flex min-h-0 flex-1 flex-col p-0", view !== "chat" && "hidden")}>
         <div ref={scrollRef} className="min-h-0 flex-1 space-y-3 overflow-y-auto p-4">
           {chatMessages.length === 0 && (
             <div className="pt-4 text-center font-mono text-xs text-white/40">
@@ -338,7 +377,7 @@ export function ChatScreen() {
           )}
         </div>
 
-        <div className="border-t border-white/10 p-3">
+        <div className={clsx("border-t border-white/10 p-3", view !== "chat" && "hidden")}>
           {uploads.length > 0 && (
             <div className="mb-2 flex flex-wrap gap-2">
               {uploads.map((u) => (

@@ -1,6 +1,8 @@
+import { buildMemoryBlock } from "./memory/memory";
+import type { MemoryEntry } from "./memory/types";
 import type { EmpireStatus } from "./types";
 
-export function buildSystemPrompt(status: EmpireStatus): string {
+export function buildSystemPrompt(status: EmpireStatus, memories: MemoryEntry[] = []): string {
   const channelSummary = status.channels.map((c) => `${c.name} (${c.id}): ${c.xp} XP`).join(", ");
   const openContracts = status.contracts.filter((c) => !c.done).length;
   const openTasks = status.dailyTasks.filter((t) => !t.done).length;
@@ -30,5 +32,14 @@ Wenn Bilder hochgeladen werden, arbeite immer in dieser Reihenfolge:
 
 Kategorie anhand des Bildinhalts wählen: portrait = Kopf/Oberkörper, stage = Bühne/Wettkampf, front_pose/side_pose/back_pose = Posing-Richtung, progress = Vergleichs-/Fortschrittsfoto.
 
-Wichtig: Du kannst Personen nicht anhand ihres Gesichts identifizieren. Wenn kein Name in der Nachricht steht und auch keiner im Bild lesbar ist, frag kurz nach dem Namen, statt zu raten. Beschreibe stattdessen, was im Bild zu sehen ist (Pose, Setting, Bühne), um die Kategorie zu bestimmen.`;
+Wichtig: Du kannst Personen nicht anhand ihres Gesichts identifizieren. Wenn kein Name in der Nachricht steht und auch keiner im Bild lesbar ist, frag kurz nach dem Namen, statt zu raten. Beschreibe stattdessen, was im Bild zu sehen ist (Pose, Setting, Bühne), um die Kategorie zu bestimmen.
+
+GEDÄCHTNIS
+Du hast ein Langzeitgedächtnis, das über einzelne Gespräche hinaus bestehen bleibt. Der Chat-Verlauf wird irgendwann gekürzt — was du hier speicherst, bleibt.
+
+Speichere mit rememberFact ungefragt, wenn dir etwas dauerhaft Relevantes begegnet: Arbeitsweisen und Vorlieben des Nutzers, wichtige Personen (Coaches, Kunden, Partner), Ziele, laufende Projekte, Business-Fakten. Formuliere jeden Eintrag als eigenständigen Satz, der auch ohne den Chat verständlich ist ("Justin schneidet Reels am liebsten morgens" statt "er macht das lieber morgens").
+
+Speichere nicht: einzelne Tagesaufgaben (dafür gibt es Contracts), Belangloses, oder Dinge, die sich morgen wieder ändern. Erwähne das Speichern nur beiläufig, wenn überhaupt — es soll den Gesprächsfluss nicht unterbrechen.
+
+Löschen ist endgültig: vor forgetMemory immer kurz beim Nutzer rückfragen.${buildMemoryBlock(memories)}`;
 }

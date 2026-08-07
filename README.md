@@ -50,6 +50,21 @@ Im JARVIS-Tab kann man per Mikrofon sprechen und bekommt eine gesprochene Antwor
 
 Spracherkennung und Sprachausgabe laufen über die **Web Speech API** direkt im Browser — kein API-Key, keine Kosten, keine externe Übertragung durch die App selbst. Voraussetzung: **Chrome, Edge oder Safari** (Firefox kann keine Spracherkennung — Tippen funktioniert dort weiterhin). Auf iOS muss die Seite per HTTPS oder localhost laufen, damit das Mikrofon freigegeben wird.
 
+### Gedächtnis
+
+JARVIS hat ein Langzeitgedächtnis, erreichbar über den Tab **Gedächtnis** neben dem Chat.
+
+Der Unterschied zum Chat-Verlauf: der Verlauf ist ein rollierendes Fenster (die letzten 24 Nachrichten gehen an die API) und lässt sich löschen. Das Gedächtnis überlebt beides und wird bei **jeder** Anfrage in den System-Prompt eingebaut.
+
+- JARVIS speichert von sich aus, was dauerhaft relevant ist — Vorlieben, wichtige Personen, Ziele, laufende Projekte. Solche Einträge sind mit „von JARVIS" markiert.
+- Eigene Einträge lassen sich im Panel anlegen, bearbeiten und löschen.
+- Wiederholte Fakten werden erkannt und aktualisiert statt doppelt gespeichert.
+- Kategorien (Business, Vorliebe, Person, Ziel, Projekt, Fakt) und drei Wichtigkeitsstufen steuern, was zuerst in den Kontext kommt. Der Kontext-Block ist auf ~3.500 Zeichen gedeckelt, damit die Kosten nicht mitwachsen; alles darüber bleibt über `searchMemory` erreichbar.
+
+**Gerätestand:** Das Gedächtnis liegt in localStorage, also pro Gerät getrennt — PC und Handy haben bis zur Supabase-Anbindung je einen eigenen Stand. Über **Export/Import** im Panel lässt sich ein Stand auf das andere Gerät übertragen.
+
+**Austauschbarer Speicher:** Alles oberhalb von `src/lib/memory/backends.ts` spricht nur mit dem `MemoryBackend`-Interface. Obsidian (Markdown-Dateien über die Local-REST-API) oder Supabase anzubinden heißt, eine weitere Implementierung zu schreiben — Store, Tools und UI bleiben unverändert.
+
 ### Zum Reden braucht JARVIS einen Anthropic-Key
 
 Sprachein- und -ausgabe funktionieren sofort, aber die eigentlichen Antworten kommen von der Anthropic API:
@@ -77,6 +92,11 @@ src/
     aiTools.ts           # Tool-Definitionen + Ausführung für JARVIS
     aiClient.ts           # Client für den Chat-Proxy (Anthropic-Key bleibt serverseitig)
     systemPrompt.ts        # Persona/Kontext-Prompt für JARVIS
+  lib/memory/
+    types.ts          # Gedächtnis-Modell + MemoryBackend-Interface (Storage-Naht)
+    backends.ts        # localStorage-Backend; Obsidian/Supabase docken hier an
+    memory.ts           # Dedup, Suche, Kontext-Block, Export/Import
+    memoryTools.ts       # rememberFact / searchMemory / forgetMemory für JARVIS
   lib/athletes/
     types.ts          # Athleten-Datenmodell + Bildkategorien
     athleteDb.ts       # IndexedDB (Athleten, Bilder als Blob, Templates)

@@ -4,6 +4,11 @@ import {
   ATHLETE_TOOL_NAMES,
   executeAthleteTool,
 } from "./athletes/athleteTools";
+import {
+  MEMORY_TOOL_DEFINITIONS,
+  MEMORY_TOOL_NAMES,
+  executeMemoryTool,
+} from "./memory/memoryTools";
 
 type Store = ReturnType<typeof useEmpireStore.getState>;
 
@@ -166,13 +171,17 @@ export function executeEmpireTool(name: string, input: Record<string, unknown>, 
   }
 }
 
-/** Every tool JARVIS can call: empire mechanics plus the athlete database. */
-export const ALL_TOOL_DEFINITIONS = [...TOOL_DEFINITIONS, ...ATHLETE_TOOL_DEFINITIONS];
+/** Every tool JARVIS can call: empire mechanics, athlete database, memory. */
+export const ALL_TOOL_DEFINITIONS = [
+  ...TOOL_DEFINITIONS,
+  ...ATHLETE_TOOL_DEFINITIONS,
+  ...MEMORY_TOOL_DEFINITIONS,
+];
 
 /**
- * Single dispatch point. Athlete tools hit IndexedDB and are therefore async,
- * so the whole surface is async even though the empire tools resolve
- * immediately.
+ * Single dispatch point. Athlete and memory tools hit persistent storage and
+ * are therefore async, so the whole surface is async even though the empire
+ * tools resolve immediately.
  */
 export async function executeTool(
   name: string,
@@ -181,6 +190,9 @@ export async function executeTool(
 ): Promise<unknown> {
   if (ATHLETE_TOOL_NAMES.has(name)) {
     return executeAthleteTool(name, input);
+  }
+  if (MEMORY_TOOL_NAMES.has(name)) {
+    return executeMemoryTool(name, input);
   }
   return executeEmpireTool(name, input, store);
 }
