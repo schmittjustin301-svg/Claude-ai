@@ -3,6 +3,7 @@ import clsx from "clsx";
 import { useMemoryStore } from "../../store/memoryStore";
 import { Card, EmptyState, GlowButton } from "../../components/ui";
 import { searchMemories } from "../../lib/memory/memory";
+import { MemoryBackendSettings } from "./MemoryBackendSettings";
 import {
   MEMORY_CATEGORIES,
   MEMORY_CATEGORY_LABEL,
@@ -83,6 +84,8 @@ export function MemoryPanel() {
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto">
+      <MemoryBackendSettings />
+
       <Card>
         <div className="mb-2 font-mono text-xs tracking-widest text-white/50 uppercase">Neuer Eintrag</div>
         <textarea
@@ -138,8 +141,8 @@ export function MemoryPanel() {
           />
         </div>
         <p className="mt-2 font-mono text-[10px] leading-relaxed text-white/35">
-          Das Gedächtnis liegt auf diesem Gerät. Bis Supabase angebunden ist, haben PC und Handy je einen eigenen Stand —
-          per Export/Import lässt sich einer auf den anderen übertragen.
+          Liegt das Gedächtnis auf diesem Gerät, haben PC und Handy je einen eigenen Stand — per Export/Import lässt sich
+          einer auf den anderen übertragen. Mit Obsidian als Speicherort landet alles stattdessen in deinem Vault.
         </p>
         {status && <p className="mt-1 font-mono text-[11px] text-ge-green">{status}</p>}
       </Card>

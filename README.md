@@ -143,7 +143,32 @@ Der Unterschied zum Chat-Verlauf: der Verlauf ist ein rollierendes Fenster (die 
 
 **Gerätestand:** Das Gedächtnis liegt in localStorage, also pro Gerät getrennt — PC und Handy haben bis zur Supabase-Anbindung je einen eigenen Stand. Über **Export/Import** im Panel lässt sich ein Stand auf das andere Gerät übertragen.
 
-**Austauschbarer Speicher:** Alles oberhalb von `src/lib/memory/backends.ts` spricht nur mit dem `MemoryBackend`-Interface. Obsidian (Markdown-Dateien über die Local-REST-API) oder Supabase anzubinden heißt, eine weitere Implementierung zu schreiben — Store, Tools und UI bleiben unverändert.
+**Austauschbarer Speicher:** Alles oberhalb von `src/lib/memory/backends.ts` spricht nur mit dem `MemoryBackend`-Interface. Supabase anzubinden heißt, eine weitere Implementierung zu registrieren — Store, Tools und UI bleiben unverändert.
+
+### Obsidian als Speicherort
+
+Statt im Browser kann das Gedächtnis direkt in deinem Obsidian-Vault liegen, als ganz normale Markdown-Datei.
+
+**Einrichten:**
+1. In Obsidian das Community-Plugin **Local REST API** installieren und aktivieren
+2. In den Plugin-Einstellungen den API-Key kopieren
+3. In der App: JARVIS → Gedächtnis → **Speicherort** aufklappen → Adresse, Key und Dateipfad eintragen → **Verbindung testen** → auf **Obsidian** umschalten
+
+**Wie die Datei aussieht:** Eine Überschrift je Kategorie, darunter eine Aufzählung. Die Metadaten (ID, Wichtigkeit, Herkunft) stecken in einem HTML-Kommentar am Zeilenende, den Obsidian in der Vorschau ausblendet.
+
+```markdown
+## Person
+
+- Rafael Zimmermann ist Coach und zahlt fürs Editing. <!-- ge:{"id":"…","imp":3,…} -->
+```
+
+**Du kannst mitschreiben:** Eine Zeile, die du selbst als `- Text` in die Datei tippst, hat keinen Kommentar — die App übernimmt sie beim nächsten Laden als neuen Eintrag. Notiz in Obsidian schreiben ist also ein gültiger Weg, JARVIS etwas mitzuteilen.
+
+**Grenzen, die in der Praxis zählen:**
+- Obsidian muss geöffnet sein, sonst gibt es keinen Server. Ist es zu, fällt die App automatisch auf „Dieses Gerät" zurück statt zu blockieren.
+- Das Plugin serviert HTTPS mit einem **selbstsignierten Zertifikat**. Läuft die App über HTTPS (z.B. auf Vercel), musst du die Plugin-Adresse einmal direkt im Browser öffnen und das Zertifikat akzeptieren — sonst blockiert der Browser die Verbindung.
+- Die HTTP-Variante des Plugins (Port 27123) lässt sich von einer HTTPS-Seite gar nicht ansprechen (Mixed Content).
+- Realistisch ist das also der Speicher für den Rechner, auf dem Obsidian läuft — nicht fürs iPhone unterwegs. Dafür bleibt Supabase der Weg.
 
 ### Zum Reden braucht JARVIS einen Anthropic-Key
 

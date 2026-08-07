@@ -59,8 +59,20 @@ export class LocalMemoryBackend implements MemoryBackend {
 
 export const localMemoryBackend = new LocalMemoryBackend();
 
-/** Active backend. Swapped wholesale once Obsidian or Supabase is wired in. */
+const ACTIVE_KEY = "grind-empire-memory-backend";
+
+/** Active backend. Supabase will register here the same way Obsidian does. */
 let activeBackend: MemoryBackend = localMemoryBackend;
+
+const registry = new Map<string, MemoryBackend>([[localMemoryBackend.id, localMemoryBackend]]);
+
+export function registerMemoryBackend(backend: MemoryBackend): void {
+  registry.set(backend.id, backend);
+}
+
+export function listMemoryBackends(): MemoryBackend[] {
+  return [...registry.values()];
+}
 
 export function getMemoryBackend(): MemoryBackend {
   return activeBackend;
@@ -68,4 +80,42 @@ export function getMemoryBackend(): MemoryBackend {
 
 export function setMemoryBackend(backend: MemoryBackend): void {
   activeBackend = backend;
+  try {
+    localStorage.setItem(ACTIVE_KEY, backend.id);
+  } catch {
+    // Not persisting the choice is survivable; it just resets on reload.
+  }
+}
+
+/**
+ * Restores the previously chosen backend. Falls back to local storage if the
+ * remembered one is unreachable, so a closed Obsidian never leaves the app
+ * without a working memory.
+ */
+export async function restoreMemoryBackend(): Promise<{ backend: MemoryBackend; fellBack: boolean }> {
+  let wantedId: string | null = null;
+  try {
+    wantedId = localStorage.getItem(ACTIVE_KEY);
+  } catch {
+    wantedId = null;
+  }
+
+  if (!wantedId || wantedId === localMemoryBackend.id) {
+    activeBackend = localMemoryBackend;
+    return { backend: localMemoryBackend, fellBack: false };
+  }
+
+  const wanted = registry.get(wantedId);
+  if (!wanted) {
+    activeBackend = localMemoryBackend;
+    return { backend: localMemoryBackend, fellBack: true };
+  }
+
+  if (await wanted.isAvailable()) {
+    activeBackend = wanted;
+    return { backend: wanted, fellBack: false };
+  }
+
+  activeBackend = localMemoryBackend;
+  return { backend: localMemoryBackend, fellBack: true };
 }
