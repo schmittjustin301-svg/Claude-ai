@@ -18,11 +18,16 @@ export interface ProxyResponse {
   stop_reason: string | null;
 }
 
-const PROXY_URL: string | undefined = import.meta.env.VITE_CHAT_PROXY_URL;
+// In dev, fall back to the local Vite middleware proxy (see
+// vite-plugin-chat-dev-proxy.ts) so the assistant is testable with just an
+// ANTHROPIC_API_KEY in .env. Production builds must point at a deployed
+// proxy such as the Supabase Edge Function.
+const PROXY_URL: string | undefined =
+  import.meta.env.VITE_CHAT_PROXY_URL || (import.meta.env.DEV ? "/api/chat" : undefined);
 
 export class ProxyNotConfiguredError extends Error {
   constructor() {
-    super("VITE_CHAT_PROXY_URL ist nicht gesetzt.");
+    super("Kein Chat-Proxy konfiguriert (VITE_CHAT_PROXY_URL).");
     this.name = "ProxyNotConfiguredError";
   }
 }
@@ -43,8 +48,16 @@ export async function callAssistant(params: {
   });
 
   if (!res.ok) {
-    const detail = await res.text().catch(() => "");
-    throw new Error(`Proxy-Fehler (${res.status}): ${detail || res.statusText}`);
+    const raw = await res.text().catch(() => "");
+    let detail = raw;
+    try {
+      // Both proxies report failures as { error: "..." }.
+      const parsed = JSON.parse(raw) as { error?: unknown };
+      if (typeof parsed.error === "string") detail = parsed.error;
+    } catch {
+      // Not JSON — keep the raw body.
+    }
+    throw new Error(detail || `Proxy-Fehler (${res.status}) ${res.statusText}`);
   }
 
   return (await res.json()) as ProxyResponse;

@@ -52,6 +52,41 @@ body {
   text-shadow: 0 0 8px rgba(255, 20, 50, 0.65);
 }
 
+/* JARVIS HUD orb — concentric rings counter-rotating at different speeds */
+@keyframes ge-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes ge-spin-reverse {
+  to {
+    transform: rotate(-360deg);
+  }
+}
+
+@keyframes ge-breathe {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.ge-ring {
+  transform-origin: 100px 100px;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ge-ring {
+    animation: none !important;
+  }
+}
+
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
