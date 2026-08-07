@@ -13,7 +13,44 @@ npm run dev
 
 Öffnet unter `http://localhost:5173`.
 
-## Auf dem iPhone testen
+## Ins Internet stellen (einfachster Weg aufs iPhone)
+
+Du brauchst dafür **kein Terminal und kein Node.js auf deinem Rechner**. Alles läuft über die Webseite von Vercel und dein GitHub-Konto.
+
+### 1. Bei Vercel anmelden
+[vercel.com](https://vercel.com) öffnen → **Sign Up** → **Continue with GitHub** → GitHub-Zugriff bestätigen.
+
+### 2. Projekt importieren
+**Add New…** → **Project** → in der Liste `Claude-ai` suchen → **Import**.
+
+Vercel erkennt Vite automatisch. Build Command und Output Directory stehen schon in `vercel.json` — nichts ändern.
+
+### 3. Anthropic-Key hinterlegen
+Noch vor dem ersten Deploy den Bereich **Environment Variables** aufklappen und zwei Einträge anlegen:
+
+| Name | Wert |
+|---|---|
+| `ANTHROPIC_API_KEY` | dein Key von [console.anthropic.com](https://console.anthropic.com) (beginnt mit `sk-ant-`) |
+| `APP_ACCESS_CODE` | ein selbst ausgedachtes Passwort, z.B. `grind2026` |
+
+Dann **Deploy** klicken und ein paar Minuten warten.
+
+**Wozu der Zugangscode:** Die Seite ist öffentlich im Netz erreichbar, und dahinter hängt dein bezahlter API-Key. Ohne Code könnte jeder, der die Adresse kennt, auf deine Rechnung Anfragen stellen. Mit Code fragt die App beim ersten Chat einmal danach und merkt ihn sich. Lässt du `APP_ACCESS_CODE` weg, funktioniert alles trotzdem — die App zeigt dann aber eine Warnung an.
+
+### 4. Am iPhone öffnen
+Vercel gibt dir eine Adresse wie `https://claude-ai-xyz.vercel.app`. Die am iPhone in **Safari** öffnen.
+
+Beim ersten JARVIS-Chat fragt die App nach dem Zugangscode aus Schritt 3 — einmal eingeben, fertig.
+
+### 5. Als App auf den Homescreen
+In Safari: **Teilen-Button** (Quadrat mit Pfeil nach oben) → **Zum Home-Bildschirm**. Danach startet GRIND EMPIRE wie eine normale App, ohne Browser-Leiste.
+
+### Danach
+Jedes Mal, wenn sich am Code etwas ändert und der Branch gepusht wird, baut Vercel automatisch neu. Die Adresse bleibt gleich.
+
+**Was noch nicht geht:** Die Daten (Athleten, Bilder, Gedächtnis, Fortschritt) liegen weiterhin im Browser des jeweiligen Geräts. iPhone und PC haben also getrennte Stände, und iOS kann Daten von Web-Apps löschen, die ~7 Tage nicht geöffnet wurden. Das löst der Supabase-Schritt.
+
+## Lokal auf dem eigenen Rechner testen
 
 Es gibt zwei Wege. Der Unterschied ist entscheidend: **Mikrofon und Spracherkennung brauchen einen „secure context"** — also HTTPS oder localhost. Über die reine LAN-IP blockiert iOS Safari das Mikro.
 

@@ -17,19 +17,48 @@ export interface AnthropicMessage {
 export interface ProxyResponse {
   content: ContentBlock[];
   stop_reason: string | null;
+  /** Set by the deployed proxy when no APP_ACCESS_CODE is configured. */
+  unprotected?: boolean;
 }
 
-// In dev, fall back to the local Vite middleware proxy (see
-// vite-plugin-chat-dev-proxy.ts) so the assistant is testable with just an
-// ANTHROPIC_API_KEY in .env. Production builds must point at a deployed
-// proxy such as the Supabase Edge Function.
-const PROXY_URL: string | undefined =
-  import.meta.env.VITE_CHAT_PROXY_URL || (import.meta.env.DEV ? "/api/chat" : undefined);
+/**
+ * Both proxies answer on /api/chat — the Vite middleware during `npm run dev`
+ * and the serverless function on the deployed site — so no per-environment
+ * branching is needed. VITE_CHAT_PROXY_URL overrides it for a Supabase Edge
+ * Function or any other host.
+ */
+const PROXY_URL: string = import.meta.env.VITE_CHAT_PROXY_URL || "/api/chat";
+
+const ACCESS_CODE_KEY = "grind-empire-access-code";
+
+export function getAccessCode(): string {
+  try {
+    return localStorage.getItem(ACCESS_CODE_KEY) ?? "";
+  } catch {
+    return "";
+  }
+}
+
+export function setAccessCode(code: string): void {
+  try {
+    localStorage.setItem(ACCESS_CODE_KEY, code.trim());
+  } catch {
+    // Storage unavailable — the code simply will not persist across reloads.
+  }
+}
 
 export class ProxyNotConfiguredError extends Error {
   constructor() {
-    super("Kein Chat-Proxy konfiguriert (VITE_CHAT_PROXY_URL).");
+    super("Kein Chat-Proxy konfiguriert.");
     this.name = "ProxyNotConfiguredError";
+  }
+}
+
+/** The deployment requires an access code, and the stored one is missing or wrong. */
+export class AccessCodeRequiredError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "AccessCodeRequiredError";
   }
 }
 
@@ -38,15 +67,20 @@ export async function callAssistant(params: {
   messages: AnthropicMessage[];
   tools: readonly unknown[];
 }): Promise<ProxyResponse> {
-  if (!PROXY_URL) {
-    throw new ProxyNotConfiguredError();
-  }
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  const code = getAccessCode();
+  if (code) headers["x-app-code"] = code;
 
   const res = await fetch(PROXY_URL, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers,
     body: JSON.stringify(params),
   });
+
+  if (res.status === 401) {
+    const body = (await res.json().catch(() => ({}))) as { error?: string };
+    throw new AccessCodeRequiredError(body.error ?? "Zugangscode erforderlich.");
+  }
 
   if (!res.ok) {
     const raw = await res.text().catch(() => "");

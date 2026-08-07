@@ -2,7 +2,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import clsx from "clsx";
 import { useEmpireStore } from "../../store/empireStore";
 import { Card, GlowButton, SectionTitle } from "../../components/ui";
-import { callAssistant, ProxyNotConfiguredError, type AnthropicMessage, type ContentBlock } from "../../lib/aiClient";
+import {
+  AccessCodeRequiredError,
+  callAssistant,
+  ProxyNotConfiguredError,
+  setAccessCode,
+  type AnthropicMessage,
+  type ContentBlock,
+} from "../../lib/aiClient";
 import { ALL_TOOL_DEFINITIONS, executeTool } from "../../lib/aiTools";
 import {
   clearPendingUploads,
@@ -50,6 +57,9 @@ export function ChatScreen() {
   const [voiceOut, setVoiceOut] = useState(true);
   const [uploads, setUploads] = useState<PendingUpload[]>([]);
   const [view, setView] = useState<"chat" | "memory">("chat");
+  const [codePrompt, setCodePrompt] = useState<string | null>(null);
+  const [codeInput, setCodeInput] = useState("");
+  const [unprotected, setUnprotected] = useState(false);
   const attachRef = useRef<HTMLInputElement>(null);
   const refreshAthletes = useAthleteStore((s) => s.refreshAthletes);
   const loadMemory = useMemoryStore((s) => s.load);
@@ -137,6 +147,8 @@ export function ChatScreen() {
         );
         const textBlocks = response.content.filter((b): b is Extract<ContentBlock, { type: "text" }> => b.type === "text");
 
+        if (response.unprotected) setUnprotected(true);
+
         if (toolUses.length === 0) {
           return textBlocks.map((b) => b.text).join("\n").trim() || "Erledigt.";
         }
@@ -204,6 +216,13 @@ export function ChatScreen() {
         finishTurn(reply, false);
       } catch (err) {
         clearPendingUploads();
+
+        if (err instanceof AccessCodeRequiredError) {
+          setCodePrompt(err.message);
+          finishTurn("Zugangscode nötig.", true);
+          return;
+        }
+
         const isUnconfigured = err instanceof ProxyNotConfiguredError;
         const reply = isUnconfigured
           ? NOT_CONFIGURED_TEXT
@@ -368,6 +387,43 @@ export function ChatScreen() {
           {notice && (
             <div className="rounded-xl border border-ge-gold/40 bg-ge-gold/10 px-3.5 py-2.5 font-mono text-xs text-ge-gold">
               {notice}
+            </div>
+          )}
+          {codePrompt && (
+            <div className="rounded-xl border border-ge-red/40 bg-ge-red/10 p-3.5">
+              <p className="font-mono text-xs text-ge-red">{codePrompt}</p>
+              <p className="mt-1 font-mono text-[10px] text-white/50">
+                Der Code, den du bei Vercel als APP_ACCESS_CODE hinterlegt hast.
+              </p>
+              <form
+                className="mt-2 flex gap-2"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (!codeInput.trim()) return;
+                  setAccessCode(codeInput.trim());
+                  setCodeInput("");
+                  setCodePrompt(null);
+                  setNotice("Code gespeichert — schick deine Nachricht nochmal.");
+                }}
+              >
+                <input
+                  type="password"
+                  value={codeInput}
+                  onChange={(e) => setCodeInput(e.target.value)}
+                  placeholder="Zugangscode"
+                  className="min-w-0 flex-1 rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-sm text-white outline-none focus:border-ge-red"
+                />
+                <GlowButton type="submit" disabled={!codeInput.trim()}>
+                  Speichern
+                </GlowButton>
+              </form>
+            </div>
+          )}
+          {unprotected && (
+            <div className="rounded-xl border border-ge-gold/40 bg-ge-gold/10 px-3.5 py-2.5 font-mono text-[11px] leading-relaxed text-ge-gold">
+              Achtung: Deine Chat-Schnittstelle ist offen erreichbar. Wer die Adresse kennt, kann auf deine Kosten
+              Anfragen stellen. Setz bei Vercel eine Variable <span className="text-white">APP_ACCESS_CODE</span> und
+              deploye neu.
             </div>
           )}
           {!sttSupported && (
