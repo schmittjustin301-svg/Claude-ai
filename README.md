@@ -11,7 +11,50 @@ npm install
 npm run dev
 ```
 
-Öffnet unter `http://localhost:5173`. Auf dem Handy: Vite mit `--host` starten und die angezeigte LAN-URL öffnen, oder `npm run build && npm run preview` für einen Produktions-Build, den man als PWA installieren kann ("Zum Homescreen hinzufügen").
+Öffnet unter `http://localhost:5173`.
+
+## Auf dem iPhone testen
+
+Es gibt zwei Wege. Der Unterschied ist entscheidend: **Mikrofon und Spracherkennung brauchen einen „secure context"** — also HTTPS oder localhost. Über die reine LAN-IP blockiert iOS Safari das Mikro.
+
+### Weg 1 — LAN (schnell, aber ohne Sprache)
+
+```bash
+npm run dev
+```
+
+Vite zeigt neben der Local- auch eine Network-URL wie `http://192.168.1.42:5173`. Die am iPhone im Safari öffnen — PC und iPhone müssen im selben WLAN sein.
+
+Funktioniert: Empire, Today, Boss, Earnings, Athleten-Datenbank, Studio inkl. Export, Gedächtnis, und JARVIS **per Tippen**.
+Funktioniert **nicht**: Mikrofon-Diktat und damit der Sprachmodus.
+
+### Weg 2 — HTTPS-Tunnel (alles, inklusive Sprache)
+
+In einem Terminal den Dev-Server starten, in einem zweiten den Tunnel:
+
+```bash
+npm run dev            # Terminal 1
+npm run dev:tunnel     # Terminal 2
+```
+
+Dafür wird `cloudflared` gebraucht (kein Account nötig):
+
+```bash
+brew install cloudflared         # macOS
+```
+
+Der Tunnel gibt eine `https://…trycloudflare.com`-URL aus. Die am iPhone öffnen — dort funktioniert dann auch das Mikrofon und der komplette Sprachmodus. Alternativ geht `ngrok http 5173` genauso; beide Domains sind in `vite.config.ts` bereits freigegeben.
+
+### Als App auf den Homescreen
+
+In Safari über die HTTPS-URL: Teilen-Button → „Zum Home-Bildschirm". Danach startet GRIND EMPIRE als eigenständige App ohne Browser-Leiste.
+
+### Was du dabei wissen solltest
+
+- Der Tunnel läuft nur, solange dein PC läuft und beide Terminals offen sind. Für dauerhafte Nutzung ohne PC braucht es den Supabase-Schritt plus ein Deployment.
+- Die URL wechselt bei jedem Neustart des Tunnels. Eine als PWA installierte Version zeigt dann auf die alte, tote Adresse — nach einem Neustart also neu hinzufügen.
+- **Daten sind pro Gerät und pro URL getrennt.** Was du am PC angelegt hast, ist am iPhone nicht da, und eine neue Tunnel-URL bekommt wieder einen leeren Stand. Das löst erst Supabase; fürs Gedächtnis gibt es zwischenzeitlich Export/Import.
+- iOS kann Daten von Web-Apps löschen, die ~7 Tage nicht geöffnet wurden. Also nichts dort ablegen, was du nicht woanders auch hast, solange Supabase nicht steht.
 
 ## Athleten-Datenbank & Grafik-Studio
 

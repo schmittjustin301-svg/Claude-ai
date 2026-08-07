@@ -6,6 +6,15 @@ import { chatDevProxy } from './vite-plugin-chat-dev-proxy.ts'
 
 // https://vite.dev/config/
 export default defineConfig({
+  server: {
+    // Listen on the LAN so a phone on the same network can reach the dev server.
+    host: true,
+    // Vite blocks unknown Host headers (DNS-rebinding protection), which would
+    // reject a tunnel domain. Allowing only the tunnel providers keeps that
+    // protection for everything else — a tunnel is needed on iOS because
+    // microphone access requires a secure context, which plain LAN http is not.
+    allowedHosts: [".trycloudflare.com", ".ngrok-free.app", ".ngrok.io", ".loca.lt"],
+  },
   plugins: [
     react(),
     tailwindcss(),
