@@ -1,12 +1,22 @@
 import clsx from "clsx";
 
-export type TabKey = "overview" | "today" | "boss" | "earnings" | "roadmap" | "skills" | "achievements" | "chat";
+export type TabKey =
+  | "overview"
+  | "today"
+  | "boss"
+  | "earnings"
+  | "athletes"
+  | "roadmap"
+  | "skills"
+  | "achievements"
+  | "chat";
 
 export const TABS: { key: TabKey; label: string; icon: string }[] = [
   { key: "overview", label: "Empire", icon: "🏙️" },
   { key: "today", label: "Today", icon: "☑️" },
   { key: "boss", label: "Boss", icon: "⚔️" },
   { key: "earnings", label: "Earnings", icon: "💰" },
+  { key: "athletes", label: "Athletes", icon: "🏋️" },
   { key: "roadmap", label: "Roadmap", icon: "🗺️" },
   { key: "skills", label: "Skills", icon: "🌳" },
   { key: "achievements", label: "Awards", icon: "🏆" },

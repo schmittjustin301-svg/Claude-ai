@@ -3,7 +3,13 @@ import clsx from "clsx";
 import { useEmpireStore } from "../../store/empireStore";
 import { Card, GlowButton, SectionTitle } from "../../components/ui";
 import { callAssistant, ProxyNotConfiguredError, type AnthropicMessage, type ContentBlock } from "../../lib/aiClient";
-import { executeTool, TOOL_DEFINITIONS } from "../../lib/aiTools";
+import { ALL_TOOL_DEFINITIONS, executeTool } from "../../lib/aiTools";
+import {
+  clearPendingUploads,
+  setPendingUploads,
+  type PendingUpload,
+} from "../../lib/athletes/athleteTools";
+import { useAthleteStore } from "../../store/athleteStore";
 import { buildSystemPrompt } from "../../lib/systemPrompt";
 import { VoiceOrb, type VoiceState } from "./VoiceOrb";
 import {
@@ -34,6 +40,9 @@ export function ChatScreen() {
   const [notice, setNotice] = useState<string | null>(null);
   const [handsFree, setHandsFree] = useState(true);
   const [voiceOut, setVoiceOut] = useState(true);
+  const [uploads, setUploads] = useState<PendingUpload[]>([]);
+  const attachRef = useRef<HTMLInputElement>(null);
+  const refreshAthletes = useAthleteStore((s) => s.refreshAthletes);
 
   const scrollRef = useRef<HTMLDivElement>(null);
   const stopListeningRef = useRef<(() => void) | null>(null);
@@ -77,8 +86,9 @@ export function ChatScreen() {
 
   /** One round-trip to the assistant, running the tool-use loop to completion. */
   const askAssistant = useCallback(
-    async (userText: string): Promise<string> => {
-      addChatMessage("user", userText);
+    async (userText: string, uploads: PendingUpload[]): Promise<string> => {
+      const noteSuffix = uploads.length > 0 ? `\n[${uploads.length} Bild(er) angehängt]` : "";
+      addChatMessage("user", userText + noteSuffix);
 
       const history = store.getState().chatMessages;
       const system = buildSystemPrompt(store.getState().getEmpireStatus());
@@ -87,8 +97,22 @@ export function ChatScreen() {
         .filter((m) => m.role === "user" || m.role === "assistant")
         .map((m) => ({ role: m.role as "user" | "assistant", content: m.content }));
 
+      // Attach the images to the latest user turn so the model can see them.
+      if (uploads.length > 0) {
+        const imageBlocks: ContentBlock[] = await Promise.all(
+          uploads.map(async (u) => ({
+            type: "image" as const,
+            source: { type: "base64" as const, media_type: u.file.type || "image/jpeg", data: await fileToBase64(u.file) },
+          }))
+        );
+        messages = [
+          ...messages.slice(0, -1),
+          { role: "user", content: [...imageBlocks, { type: "text", text: userText || "Bild(er) hochgeladen." }] },
+        ];
+      }
+
       for (let turn = 0; turn < MAX_TOOL_TURNS; turn++) {
-        const response = await callAssistant({ system, messages, tools: TOOL_DEFINITIONS });
+        const response = await callAssistant({ system, messages, tools: ALL_TOOL_DEFINITIONS });
         const toolUses = response.content.filter(
           (b): b is Extract<ContentBlock, { type: "tool_use" }> => b.type === "tool_use"
         );
@@ -98,11 +122,13 @@ export function ChatScreen() {
           return textBlocks.map((b) => b.text).join("\n").trim() || "Erledigt.";
         }
 
-        const toolResults: ContentBlock[] = toolUses.map((call) => ({
-          type: "tool_result",
-          tool_use_id: call.id,
-          content: JSON.stringify(executeTool(call.name, call.input, store.getState())),
-        }));
+        const toolResults: ContentBlock[] = await Promise.all(
+          toolUses.map(async (call) => ({
+            type: "tool_result" as const,
+            tool_use_id: call.id,
+            content: JSON.stringify(await executeTool(call.name, call.input, store.getState())),
+          }))
+        );
 
         messages = [...messages, { role: "assistant", content: response.content }, { role: "user", content: toolResults }];
       }
@@ -141,12 +167,22 @@ export function ChatScreen() {
       setNotice(null);
       setVoiceState("thinking");
 
+      // Hand the attachments to the tool layer, which pulls the bytes out of
+      // this buffer when the model decides where they belong.
+      const attached = uploads;
+      setPendingUploads(attached);
+
       try {
-        const reply = await askAssistant(text);
+        const reply = await askAssistant(text, attached);
         if (unmountedRef.current) return;
         addChatMessage("assistant", reply);
+        attached.forEach((u) => URL.revokeObjectURL(u.previewUrl));
+        setUploads([]);
+        clearPendingUploads();
+        void refreshAthletes();
         finishTurn(reply, false);
       } catch (err) {
+        clearPendingUploads();
         const isUnconfigured = err instanceof ProxyNotConfiguredError;
         const reply = isUnconfigured
           ? NOT_CONFIGURED_TEXT
@@ -158,7 +194,7 @@ export function ChatScreen() {
         finishTurn(isUnconfigured ? NOT_CONFIGURED_SPOKEN : "Da ist etwas schiefgelaufen.", true);
       }
     },
-    [addChatMessage, askAssistant, sttSupported, ttsSupported]
+    [addChatMessage, askAssistant, refreshAthletes, sttSupported, ttsSupported, uploads]
   );
 
   const startVoiceTurn = useCallback(() => {
@@ -215,10 +251,20 @@ export function ChatScreen() {
 
   const onSubmitText = useCallback(() => {
     const text = input.trim();
-    if (!text || busy) return;
+    // Images alone are a valid message — JARVIS files them into the database.
+    if ((!text && uploads.length === 0) || busy) return;
     setInput("");
-    void handleUtterance(text);
-  }, [busy, handleUtterance, input]);
+    void handleUtterance(text || "Bitte im Athleten-Verzeichnis ablegen.");
+  }, [busy, handleUtterance, input, uploads.length]);
+
+  const onAttach = useCallback((files: FileList | null) => {
+    if (!files?.length) return;
+    const added: PendingUpload[] = Array.from(files)
+      .filter((f) => f.type.startsWith("image/"))
+      .map((file) => ({ id: crypto.randomUUID(), file, previewUrl: URL.createObjectURL(file) }));
+    setUploads((prev) => [...prev, ...added]);
+    if (attachRef.current) attachRef.current.value = "";
+  }, []);
 
   return (
     <div className="flex h-full min-h-0 flex-col gap-3">
@@ -292,24 +338,56 @@ export function ChatScreen() {
           )}
         </div>
 
-        <form
-          className="flex gap-2 border-t border-white/10 p-3"
-          onSubmit={(e) => {
-            e.preventDefault();
-            onSubmitText();
-          }}
-        >
-          <input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            placeholder="…oder tippen"
-            disabled={busy}
-            className="min-w-0 flex-1 rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-sm text-white outline-none focus:border-ge-red disabled:opacity-50"
-          />
-          <GlowButton type="submit" disabled={busy || !input.trim()}>
-            Senden
-          </GlowButton>
-        </form>
+        <div className="border-t border-white/10 p-3">
+          {uploads.length > 0 && (
+            <div className="mb-2 flex flex-wrap gap-2">
+              {uploads.map((u) => (
+                <div key={u.id} className="relative">
+                  <img src={u.previewUrl} alt="" className="h-14 w-14 rounded-lg border border-white/15 object-cover" />
+                  <button
+                    onClick={() => {
+                      URL.revokeObjectURL(u.previewUrl);
+                      setUploads((prev) => prev.filter((p) => p.id !== u.id));
+                    }}
+                    className="absolute -top-1.5 -right-1.5 rounded-full bg-black px-1.5 text-xs text-ge-red"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <form
+            className="flex gap-2"
+            onSubmit={(e) => {
+              e.preventDefault();
+              onSubmitText();
+            }}
+          >
+            <input
+              ref={attachRef}
+              type="file"
+              accept="image/*"
+              multiple
+              onChange={(e) => onAttach(e.target.files)}
+              className="hidden"
+            />
+            <GlowButton variant="ghost" onClick={() => attachRef.current?.click()} disabled={busy}>
+              📎
+            </GlowButton>
+            <input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="…oder tippen"
+              disabled={busy}
+              className="min-w-0 flex-1 rounded-lg border border-white/15 bg-black/40 px-3 py-2 text-sm text-white outline-none focus:border-ge-red disabled:opacity-50"
+            />
+            <GlowButton type="submit" disabled={busy || (!input.trim() && uploads.length === 0)}>
+              Senden
+            </GlowButton>
+          </form>
+        </div>
       </Card>
     </div>
   );
@@ -338,4 +416,14 @@ function Toggle({
       {children}
     </button>
   );
+}
+
+/** Strips the data-URL prefix — the API wants raw base64. */
+function fileToBase64(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result).split(",")[1] ?? "");
+    reader.onerror = () => reject(new Error("Bild konnte nicht gelesen werden."));
+    reader.readAsDataURL(file);
+  });
 }

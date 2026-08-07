@@ -1,4 +1,9 @@
 import type { useEmpireStore } from "../store/empireStore";
+import {
+  ATHLETE_TOOL_DEFINITIONS,
+  ATHLETE_TOOL_NAMES,
+  executeAthleteTool,
+} from "./athletes/athleteTools";
 
 type Store = ReturnType<typeof useEmpireStore.getState>;
 
@@ -107,7 +112,7 @@ export const TOOL_DEFINITIONS = [
 
 export type ToolName = (typeof TOOL_DEFINITIONS)[number]["name"];
 
-export function executeTool(name: string, input: Record<string, unknown>, store: Store): unknown {
+export function executeEmpireTool(name: string, input: Record<string, unknown>, store: Store): unknown {
   switch (name as ToolName) {
     case "createContract": {
       const text = String(input.text ?? "");
@@ -159,4 +164,23 @@ export function executeTool(name: string, input: Record<string, unknown>, store:
     default:
       return { ok: false, error: `Unbekanntes Tool: ${name}` };
   }
+}
+
+/** Every tool JARVIS can call: empire mechanics plus the athlete database. */
+export const ALL_TOOL_DEFINITIONS = [...TOOL_DEFINITIONS, ...ATHLETE_TOOL_DEFINITIONS];
+
+/**
+ * Single dispatch point. Athlete tools hit IndexedDB and are therefore async,
+ * so the whole surface is async even though the empire tools resolve
+ * immediately.
+ */
+export async function executeTool(
+  name: string,
+  input: Record<string, unknown>,
+  store: Store
+): Promise<unknown> {
+  if (ATHLETE_TOOL_NAMES.has(name)) {
+    return executeAthleteTool(name, input);
+  }
+  return executeEmpireTool(name, input, store);
 }

@@ -12,12 +12,14 @@ import { RoadmapScreen } from "./features/roadmap/RoadmapScreen";
 import { SkillTreeScreen } from "./features/skills/SkillTreeScreen";
 import { AchievementsScreen } from "./features/achievements/AchievementsScreen";
 import { ChatScreen } from "./features/chat/ChatScreen";
+import { AthletesScreen } from "./features/athletes/AthletesScreen";
 
 const SCREENS: Record<TabKey, () => ReactElement> = {
   overview: OverviewScreen,
   today: TodayScreen,
   boss: BossScreen,
   earnings: EarningsScreen,
+  athletes: AthletesScreen,
   roadmap: RoadmapScreen,
   skills: SkillTreeScreen,
   achievements: AchievementsScreen,

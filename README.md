@@ -13,6 +13,33 @@ npm run dev
 
 Öffnet unter `http://localhost:5173`. Auf dem Handy: Vite mit `--host` starten und die angezeigte LAN-URL öffnen, oder `npm run build && npm run preview` für einen Produktions-Build, den man als PWA installieren kann ("Zum Homescreen hinzufügen").
 
+## Athleten-Datenbank & Grafik-Studio
+
+Der Athletes-Tab hat drei Bereiche:
+
+**Studio** — Namen eintippen (einer pro Zeile), fertige Grafik rausbekommen. Die Suche ist tippfehlertolerant: „Missy Truscot" findet „Missy Truscott" und zeigt die Trefferquote an. Das Layout wird automatisch nach Anzahl gewählt (1 = Hero, 2 = Side by Side, 3 = Triple, 4–6 = Grid, >6 = mehrere Reihen). Export als PNG einzeln oder in allen 9 Formaten (Instagram Feed/Story, Facebook, X, YouTube Community/Thumbnail, Square, Portrait, Landscape).
+
+**Datenbank** — Athleten anlegen, bearbeiten, löschen, Bilder je Kategorie verwalten (Portrait, Stage, Front/Side/Back Pose, Progress). Bulk-Bildupload: Dateiname = Athletenname, bestehende Profile werden ergänzt statt dupliziert.
+
+**Templates** — Hintergrund, Farben, Fonts, Rahmen, Schatten, Eckenradius, Logo, Abstände und Bildanteil pro Marke einstellbar. Vier Vorlagen sind dabei (Full Access Weekly, Female Bodybuilding Channel, Muscle Media TV, Olympia Coverage); für eine eigene Marke duplizieren.
+
+### Athleten per JARVIS anlegen
+
+Im JARVIS-Tab Bilder über 📎 anhängen und die Details dazuschreiben:
+
+```
+Name: Missy Truscott
+Division: Fitness
+Country: USA
+Coach: Rafael Zimmermann
+```
+
+JARVIS prüft zuerst auf ein bestehendes Profil, legt an oder ergänzt, ordnet das Bild einer Kategorie zu und speichert alles — ohne manuelles Bearbeiten der Datenbank.
+
+**Wichtige Einschränkung:** JARVIS kann Personen **nicht am Gesicht erkennen**. Die Zuordnung läuft über den Namen, den du mitschickst, bzw. über Text, der im Bild lesbar ist (Namen auf Promo-Grafiken, Screenshots, Wettkampf-Overlays). Was JARVIS selbstständig aus dem Bild ableitet, ist die **Bildkategorie** (Portrait, Bühne, Posing-Richtung). Ohne erkennbaren Namen fragt JARVIS nach, statt zu raten.
+
+**Speicherort:** Athleten und Bilder liegen in IndexedDB (nicht localStorage — Bilder sprengen dessen ~5 MB sofort). Der Speicherverbrauch wird im Datenbank-Tab angezeigt. Wie beim Rest der App sind die Daten bis zur Supabase-Anbindung gerätelokal.
+
 ## JARVIS — Sprach-Assistent
 
 Im JARVIS-Tab kann man per Mikrofon sprechen und bekommt eine gesprochene Antwort. Kern antippen → sprechen → kurze Pause beendet den Zug automatisch.
@@ -50,8 +77,20 @@ src/
     aiTools.ts           # Tool-Definitionen + Ausführung für JARVIS
     aiClient.ts           # Client für den Chat-Proxy (Anthropic-Key bleibt serverseitig)
     systemPrompt.ts        # Persona/Kontext-Prompt für JARVIS
+  lib/athletes/
+    types.ts          # Athleten-Datenmodell + Bildkategorien
+    athleteDb.ts       # IndexedDB (Athleten, Bilder als Blob, Templates)
+    repository.ts       # Duplikat-sicheres Anlegen/Zusammenführen — einziger Schreibpfad
+    search.ts            # Levenshtein-basierte Fuzzy-Suche + Namenslisten-Parsing
+    layout.ts             # Layout-Wahl nach Athletenanzahl
+    templates.ts           # Design-Templates (Marken-Vorlagen)
+    render.ts               # Canvas-Renderer — Vorschau und Export teilen sich den Pfad
+    exportFormats.ts         # Zielgrößen der 9 Exportformate
+    countries.ts              # Land → Flaggen-Emoji
+    athleteTools.ts            # Athleten-Tools für JARVIS + Upload-Puffer
   store/
     empireStore.ts      # Zustand-Store — einzige Schnittstelle zwischen UI/AI-Tools und Datenlayer
+    athleteStore.ts      # Athleten-Store über der IndexedDB-Schicht
   features/            # Ein Ordner pro Tab (overview, today, boss, earnings, roadmap, skills, achievements, chat)
   components/          # Geteilte UI-Bausteine (Nav, Toasts, LevelUpOverlay, RandomEventBanner, ui.tsx)
 supabase/functions/chat/     # Chat-Proxy für Produktion (Deno Edge Function)
