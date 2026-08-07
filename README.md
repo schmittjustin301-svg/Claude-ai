@@ -103,6 +103,28 @@ Der Athletes-Tab hat drei Bereiche:
 
 **Templates** — Hintergrund, Farben, Fonts, Rahmen, Schatten, Eckenradius, Logo, Abstände und Bildanteil pro Marke einstellbar. Vier Vorlagen sind dabei (Full Access Weekly, Female Bodybuilding Channel, Muscle Media TV, Olympia Coverage); für eine eigene Marke duplizieren.
 
+### Video — Athletenfoto zu Clip (Higgsfield)
+
+Der Video-Tab macht aus einem gespeicherten Athletenfoto einen cinematischen Clip über [Higgsfield](https://higgsfield.ai) DoP (Director of Photography).
+
+**Einrichten:** Auf [cloud.higgsfield.ai](https://cloud.higgsfield.ai) registrieren, in den Account-Einstellungen die Zugangsdaten holen und bei Vercel als Environment Variable hinterlegen:
+
+| Name | Wert |
+|---|---|
+| `HIGGSFIELD_CREDENTIALS` | `KEY_ID:KEY_SECRET` — beides mit Doppelpunkt getrennt |
+
+Alternativ `HIGGSFIELD_API_KEY` und `HIGGSFIELD_API_SECRET` einzeln. Danach neu deployen.
+
+**Benutzen:** Athlet suchen → Bild antippen → Bewegung beschreiben → optional eine Kamerafahrt wählen → generieren. Die Presets kommen live aus deinem Higgsfield-Account, sind also nicht fest verdrahtet.
+
+Modelle: `dop-lite` (schnell/günstig), `dop-turbo` (Standard), `dop-standard` (beste Qualität).
+
+**Wie es technisch läuft:** Die API braucht eine öffentlich erreichbare Bild-URL, deine Fotos liegen aber lokal in IndexedDB. Die Serverless-Funktion lädt das Bild deshalb erst zu Higgsfield hoch und referenziert dann die entstandene Adresse. Weil eine Generierung länger dauert als eine Serverless-Funktion laufen darf, wird der Job gestartet und der Browser fragt den Status separat ab — blockierendes Warten würde ins Timeout laufen und eine bezahlte Generierung verlieren.
+
+**Kosten und Schutz:** Jede Generierung kostet Guthaben. Die Schnittstelle liegt hinter demselben `APP_ACCESS_CODE` wie der Chat — ohne den kann niemand über deine öffentliche Adresse auf deine Rechnung Videos erzeugen.
+
+**Ergebnis sichern:** Der Video-Link kommt von Higgsfield und kann ablaufen. Clips, die du behalten willst, herunterladen.
+
 ### Athleten per JARVIS anlegen
 
 Im JARVIS-Tab Bilder über 📎 anhängen und die Details dazuschreiben:

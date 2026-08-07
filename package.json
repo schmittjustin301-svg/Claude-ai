@@ -11,6 +11,7 @@
     "dev:tunnel": "cloudflared tunnel --url http://localhost:5173"
   },
   "dependencies": {
+    "@higgsfield/client": "^0.2.1",
     "clsx": "^2.1.1",
     "dayjs": "^1.11.21",
     "framer-motion": "^13.0.0",
