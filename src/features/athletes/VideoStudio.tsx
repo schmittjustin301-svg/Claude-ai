@@ -1,32 +1,19 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import clsx from "clsx";
 import { useAthleteStore } from "../../store/athleteStore";
 import { Card, EmptyState, GlowButton } from "../../components/ui";
-import { getImagesForAthlete } from "../../lib/athletes/athleteDb";
 import { IMAGE_CATEGORY_LABEL, type AthleteImageRef } from "../../lib/athletes/types";
 import { searchAthletes } from "../../lib/athletes/search";
 import {
-  blobToBase64,
   DOP_MODELS,
   fetchMotions,
-  formatFromMime,
   HiggsfieldNotConfiguredError,
-  pollUntilDone,
-  submitGeneration,
   type DoPModel,
-  type GenerationStatus,
   type MotionPreset,
 } from "../../lib/higgsfield/higgsfieldClient";
 import { AccessCodeRequiredError } from "../../lib/aiClient";
-
-const STATUS_LABEL: Record<GenerationStatus, string> = {
-  queued: "In der Warteschlange…",
-  in_progress: "Wird generiert…",
-  completed: "Fertig",
-  failed: "Fehlgeschlagen",
-  nsfw: "Von Higgsfield abgelehnt (NSFW-Filter)",
-  unknown: "Status unbekannt",
-};
+import { useVideoJobStore } from "../../store/videoJobStore";
+import { VideoJobList } from "./VideoJobList";
 
 export function VideoStudio() {
   const athletes = useAthleteStore((s) => s.athletes);
@@ -43,10 +30,8 @@ export function VideoStudio() {
   const [motionsError, setMotionsError] = useState<string | null>(null);
 
   const [busy, setBusy] = useState(false);
-  const [status, setStatus] = useState<GenerationStatus | null>(null);
-  const [videoUrl, setVideoUrl] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const abortRef = useRef<AbortController | null>(null);
+  const startJob = useVideoJobStore((s) => s.start);
 
   const matches = useMemo(() => {
     if (!query.trim()) return [...athletes].sort((a, b) => a.full_name.localeCompare(b.full_name)).slice(0, 8);
@@ -82,42 +67,24 @@ export function VideoStudio() {
     };
   }, []);
 
-  useEffect(() => () => abortRef.current?.abort(), []);
-
   const generate = useCallback(async () => {
-    if (!athleteId || !selectedImage || !prompt.trim()) return;
+    if (!athlete || !selectedImage || !prompt.trim()) return;
     setBusy(true);
     setError(null);
-    setVideoUrl(null);
-    setStatus("queued");
-
-    const controller = new AbortController();
-    abortRef.current = controller;
 
     try {
-      // The stored blob has no public URL, so the bytes go to the proxy, which
-      // uploads them to Higgsfield and hands back a hosted address.
-      const stored = (await getImagesForAthlete(athleteId)).find((i) => i.id === selectedImage.id);
-      if (!stored) throw new Error("Bild nicht gefunden.");
-
-      const submitted = await submitGeneration({
-        imageBase64: await blobToBase64(stored.blob),
-        format: formatFromMime(stored.blob.type),
+      // Goes through the same job store as JARVIS-triggered generations, so a
+      // clip started here also survives a reload and shows up in the list.
+      await startJob({
+        athleteId: athlete.id,
+        athleteName: athlete.full_name,
+        imageId: selectedImage.id,
         prompt: prompt.trim(),
         model,
-        motions: motionId ? [{ id: motionId, strength: 0.8 }] : undefined,
+        motionId: motionId || null,
+        source: "ui",
       });
-
-      const result = await pollUntilDone(submitted.status_url, setStatus, controller.signal);
-      if (result.status === "completed" && result.video_url) {
-        setVideoUrl(result.video_url);
-      } else if (result.status !== "completed") {
-        setError(STATUS_LABEL[result.status]);
-      } else {
-        setError("Higgsfield meldet fertig, liefert aber kein Video.");
-      }
     } catch (err) {
-      if (err instanceof DOMException && err.name === "AbortError") return;
       if (err instanceof AccessCodeRequiredError) {
         setError(`${err.message} Trag ihn im JARVIS-Tab ein.`);
       } else {
@@ -125,9 +92,8 @@ export function VideoStudio() {
       }
     } finally {
       setBusy(false);
-      abortRef.current = null;
     }
-  }, [athleteId, model, motionId, prompt, selectedImage]);
+  }, [athlete, model, motionId, prompt, selectedImage, startJob]);
 
   if (athletes.length === 0) {
     return <EmptyState>Erst Athleten mit Bildern anlegen — daraus entstehen die Clips.</EmptyState>;
@@ -150,7 +116,7 @@ export function VideoStudio() {
               onClick={() => {
                 setAthleteId(a.id);
                 setImageId(null);
-                setVideoUrl(null);
+                setError(null);
               }}
               className={clsx(
                 "rounded-full border px-3 py-1 font-mono text-[11px] transition",
@@ -238,18 +204,13 @@ export function VideoStudio() {
 
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <GlowButton onClick={() => void generate()} disabled={busy || !selectedImage || !prompt.trim()}>
-            {busy ? "Läuft…" : "Video generieren"}
+            {busy ? "Wird gestartet…" : "Video generieren"}
           </GlowButton>
-          {busy && (
-            <GlowButton variant="ghost" onClick={() => abortRef.current?.abort()}>
-              Abbrechen
-            </GlowButton>
-          )}
-          {status && busy && <span className="font-mono text-[11px] text-white/60">{STATUS_LABEL[status]}</span>}
         </div>
 
-        <p className="mt-2 font-mono text-[10px] text-white/35">
-          Jede Generierung kostet Guthaben bei Higgsfield und dauert typischerweise ein bis mehrere Minuten.
+        <p className="mt-2 font-mono text-[10px] leading-relaxed text-white/35">
+          Jede Generierung kostet Guthaben bei Higgsfield und dauert ein bis mehrere Minuten. Sie läuft im Hintergrund
+          weiter — du kannst den Tab wechseln oder die App neu laden. Der fertige Clip erscheint unten.
         </p>
       </Card>
 
@@ -259,21 +220,11 @@ export function VideoStudio() {
         </Card>
       )}
 
-      {videoUrl && (
-        <Card>
-          <div className="mb-2 font-mono text-xs tracking-widest text-white/50 uppercase">Ergebnis</div>
-          <video src={videoUrl} controls playsInline className="w-full rounded-lg border border-white/10" />
-          <div className="mt-3 flex flex-wrap gap-2">
-            <a href={videoUrl} download target="_blank" rel="noreferrer">
-              <GlowButton variant="green">Herunterladen</GlowButton>
-            </a>
-          </div>
-          <p className="mt-2 font-mono text-[10px] text-white/35">
-            Der Link kommt von Higgsfield und kann irgendwann ablaufen — lade dir den Clip herunter, wenn du ihn behalten
-            willst.
-          </p>
-        </Card>
-      )}
+      <VideoJobList />
+
+      <p className="px-1 font-mono text-[10px] text-white/30">
+        Video-Links kommen von Higgsfield und können ablaufen — lade dir Clips herunter, die du behalten willst.
+      </p>
     </div>
   );
 }

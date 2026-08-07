@@ -125,6 +125,10 @@ Modelle: `dop-lite` (schnell/günstig), `dop-turbo` (Standard), `dop-standard` (
 
 **Ergebnis sichern:** Der Video-Link kommt von Higgsfield und kann ablaufen. Clips, die du behalten willst, herunterladen.
 
+**Per JARVIS starten:** Du kannst Videos auch im Chat auslösen — „Mach mir ein Video von Missy Truscott, langsamer Push-in auf der Bühne". JARVIS sucht den Athleten (tippfehlertolerant), nimmt das passende Bild und startet die Generierung. Weil das Minuten dauert, kommt der Aufruf sofort zurück und die Generierung läuft im Hintergrund weiter — auch wenn du den Tab wechselst oder die App neu lädst. Ist der Clip fertig, kommt eine Benachrichtigung und er erscheint im Video-Tab. Auf „Ist mein Video schon fertig?" antwortet JARVIS mit dem aktuellen Stand.
+
+Da jede Generierung Geld kostet, startet JARVIS nur auf ausdrücklichen Wunsch und fragt bei unklarer Zuordnung nach, statt zu raten.
+
 ### Athleten per JARVIS anlegen
 
 Im JARVIS-Tab Bilder über 📎 anhängen und die Details dazuschreiben:

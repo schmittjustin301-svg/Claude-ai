@@ -65,6 +65,8 @@ interface EmpireStore extends Database, UiState {
 
   dismissToast(id: string): void;
   dismissLevelUpOverlay(): void;
+  /** Public toast entry point for features outside this store. */
+  notify(message: string, kind: Toast["kind"]): void;
 }
 
 function persist(get: () => EmpireStore) {
@@ -330,6 +332,10 @@ export const useEmpireStore = create<EmpireStore>((set, get) => ({
 
   dismissLevelUpOverlay() {
     set({ levelUpOverlay: null });
+  },
+
+  notify(message, kind) {
+    pushToast(set, message, kind);
   },
 }));
 

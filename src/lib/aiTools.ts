@@ -9,6 +9,11 @@ import {
   MEMORY_TOOL_NAMES,
   executeMemoryTool,
 } from "./memory/memoryTools";
+import {
+  VIDEO_TOOL_DEFINITIONS,
+  VIDEO_TOOL_NAMES,
+  executeVideoTool,
+} from "./higgsfield/videoTools";
 
 type Store = ReturnType<typeof useEmpireStore.getState>;
 
@@ -171,11 +176,12 @@ export function executeEmpireTool(name: string, input: Record<string, unknown>, 
   }
 }
 
-/** Every tool JARVIS can call: empire mechanics, athlete database, memory. */
+/** Every tool JARVIS can call: empire mechanics, athletes, memory, video. */
 export const ALL_TOOL_DEFINITIONS = [
   ...TOOL_DEFINITIONS,
   ...ATHLETE_TOOL_DEFINITIONS,
   ...MEMORY_TOOL_DEFINITIONS,
+  ...VIDEO_TOOL_DEFINITIONS,
 ];
 
 /**
@@ -193,6 +199,9 @@ export async function executeTool(
   }
   if (MEMORY_TOOL_NAMES.has(name)) {
     return executeMemoryTool(name, input);
+  }
+  if (VIDEO_TOOL_NAMES.has(name)) {
+    return executeVideoTool(name, input);
   }
   return executeEmpireTool(name, input, store);
 }

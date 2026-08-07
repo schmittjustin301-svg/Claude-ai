@@ -13,6 +13,8 @@ import { SkillTreeScreen } from "./features/skills/SkillTreeScreen";
 import { AchievementsScreen } from "./features/achievements/AchievementsScreen";
 import { ChatScreen } from "./features/chat/ChatScreen";
 import { AthletesScreen } from "./features/athletes/AthletesScreen";
+import { useVideoJobNotifier } from "./features/athletes/useVideoJobNotifier";
+import { useVideoJobStore } from "./store/videoJobStore";
 
 const SCREENS: Record<TabKey, () => ReactElement> = {
   overview: OverviewScreen,
@@ -30,6 +32,15 @@ function App() {
   const [tab, setTab] = useState<TabKey>("overview");
   const init = useEmpireStore((s) => s.init);
   const tick = useEmpireStore((s) => s.tick);
+  const loadVideoJobs = useVideoJobStore((s) => s.load);
+
+  // Generations outlive the tab that started them, so watching and announcing
+  // them belongs at the app root rather than inside the video screen.
+  useVideoJobNotifier();
+
+  useEffect(() => {
+    loadVideoJobs();
+  }, [loadVideoJobs]);
 
   useEffect(() => {
     init();
