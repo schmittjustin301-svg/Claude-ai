@@ -5,12 +5,14 @@ import { SectionTitle } from "../../components/ui";
 import { AthleteDashboard } from "./AthleteDashboard";
 import { StudioScreen } from "./StudioScreen";
 import { TemplateEditor } from "./TemplateEditor";
+import { ShowManager } from "./ShowManager";
 
-type SubTab = "studio" | "database" | "templates";
+type SubTab = "studio" | "database" | "shows" | "templates";
 
 const SUB_TABS: { key: SubTab; label: string }[] = [
   { key: "studio", label: "Posts" },
   { key: "database", label: "Datenbank" },
+  { key: "shows", label: "Shows" },
   { key: "templates", label: "Templates" },
 ];
 
@@ -45,6 +47,7 @@ export function AthletesScreen() {
       </div>
 
       {tab === "studio" && <StudioScreen />}
+      {tab === "shows" && <ShowManager />}
       {tab === "database" && <AthleteDashboard />}
       {tab === "templates" && <TemplateEditor />}
     </div>

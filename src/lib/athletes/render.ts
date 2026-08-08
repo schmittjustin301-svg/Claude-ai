@@ -19,6 +19,12 @@ export interface RenderOptions {
   format: ExportFormat;
   showCoach: boolean;
   showStatus: boolean;
+  /** Overrides the template title for this one post. */
+  headline?: string;
+  /** Free text under the headline, in the body font. */
+  subtitle?: string;
+  /** Show lineup posts place this centred above the athlete grid. */
+  showLogoUrl?: string | null;
 }
 
 /** Template metrics are authored against a 1080px-wide canvas. */
@@ -86,6 +92,40 @@ function fitText(ctx: CanvasRenderingContext2D, text: string, maxWidth: number, 
   return size;
 }
 
+/** Word-wraps to the given width, shrinking the size if it would run too tall. */
+function wrapText(
+  ctx: CanvasRenderingContext2D,
+  text: string,
+  maxWidth: number,
+  startSize: number,
+  font: string,
+  maxLines = 3
+): { lines: string[]; size: number; lineHeight: number } {
+  let size = startSize;
+
+  for (;;) {
+    ctx.font = fontSpec(size, font);
+    const lines: string[] = [];
+    let current = "";
+
+    for (const word of text.split(/\s+/)) {
+      const candidate = current ? `${current} ${word}` : word;
+      if (ctx.measureText(candidate).width <= maxWidth || !current) {
+        current = candidate;
+      } else {
+        lines.push(current);
+        current = word;
+      }
+    }
+    if (current) lines.push(current);
+
+    if (lines.length <= maxLines || size <= 12) {
+      return { lines: lines.slice(0, maxLines), size, lineHeight: size * 1.35 };
+    }
+    size -= 2;
+  }
+}
+
 function loadImage(url: string): Promise<HTMLImageElement | null> {
   return new Promise((resolve) => {
     const img = new Image();
@@ -96,7 +136,16 @@ function loadImage(url: string): Promise<HTMLImageElement | null> {
 }
 
 export async function renderGraphic(canvas: HTMLCanvasElement, options: RenderOptions): Promise<void> {
-  const { cards, template, format, showCoach, showStatus } = options;
+  const {
+    cards,
+    template,
+    format,
+    showCoach,
+    showStatus,
+    headline: headlineOverride,
+    subtitle,
+    showLogoUrl,
+  } = options;
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Canvas-Kontext nicht verfügbar.");
 
@@ -140,14 +189,17 @@ export async function renderGraphic(canvas: HTMLCanvasElement, options: RenderOp
   }
 
   /* --------------------------------------------------------------- title */
+  // A post's own headline wins over the template's standing title.
+  const headline = (headlineOverride ?? (template.showTitle ? template.title : "")).trim();
+
   let contentTop = padding;
-  if (template.showTitle && template.title.trim()) {
-    const titleSize = fitText(ctx, template.title, canvas.width - padding * 2, 54 * s, template.headingFont);
+  if (headline) {
+    const titleSize = fitText(ctx, headline, canvas.width - padding * 2, 54 * s, template.headingFont);
     ctx.fillStyle = template.titleColor;
     ctx.textBaseline = "top";
     ctx.textAlign = "left";
     ctx.font = fontSpec(titleSize, template.headingFont);
-    ctx.fillText(template.title, padding, contentTop);
+    ctx.fillText(headline, padding, contentTop);
 
     const barY = contentTop + titleSize * 1.15;
     ctx.fillStyle = template.accentColor;
@@ -155,12 +207,36 @@ export async function renderGraphic(canvas: HTMLCanvasElement, options: RenderOp
     contentTop = barY + template.accentBarHeight * s + 28 * s;
   }
 
+  /* ----------------------------------------------------------- show logo */
+  // Centred above the athlete grid, scaled to canvas width so it reads the
+  // same whether the post has two athletes or ten.
+  if (showLogoUrl) {
+    const logo = await loadImage(showLogoUrl);
+    if (logo && logo.naturalWidth > 0) {
+      const maxWidth = canvas.width * 0.42;
+      const maxHeight = canvas.height * 0.14;
+      const scale = Math.min(maxWidth / logo.naturalWidth, maxHeight / logo.naturalHeight);
+      const w = logo.naturalWidth * scale;
+      const h = logo.naturalHeight * scale;
+      ctx.drawImage(logo, (canvas.width - w) / 2, contentTop, w, h);
+      contentTop += h + 24 * s;
+    }
+  }
+
   /* -------------------------------------------------------------- footer */
   const logoSize = 22 * s;
   const hasLogo = template.logoPlacement !== "none" && template.logoText.trim().length > 0;
   const footerReserve = hasLogo && template.logoPlacement.startsWith("bottom") ? logoSize + 26 * s : 0;
 
-  const contentBottom = canvas.height - padding - footerReserve;
+  /* ------------------------------------------------------------ subtitle */
+  // Measured before the grid is laid out and reserved at the bottom, so the
+  // text never lands on top of an athlete — the grid shrinks instead.
+  const subtitleLines = subtitle?.trim()
+    ? wrapText(ctx, subtitle.trim(), canvas.width - padding * 2, 30 * s, template.bodyFont)
+    : null;
+  const subtitleReserve = subtitleLines ? subtitleLines.lines.length * subtitleLines.lineHeight + 22 * s : 0;
+
+  const contentBottom = canvas.height - padding - footerReserve - subtitleReserve;
   const contentHeight = Math.max(80 * s, contentBottom - contentTop);
   const contentWidth = canvas.width - padding * 2;
 
@@ -195,6 +271,19 @@ export async function renderGraphic(canvas: HTMLCanvasElement, options: RenderOp
         showStatus,
       });
       index++;
+    }
+  }
+
+  /* ------------------------------------------------------------ subtitle */
+  if (subtitleLines) {
+    ctx.textAlign = "left";
+    ctx.textBaseline = "top";
+    ctx.font = fontSpec(subtitleLines.size, template.bodyFont);
+    ctx.fillStyle = template.metaColor;
+    let y = canvas.height - padding - footerReserve - subtitleReserve + 22 * s;
+    for (const line of subtitleLines.lines) {
+      ctx.fillText(line, padding, y);
+      y += subtitleLines.lineHeight;
     }
   }
 

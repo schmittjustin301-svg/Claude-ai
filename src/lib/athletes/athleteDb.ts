@@ -7,12 +7,17 @@
 
 import type { Athlete, AthleteImage, AthleteImageRef, ImageCategory } from "./types";
 import type { CardTemplate } from "./templates";
+import type { Post, Show } from "./postTypes";
 
 const DB_NAME = "grind-empire-athletes";
-const DB_VERSION = 1;
+// v2 added shows and posts. The upgrade only creates missing stores, so an
+// existing database keeps every athlete, image and template it already had.
+const DB_VERSION = 2;
 const STORE_ATHLETES = "athletes";
 const STORE_IMAGES = "images";
 const STORE_TEMPLATES = "templates";
+const STORE_SHOWS = "shows";
+const STORE_POSTS = "posts";
 
 let dbPromise: Promise<IDBDatabase> | null = null;
 
@@ -31,6 +36,12 @@ function openDb(): Promise<IDBDatabase> {
       }
       if (!db.objectStoreNames.contains(STORE_TEMPLATES)) {
         db.createObjectStore(STORE_TEMPLATES, { keyPath: "id" });
+      }
+      if (!db.objectStoreNames.contains(STORE_SHOWS)) {
+        db.createObjectStore(STORE_SHOWS, { keyPath: "id" });
+      }
+      if (!db.objectStoreNames.contains(STORE_POSTS)) {
+        db.createObjectStore(STORE_POSTS, { keyPath: "id" });
       }
     };
     request.onsuccess = () => resolve(request.result);
@@ -155,4 +166,36 @@ export async function estimateUsage(): Promise<{ usedMb: number; quotaMb: number
   if (!navigator.storage?.estimate) return null;
   const { usage = 0, quota = 0 } = await navigator.storage.estimate();
   return { usedMb: usage / 1024 / 1024, quotaMb: quota / 1024 / 1024 };
+}
+
+/* ---------------------------------------------------------------- shows */
+
+export function getAllShows(): Promise<Show[]> {
+  return tx<Show[]>(STORE_SHOWS, "readonly", (s) => s.getAll());
+}
+
+export function getShow(id: string): Promise<Show | undefined> {
+  return tx<Show | undefined>(STORE_SHOWS, "readonly", (s) => s.get(id));
+}
+
+export function putShow(show: Show): Promise<unknown> {
+  return tx(STORE_SHOWS, "readwrite", (s) => s.put(show));
+}
+
+export function deleteShow(id: string): Promise<unknown> {
+  return tx(STORE_SHOWS, "readwrite", (s) => s.delete(id));
+}
+
+/* ---------------------------------------------------------------- posts */
+
+export function getAllPosts(): Promise<Post[]> {
+  return tx<Post[]>(STORE_POSTS, "readonly", (s) => s.getAll());
+}
+
+export function putPost(post: Post): Promise<unknown> {
+  return tx(STORE_POSTS, "readwrite", (s) => s.put(post));
+}
+
+export function deletePost(id: string): Promise<unknown> {
+  return tx(STORE_POSTS, "readwrite", (s) => s.delete(id));
 }
