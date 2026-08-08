@@ -13,7 +13,6 @@ import {
 } from "../../lib/higgsfield/higgsfieldClient";
 import { AccessCodeRequiredError } from "../../lib/aiClient";
 import { useVideoJobStore } from "../../store/videoJobStore";
-import { VideoJobList } from "./VideoJobList";
 
 export function VideoStudio() {
   const athletes = useAthleteStore((s) => s.athletes);
@@ -219,8 +218,6 @@ export function VideoStudio() {
           <p className="font-mono text-xs leading-relaxed text-ge-red">{error}</p>
         </Card>
       )}
-
-      <VideoJobList />
 
       <p className="px-1 font-mono text-[10px] text-white/30">
         Video-Links kommen von Higgsfield und können ablaufen — lade dir Clips herunter, die du behalten willst.

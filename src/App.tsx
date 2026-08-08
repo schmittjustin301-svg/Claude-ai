@@ -13,7 +13,8 @@ import { SkillTreeScreen } from "./features/skills/SkillTreeScreen";
 import { AchievementsScreen } from "./features/achievements/AchievementsScreen";
 import { ChatScreen } from "./features/chat/ChatScreen";
 import { AthletesScreen } from "./features/athletes/AthletesScreen";
-import { useVideoJobNotifier } from "./features/athletes/useVideoJobNotifier";
+import { ClipLabScreen } from "./features/cliplab/ClipLabScreen";
+import { useVideoJobNotifier } from "./features/cliplab/useVideoJobNotifier";
 import { useVideoJobStore } from "./store/videoJobStore";
 
 const SCREENS: Record<TabKey, () => ReactElement> = {
@@ -22,6 +23,7 @@ const SCREENS: Record<TabKey, () => ReactElement> = {
   boss: BossScreen,
   earnings: EarningsScreen,
   athletes: AthletesScreen,
+  cliplab: ClipLabScreen,
   roadmap: RoadmapScreen,
   skills: SkillTreeScreen,
   achievements: AchievementsScreen,

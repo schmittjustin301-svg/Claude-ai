@@ -6,6 +6,7 @@ export type TabKey =
   | "boss"
   | "earnings"
   | "athletes"
+  | "cliplab"
   | "roadmap"
   | "skills"
   | "achievements"
@@ -17,6 +18,7 @@ export const TABS: { key: TabKey; label: string; icon: string }[] = [
   { key: "boss", label: "Boss", icon: "⚔️" },
   { key: "earnings", label: "Earnings", icon: "💰" },
   { key: "athletes", label: "Athletes", icon: "🏋️" },
+  { key: "cliplab", label: "Clip Lab", icon: "🎞️" },
   { key: "roadmap", label: "Roadmap", icon: "🗺️" },
   { key: "skills", label: "Skills", icon: "🌳" },
   { key: "achievements", label: "Awards", icon: "🏆" },
