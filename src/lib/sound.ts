@@ -52,4 +52,7 @@ export const sound = {
   taskDone() {
     tone(440, 0, 0.1, "triangle", 0.14);
   },
+  click() {
+    tone(320, 0, 0.06, "square", 0.1);
+  },
 };

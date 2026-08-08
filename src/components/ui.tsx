@@ -1,9 +1,16 @@
 import type { PropsWithChildren, ReactNode } from "react";
 import clsx from "clsx";
 
-export function Card({ children, className }: PropsWithChildren<{ className?: string }>) {
+export function Card({
+  children,
+  className,
+  onClick,
+}: PropsWithChildren<{ className?: string; onClick?: () => void }>) {
   return (
-    <div className={clsx("rounded-2xl border border-white/10 bg-white/[0.03] p-4 backdrop-blur-sm", className)}>
+    <div
+      onClick={onClick}
+      className={clsx("rounded-2xl border border-white/10 bg-white/[0.03] p-4 backdrop-blur-sm", className)}
+    >
       {children}
     </div>
   );

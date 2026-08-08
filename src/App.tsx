@@ -7,6 +7,7 @@ import { useEmpireStore } from "./store/empireStore";
 import { OverviewScreen } from "./features/overview/OverviewScreen";
 import { TodayScreen } from "./features/today/TodayScreen";
 import { BossScreen } from "./features/boss/BossScreen";
+import { ClickerScreen } from "./features/clicker/ClickerScreen";
 import { EarningsScreen } from "./features/earnings/EarningsScreen";
 import { RoadmapScreen } from "./features/roadmap/RoadmapScreen";
 import { SkillTreeScreen } from "./features/skills/SkillTreeScreen";
@@ -23,6 +24,7 @@ const SCREENS: Record<TabKey, () => ReactElement> = {
   overview: OverviewScreen,
   today: TodayScreen,
   boss: BossScreen,
+  clicker: ClickerScreen,
   earnings: EarningsScreen,
   athletes: AthletesScreen,
   cliplab: ClipLabScreen,
