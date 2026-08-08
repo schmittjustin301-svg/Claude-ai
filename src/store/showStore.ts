@@ -7,7 +7,10 @@ import {
   putPost,
   putShow,
 } from "../lib/athletes/athleteDb";
-import { emptyShow, type Post, type Show, type ShowRef } from "../lib/athletes/postTypes";
+import { emptyShow, POST_TYPE_LABEL, type Post, type Show, type ShowRef } from "../lib/athletes/postTypes";
+import { vault } from "./vaultStore";
+import { postNote, showNote, VAULT_PATHS } from "../lib/vault/vaultNotes";
+import { getAllAthletes } from "../lib/athletes/athleteDb";
 
 interface ShowStore {
   shows: ShowRef[];
@@ -50,12 +53,14 @@ export const useShowStore = create<ShowStore>((set, get) => ({
   async saveShow(show) {
     await putShow(show);
     set({ shows: toRefs(await getAllShows(), get().shows) });
+    vault.note(VAULT_PATHS.show(show.name), showNote(show.name, show.year, show.location), `Show: ${show.name}`);
   },
 
   async createShow(name) {
     const show = emptyShow(name);
     await putShow(show);
     set({ shows: toRefs(await getAllShows(), get().shows) });
+    vault.note(VAULT_PATHS.show(name), showNote(name, show.year, show.location), `Show: ${name}`);
     return show;
   },
 
@@ -75,6 +80,30 @@ export const useShowStore = create<ShowStore>((set, get) => ({
   async savePost(post) {
     await putPost({ ...post, updated_at: new Date().toISOString() });
     set({ posts: await getAllPosts() });
+
+    // The wikilinks written here become edges in the Brain graph, so names are
+    // resolved to real athletes rather than stored as bare ids.
+    const athletes = await getAllAthletes();
+    const names = post.athlete_ids
+      .map((id) => athletes.find((a) => a.id === id)?.full_name)
+      .filter((n): n is string => Boolean(n));
+    const showName = post.show_id ? get().shows.find((s) => s.id === post.show_id)?.name ?? null : null;
+    const slug = `${new Date().toISOString().slice(0, 10)}-${(post.headline || "post").toLowerCase().replace(/\s+/g, "-").slice(0, 40)}`;
+
+    vault.note(
+      VAULT_PATHS.post(slug),
+      postNote({
+        slug,
+        headline: post.headline,
+        subtitle: post.subtitle,
+        postType: POST_TYPE_LABEL[post.type],
+        athletes: names,
+        show: showName,
+        format: post.format_id,
+        template: post.template_id,
+      }),
+      `Post: ${post.headline || slug}`
+    );
   },
 
   async deletePost(id) {

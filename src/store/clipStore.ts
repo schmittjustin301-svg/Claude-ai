@@ -12,6 +12,8 @@ import {
   toVideoRefs,
 } from "../lib/cliplab/clipDb";
 import type { Clip, ClipRef, SourceVideoRef } from "../lib/cliplab/clipTypes";
+import { vault } from "./vaultStore";
+import { clipNote, VAULT_PATHS } from "../lib/vault/vaultNotes";
 import {
   blobToBase64,
   fetchStatus,
@@ -83,8 +85,9 @@ export const useClipStore = create<ClipStore>((set, get) => {
         try {
           const result = await fetchStatus(clip.higgsfield_status_url);
           if (TERMINAL_STATUSES.includes(result.status)) {
+            const status = result.status === "completed" ? "done" : "failed";
             await patch(id, {
-              status: result.status === "completed" ? "done" : "failed",
+              status,
               processed_url: result.video_url,
               error:
                 result.status === "nsfw"
@@ -93,6 +96,24 @@ export const useClipStore = create<ClipStore>((set, get) => {
                     ? "Generierung fehlgeschlagen."
                     : null,
             });
+
+            // Refresh the vault note so it carries the final state and link.
+            const source = get().videos.find((v) => v.id === clip.source_video_id);
+            const slug = `${clip.label.toLowerCase().replace(/\s+/g, "-").slice(0, 40)}-${Math.round(clip.start_time)}`;
+            vault.note(
+              VAULT_PATHS.clip(slug),
+              clipNote({
+                slug,
+                label: clip.label,
+                sourceName: source?.name ?? "Unbekannt",
+                start: clip.start_time,
+                end: clip.end_time,
+                athlete: clip.athlete_name,
+                status,
+                processedUrl: result.video_url,
+              }),
+              `Clip: ${clip.label}`
+            );
             return;
           }
           if (clip.status !== "processing" && result.status === "in_progress") {
@@ -169,6 +190,21 @@ export const useClipStore = create<ClipStore>((set, get) => {
         created_at: new Date().toISOString(),
       });
       await refresh();
+
+      const slug = `${label.toLowerCase().replace(/\s+/g, "-").slice(0, 40)}-${Math.round(start)}`;
+      vault.note(
+        VAULT_PATHS.clip(slug),
+        clipNote({
+          slug,
+          label,
+          sourceName: video?.name ?? "Unbekannt",
+          start,
+          end,
+          athlete: athleteName ?? null,
+          status: "draft",
+        }),
+        `Clip: ${label}`
+      );
     },
 
     async removeClip(id) {

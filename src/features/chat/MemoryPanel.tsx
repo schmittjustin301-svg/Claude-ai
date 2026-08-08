@@ -4,6 +4,7 @@ import { useMemoryStore } from "../../store/memoryStore";
 import { Card, EmptyState, GlowButton } from "../../components/ui";
 import { searchMemories } from "../../lib/memory/memory";
 import { MemoryBackendSettings } from "./MemoryBackendSettings";
+import { VaultPanel } from "./VaultPanel";
 import {
   MEMORY_CATEGORIES,
   MEMORY_CATEGORY_LABEL,
@@ -85,6 +86,7 @@ export function MemoryPanel() {
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto">
       <MemoryBackendSettings />
+      <VaultPanel />
 
       <Card>
         <div className="mb-2 font-mono text-xs tracking-widest text-white/50 uppercase">Neuer Eintrag</div>

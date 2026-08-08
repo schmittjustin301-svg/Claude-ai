@@ -14,6 +14,8 @@ import {
   tierForLevel,
 } from "../lib/gameLogic";
 import { sound } from "../lib/sound";
+import { vault } from "./vaultStore";
+import { achievementEntry, bossEntry, contractEntry, earningEntry, roadmapEntry } from "../lib/vault/vaultNotes";
 import type {
   Achievement,
   Channel,
@@ -181,6 +183,9 @@ export const useEmpireStore = create<EmpireStore>((set, get) => ({
     sound.xpGain();
     pushToast(set, `+${gainedXp} XP — ${contract.text}`, "xp");
 
+    const channelName = s.channels.find((c) => c.id === contract.channel_id)?.name ?? contract.channel_id;
+    vault.contract(contract.text, channelName, gainedXp, contractEntry(contract.text, channelName, gainedXp));
+
     if (newLevel > prevLevel) {
       sound.levelUp();
       set({ levelUpOverlay: { visible: true, level: newLevel } });
@@ -189,6 +194,7 @@ export const useEmpireStore = create<EmpireStore>((set, get) => ({
     if (bossDefeated) {
       sound.bossVictory();
       pushToast(set, `Boss besiegt! Nächster Gegner: ${boss.name}`, "boss");
+      vault.boss(bossEntry(s.bossState.name, boss.defeated_count), s.bossState.name);
     } else {
       sound.bossHit();
     }
@@ -231,6 +237,7 @@ export const useEmpireStore = create<EmpireStore>((set, get) => ({
     const earning: Earning = { id: newId(), amount, source, date: today() };
     set((s) => ({ earnings: [earning, ...s.earnings] }));
     pushToast(set, `Einnahme geloggt: +${amount}€ (${source})`, "info");
+    vault.earning(earningEntry(amount, source, earning.id), source);
     checkAchievements(set, get);
     persist(get);
   },
@@ -243,9 +250,11 @@ export const useEmpireStore = create<EmpireStore>((set, get) => ({
   },
 
   updateRoadmapStatus(itemId, status) {
+    const item = get().roadmapItems.find((r) => r.id === itemId);
     set((s) => ({
       roadmapItems: s.roadmapItems.map((r) => (r.id === itemId ? { ...r, status } : r)),
     }));
+    if (item) vault.roadmap(roadmapEntry(item.title, status), item.title);
     persist(get);
   },
 
@@ -377,6 +386,7 @@ function checkAchievements(set: (fn: (s: EmpireStore) => Partial<EmpireStore>) =
     for (const a of toUnlock) {
       sound.achievement();
       pushToast(set, `Achievement freigeschaltet: ${a.achievement_key}`, "achievement");
+      vault.achievement(achievementEntry(a.achievement_key), a.achievement_key);
     }
   }
 }

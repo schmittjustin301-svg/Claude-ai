@@ -16,6 +16,7 @@ import { AthletesScreen } from "./features/athletes/AthletesScreen";
 import { ClipLabScreen } from "./features/cliplab/ClipLabScreen";
 import { useVideoJobNotifier } from "./features/cliplab/useVideoJobNotifier";
 import { useVideoJobStore } from "./store/videoJobStore";
+import { useVaultStore } from "./store/vaultStore";
 
 const SCREENS: Record<TabKey, () => ReactElement> = {
   overview: OverviewScreen,
@@ -35,6 +36,7 @@ function App() {
   const init = useEmpireStore((s) => s.init);
   const tick = useEmpireStore((s) => s.tick);
   const loadVideoJobs = useVideoJobStore((s) => s.load);
+  const initVault = useVaultStore((s) => s.init);
 
   // Generations outlive the tab that started them, so watching and announcing
   // them belongs at the app root rather than inside the video screen.
@@ -42,7 +44,8 @@ function App() {
 
   useEffect(() => {
     loadVideoJobs();
-  }, [loadVideoJobs]);
+    initVault();
+  }, [loadVideoJobs, initVault]);
 
   useEffect(() => {
     init();

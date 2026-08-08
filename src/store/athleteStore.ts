@@ -17,6 +17,8 @@ import {
 } from "../lib/athletes/repository";
 import { DEFAULT_TEMPLATES, type CardTemplate } from "../lib/athletes/templates";
 import type { Athlete, AthleteImageRef, AthleteInput, ImageCategory } from "../lib/athletes/types";
+import { vault } from "./vaultStore";
+import { athleteNote, VAULT_PATHS } from "../lib/vault/vaultNotes";
 
 interface AthleteStore {
   athletes: Athlete[];
@@ -79,12 +81,14 @@ export const useAthleteStore = create<AthleteStore>((set, get) => ({
   async saveAthlete(input) {
     const result = await upsertAthlete(input);
     await get().refreshAthletes();
+    writeAthleteNote(result.athlete);
     return result;
   },
 
   async editAthlete(id, input) {
-    await updateAthleteById(id, input);
+    const updated = await updateAthleteById(id, input);
     await get().refreshAthletes();
+    writeAthleteNote(updated);
   },
 
   async deleteAthlete(id) {
@@ -128,3 +132,24 @@ export const useAthleteStore = create<AthleteStore>((set, get) => ({
     set((s) => ({ templates: s.templates.filter((t) => t.id !== id) }));
   },
 }));
+
+/** Mirrors an athlete into the vault as its own note. */
+function writeAthleteNote(athlete: Athlete): void {
+  vault.note(
+    VAULT_PATHS.athlete(athlete.full_name),
+    athleteNote({
+      name: athlete.full_name,
+      division: athlete.division,
+      country: athlete.country,
+      coach: athlete.coach,
+      team: athlete.team,
+      olympiaStatus: athlete.olympia_status,
+      height: athlete.height,
+      weight: athlete.weight,
+      season: athlete.season,
+      sponsors: athlete.sponsors,
+      tags: athlete.tags,
+    }),
+    `Athlet: ${athlete.full_name}`
+  );
+}
