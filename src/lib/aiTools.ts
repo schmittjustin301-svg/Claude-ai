@@ -9,6 +9,7 @@ import {
   MEMORY_TOOL_NAMES,
   executeMemoryTool,
 } from "./memory/memoryTools";
+import { BRAIN_TOOL_DEFINITIONS, BRAIN_TOOL_NAMES, executeBrainTool } from "./brain/brainTools";
 import {
   VIDEO_TOOL_DEFINITIONS,
   VIDEO_TOOL_NAMES,
@@ -176,12 +177,13 @@ export function executeEmpireTool(name: string, input: Record<string, unknown>, 
   }
 }
 
-/** Every tool JARVIS can call: empire mechanics, athletes, memory, video. */
+/** Every tool JARVIS can call: empire, athletes, memory, video, brain. */
 export const ALL_TOOL_DEFINITIONS = [
   ...TOOL_DEFINITIONS,
   ...ATHLETE_TOOL_DEFINITIONS,
   ...MEMORY_TOOL_DEFINITIONS,
   ...VIDEO_TOOL_DEFINITIONS,
+  ...BRAIN_TOOL_DEFINITIONS,
 ];
 
 /**
@@ -202,6 +204,9 @@ export async function executeTool(
   }
   if (VIDEO_TOOL_NAMES.has(name)) {
     return executeVideoTool(name, input);
+  }
+  if (BRAIN_TOOL_NAMES.has(name)) {
+    return executeBrainTool(name, input);
   }
   return executeEmpireTool(name, input, store);
 }

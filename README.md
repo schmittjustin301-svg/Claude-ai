@@ -97,11 +97,39 @@ In Safari über die HTTPS-URL: Teilen-Button → „Zum Home-Bildschirm". Danach
 
 Der Athletes-Tab hat drei Bereiche:
 
-**Studio** — Namen eintippen (einer pro Zeile), fertige Grafik rausbekommen. Die Suche ist tippfehlertolerant: „Missy Truscot" findet „Missy Truscott" und zeigt die Trefferquote an. Das Layout wird automatisch nach Anzahl gewählt (1 = Hero, 2 = Side by Side, 3 = Triple, 4–6 = Grid, >6 = mehrere Reihen). Export als PNG einzeln oder in allen 9 Formaten (Instagram Feed/Story, Facebook, X, YouTube Community/Thumbnail, Square, Portrait, Landscape).
+**Posts** — Namen eintippen (einer pro Zeile), fertige Grafik rausbekommen. Dazu **Headline** (Anton) und **Subtitel** (Inter, erscheint unten und überdeckt nie einen Athleten — das Grid schrumpft stattdessen). Posts werden gespeichert und lassen sich später wieder öffnen und ändern.
+
+Post-Typ **Show-Lineup** setzt zusätzlich das Logo der gewählten Show mittig über das Athleten-Grid, skaliert relativ zur Canvas-Breite. Shows verwaltest du im **Shows**-Tab (Logo als transparentes PNG, optional eine Glow-Variante). Die Suche ist tippfehlertolerant: „Missy Truscot" findet „Missy Truscott" und zeigt die Trefferquote an. Das Layout wird automatisch nach Anzahl gewählt (1 = Hero, 2 = Side by Side, 3 = Triple, 4–6 = Grid, >6 = mehrere Reihen). Export als PNG einzeln oder in allen 9 Formaten (Instagram Feed/Story, Facebook, X, YouTube Community/Thumbnail, Square, Portrait, Landscape).
 
 **Datenbank** — Athleten anlegen, bearbeiten, löschen, Bilder je Kategorie verwalten (Portrait, Stage, Front/Side/Back Pose, Progress). Bulk-Bildupload: Dateiname = Athletenname, bestehende Profile werden ergänzt statt dupliziert.
 
 **Templates** — Hintergrund, Farben, Fonts, Rahmen, Schatten, Eckenradius, Logo, Abstände und Bildanteil pro Marke einstellbar. Vier Vorlagen sind dabei (Full Access Weekly, Female Bodybuilding Channel, Muscle Media TV, Olympia Coverage); für eine eigene Marke duplizieren.
+
+### Clip Lab
+
+Video-Arbeit ist ein eigenes Modul mit eigenem Tab, getrennt von der Athleten-Bibliothek. Ein Clip *kann* einem Athleten zugeordnet sein, muss aber nicht.
+
+**Aus Foto** — Athletenfoto zu cinematischem Clip (siehe unten).
+
+**Highlights** — Video hochladen, im Player scrubben, Start/Ende setzen, Highlight markieren. Clips werden als Zeitmarken auf dem Original gespeichert, nicht neu kodiert: das Original bleibt unangetastet und das Markieren ist sofort fertig. Echtes Schneiden im Browser bräuchte ffmpeg.wasm (~30 MB Download) oder Echtzeit-Neukodierung mit Qualitätsverlust.
+
+> **Was Higgsfield mit Clips kann — und was nicht:** Die API bietet **keine** Video-zu-Video-Bearbeitung an. Upscaling oder Stilisierung eines bestehenden Clips gibt es dort nicht, nur Bild-zu-Video. Weitergegeben wird deshalb ein Frame aus der Mitte des Segments, aus dem ein neuer Clip generiert wird. Der Hinweis steht auch direkt in der UI.
+
+Der Verbrauch zeigt die von dieser App gestarteten Generierungen. Higgsfield bietet keine Guthaben-Abfrage an — der echte Kontostand steht auf cloud.higgsfield.ai.
+
+### Brain — Wissensgraph
+
+Der Brain-Tab zeigt als Netzwerk, was die App über dein Business weiß. Knotenfarben: Athleten rot, Shows weiß, Posts & Clips grau, Business grün, Ziele gold. Die Knotengröße wächst mit der Zahl der Verbindungen, Klick öffnet ein Detailpanel mit Link in die Obsidian-Note.
+
+Gebaut wird der Graph aus dem Vault — die Wikilinks deiner Notizen *sind* die Kanten. Ist der Vault nicht erreichbar, fällt er auf die App-Daten zurück und sagt das auch dazu. Je sauberer der Vault-Sync schreibt, desto reicher wird der Graph.
+
+JARVIS hat dafür `queryBrain`: fragt man nach Zusammenhängen („In welchen Posts kommt Missy vor?"), durchsucht er den Graphen — und die Knoten, auf die er sich stützt, leuchten im Brain-Tab auf.
+
+### Vault-Sync
+
+Unter JARVIS → Gedächtnis → **Vault-Sync** lässt sich einschalten, dass alles in den Obsidian-Vault geschrieben wird: erledigte Contracts in die Tagesnotiz, Einnahmen ins Ledger, Athleten/Shows/Posts/Clips als eigene Notes, Boss-Siege und Achievements ins Log — jeweils als Markdown mit YAML-Frontmatter und Wikilinks unter `GRIND EMPIRE/`.
+
+Geschrieben wird **additiv**: Notizen wachsen, von Hand Ergänztes bleibt erhalten. Ist Obsidian zu, wandern die Einträge in eine Warteschlange und werden nachgeholt, sobald es wieder erreichbar ist — nichts geht verloren. Den Stand siehst du im Panel.
 
 ### Video — Athletenfoto zu Clip (Higgsfield)
 

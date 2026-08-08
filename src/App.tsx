@@ -14,6 +14,7 @@ import { AchievementsScreen } from "./features/achievements/AchievementsScreen";
 import { ChatScreen } from "./features/chat/ChatScreen";
 import { AthletesScreen } from "./features/athletes/AthletesScreen";
 import { ClipLabScreen } from "./features/cliplab/ClipLabScreen";
+import { BrainScreen } from "./features/brain/BrainScreen";
 import { useVideoJobNotifier } from "./features/cliplab/useVideoJobNotifier";
 import { useVideoJobStore } from "./store/videoJobStore";
 import { useVaultStore } from "./store/vaultStore";
@@ -25,6 +26,7 @@ const SCREENS: Record<TabKey, () => ReactElement> = {
   earnings: EarningsScreen,
   athletes: AthletesScreen,
   cliplab: ClipLabScreen,
+  brain: BrainScreen,
   roadmap: RoadmapScreen,
   skills: SkillTreeScreen,
   achievements: AchievementsScreen,
