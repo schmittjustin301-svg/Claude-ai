@@ -119,7 +119,20 @@ Der Verbrauch zeigt die von dieser App gestarteten Generierungen. Higgsfield bie
 
 ### Grind Clicker
 
-Ein Clicker-Minigame im eigenen Tab: Reps sammeln, Upgrades kaufen (vom Protein Shake bis zum AI Content Team), und ab genug Gesamt-Reps per **Rebrand** prestigen — das setzt den Fortschritt zurück und tauscht ihn gegen Clout, das dauerhaft +2% pro Punkt gibt. Fortschritt wird lokal gespeichert und läuft offline weiter, beim Öffnen bekommst du den Zwischenertrag gutgeschrieben.
+Ein Clicker-Minigame im eigenen Tab, mit fünf Bereichen: **Grind**, **Upgrades**, **Perks**, **Ränge**, **Awards**.
+
+Die Progression ist geschichtet, damit immer ein nächstes Ziel auf einer anderen Zeitskala offen ist:
+
+- **16 Upgrades** vom Protein Shake bis zu den Olympia-Rechten, mit ×1/×10/MAX-Kauf. Alle 25 Stufen **verdoppelt** sich die Wirkung eines Upgrades — jedes hat damit sein eigenes Langzeitziel.
+- **24 Ränge** nach Gesamt-Reps (Rookie bis Endgegner), jeder gibt dauerhaft +8% auf alles.
+- **Rebrand (Prestige)** tauscht den Fortschritt in **Clout**.
+- **7 Clout-Perks**, die jeden Rebrand überleben: stärkere Klicks, mehr Auto-Ertrag, Startkapital für den nächsten Lauf, längerer Offline-Ertrag, bessere goldene Reps, längere Combos, günstigere Upgrades. Clout ist damit eine Entscheidung statt nur einer größeren Zahl.
+- **Legacy** als zweite Prestige-Ebene (ab 5 Rebrands und 50 verdientem Clout): setzt *auch* Clout und Perks zurück und gibt dafür +50% auf alles, dauerhaft.
+- **Goldene Reps** tauchen zufällig auf und geben entweder einen Frenzy-Multiplikator auf Klicks oder eine Sofortauszahlung — belohnt aktives Zuschauen.
+- **Klick-Combo**, die bei schnellem Klicken hochzählt und wieder abfällt.
+- **22 Awards** mit je +2% dauerhaft.
+
+Fortschritt läuft offline weiter, beim Öffnen bekommst du den Zwischenertrag gutgeschrieben. Gespeichert wird gedrosselt und beim Verlassen der Seite sofort — schnelles Klicken soll nicht durch Speicher-Schreibvorgänge ruckeln.
 
 Es hängt bewusst nicht am Empire-Fortschritt: eigener Store, eigene Währung, keine Kopplung an XP oder Contracts.
 

@@ -1,3 +1,9 @@
+// Grind Clicker — game rules.
+//
+// Progression is layered so there is always a next goal at a different time
+// scale: upgrades (minutes), milestones (tens of minutes), ranks (a session),
+// Clout perks (across prestiges), Legacy (across many prestiges).
+
 export interface ClickerUpgrade {
   id: string;
   name: string;
@@ -8,37 +14,226 @@ export interface ClickerUpgrade {
   power: number;
 }
 
-/** Fitness-empire themed upgrade ladder — cheap gym gear up to a full AI content team. */
+/** Fitness-empire ladder, from a protein shake to owning the whole sport. */
 export const CLICKER_UPGRADES: ClickerUpgrade[] = [
   { id: "shake", name: "Protein Shake", icon: "🥤", description: "+1 Rep pro Klick", baseCost: 15, kind: "click", power: 1 },
   { id: "bands", name: "Resistance Bands", icon: "🎗️", description: "+1 Rep/Sek", baseCost: 25, kind: "auto", power: 1 },
   { id: "trainer", name: "Personal Trainer", icon: "🏋️", description: "+5 Reps pro Klick", baseCost: 150, kind: "click", power: 5 },
   { id: "ringlight", name: "Ring Light Setup", icon: "💡", description: "+5 Reps/Sek", baseCost: 300, kind: "auto", power: 5 },
-  { id: "editor", name: "Viral Hook Editor", icon: "🎬", description: "+25 Reps/Sek", baseCost: 1500, kind: "auto", power: 25 },
-  { id: "sponsor", name: "Sponsorship Deal", icon: "🤝", description: "+50 Reps pro Klick", baseCost: 5000, kind: "click", power: 50 },
-  { id: "studio", name: "Eigenes Studio", icon: "🏟️", description: "+200 Reps/Sek", baseCost: 20000, kind: "auto", power: 200 },
-  { id: "aiteam", name: "AI Content Team", icon: "🤖", description: "+1000 Reps/Sek", baseCost: 100000, kind: "auto", power: 1000 },
+  { id: "editor", name: "Viral Hook Editor", icon: "🎬", description: "+25 Reps/Sek", baseCost: 1_500, kind: "auto", power: 25 },
+  { id: "sponsor", name: "Sponsorship Deal", icon: "🤝", description: "+50 Reps pro Klick", baseCost: 5_000, kind: "click", power: 50 },
+  { id: "studio", name: "Eigenes Studio", icon: "🏟️", description: "+200 Reps/Sek", baseCost: 20_000, kind: "auto", power: 200 },
+  { id: "aiteam", name: "AI Content Team", icon: "🤖", description: "+1.000 Reps/Sek", baseCost: 100_000, kind: "auto", power: 1_000 },
+
+  // Late game — each tier is roughly an order of magnitude past the last.
+  { id: "camera", name: "Kamera-Crew", icon: "📹", description: "+500 Reps pro Klick", baseCost: 400_000, kind: "click", power: 500 },
+  { id: "gymchain", name: "Gym-Kette", icon: "🏢", description: "+6.000 Reps/Sek", baseCost: 1_200_000, kind: "auto", power: 6_000 },
+  { id: "supplement", name: "Supplement-Linie", icon: "💊", description: "+35.000 Reps/Sek", baseCost: 8_000_000, kind: "auto", power: 35_000 },
+  { id: "agency", name: "Athleten-Agentur", icon: "📇", description: "+8.000 Reps pro Klick", baseCost: 40_000_000, kind: "click", power: 8_000 },
+  { id: "network", name: "Streaming-Netzwerk", icon: "📡", description: "+250.000 Reps/Sek", baseCost: 200_000_000, kind: "auto", power: 250_000 },
+  { id: "federation", name: "Eigene Föderation", icon: "🏅", description: "+2 Mio Reps/Sek", baseCost: 1_500_000_000, kind: "auto", power: 2_000_000 },
+  { id: "empire", name: "Medien-Imperium", icon: "👑", description: "+400.000 Reps pro Klick", baseCost: 10_000_000_000, kind: "click", power: 400_000 },
+  { id: "olympia", name: "Olympia-Rechte", icon: "🏛️", description: "+25 Mio Reps/Sek", baseCost: 80_000_000_000, kind: "auto", power: 25_000_000 },
 ];
 
-/** Classic clicker cost curve: +15% per level already owned. */
+/** Classic cost curve: +15% per level already owned. */
 export function upgradeCost(baseCost: number, owned: number): number {
   return Math.ceil(baseCost * Math.pow(1.15, owned));
 }
 
-export function repsPerClick(owned: Record<string, number>, clout: number): number {
-  const base = 1 + CLICKER_UPGRADES.filter((u) => u.kind === "click").reduce((sum, u) => sum + u.power * (owned[u.id] ?? 0), 0);
-  return base * cloutMultiplier(clout);
+/** Total cost of buying `count` more levels, for the ×10 / max buttons. */
+export function bulkCost(baseCost: number, owned: number, count: number): number {
+  let total = 0;
+  for (let i = 0; i < count; i++) total += upgradeCost(baseCost, owned + i);
+  return total;
 }
 
-export function repsPerSecond(owned: Record<string, number>, clout: number): number {
-  const base = CLICKER_UPGRADES.filter((u) => u.kind === "auto").reduce((sum, u) => sum + u.power * (owned[u.id] ?? 0), 0);
-  return base * cloutMultiplier(clout);
+export function maxAffordable(baseCost: number, owned: number, reps: number, cap = 1000): number {
+  let count = 0;
+  let spent = 0;
+  while (count < cap) {
+    const next = upgradeCost(baseCost, owned + count);
+    if (spent + next > reps) break;
+    spent += next;
+    count++;
+  }
+  return count;
 }
 
-/** Prestige currency ("Clout"): +2% permanent multiplier per point. */
+/* ------------------------------------------------------------ milestones */
+
+export const MILESTONE_STEP = 25;
+
+/**
+ * Every 25 levels doubles that upgrade's output. Gives each upgrade its own
+ * long-term goal instead of it going flat once you can afford many.
+ */
+export function milestoneMultiplier(owned: number): number {
+  return Math.pow(2, Math.floor(owned / MILESTONE_STEP));
+}
+
+export function nextMilestone(owned: number): number {
+  return (Math.floor(owned / MILESTONE_STEP) + 1) * MILESTONE_STEP;
+}
+
+/* ----------------------------------------------------------------- ranks */
+
+export interface Rank {
+  index: number;
+  name: string;
+  threshold: number;
+}
+
+const RANK_NAMES = [
+  "Rookie", "Gym Rat", "Beginner Gains", "Consistent", "Shredded",
+  "Local Legend", "Regional Star", "Nationalkader", "Pro Card", "Sponsored",
+  "Headliner", "Champion", "Titelverteidiger", "Hall of Famer", "Ikone",
+  "Mr. Olympia", "Legende", "Unsterblich", "Mythos", "Über-Mensch",
+  "Grind Gott", "Singularität", "Omniversal", "Endgegner",
+];
+
+/** Thresholds grow ~×4.2 per rank, so the ladder spans a whole run. */
+export const RANKS: Rank[] = RANK_NAMES.map((name, index) => ({
+  index,
+  name,
+  threshold: index === 0 ? 0 : Math.round(100 * Math.pow(4.2, index - 1)),
+}));
+
+export function rankFor(totalRepsEarned: number): Rank {
+  let current = RANKS[0];
+  for (const rank of RANKS) {
+    if (totalRepsEarned >= rank.threshold) current = rank;
+    else break;
+  }
+  return current;
+}
+
+export function nextRank(totalRepsEarned: number): Rank | null {
+  return RANKS.find((r) => r.threshold > totalRepsEarned) ?? null;
+}
+
+/** Each rank adds +8% to everything — a steady background reward for playing on. */
+export function rankMultiplier(totalRepsEarned: number): number {
+  return 1 + rankFor(totalRepsEarned).index * 0.08;
+}
+
+/* ----------------------------------------------------------- clout perks */
+
+export interface CloutPerk {
+  id: string;
+  name: string;
+  icon: string;
+  description: string;
+  baseCost: number;
+  maxLevel: number;
+}
+
+/**
+ * Clout is spent here rather than only being a flat multiplier, so each
+ * prestige is a decision instead of just a bigger number.
+ */
+export const CLOUT_PERKS: CloutPerk[] = [
+  { id: "fists", name: "Eiserne Fäuste", icon: "👊", description: "+30% Reps pro Klick je Stufe", baseCost: 1, maxLevel: 20 },
+  { id: "engine", name: "Dauerläufer", icon: "⚙️", description: "+30% Reps/Sek je Stufe", baseCost: 1, maxLevel: 20 },
+  { id: "headstart", name: "Startkapital", icon: "🎒", description: "Nach jedem Rebrand mit Reps starten", baseCost: 2, maxLevel: 15 },
+  { id: "offline", name: "Offline-Meister", icon: "🌙", description: "+2 Std Offline-Ertrag je Stufe", baseCost: 3, maxLevel: 10 },
+  { id: "golden", name: "Goldene Reps", icon: "✨", description: "Goldene Reps kommen häufiger und geben mehr", baseCost: 4, maxLevel: 10 },
+  { id: "combo", name: "Combo-Meister", icon: "🔥", description: "Combo hält länger und steigt höher", baseCost: 4, maxLevel: 10 },
+  { id: "discount", name: "Großeinkauf", icon: "🏷️", description: "-3% Upgrade-Kosten je Stufe", baseCost: 5, maxLevel: 12 },
+];
+
+/** Perk prices climb so late levels stay meaningful purchases. */
+export function perkCost(perk: CloutPerk, level: number): number {
+  return Math.ceil(perk.baseCost * Math.pow(1.6, level));
+}
+
+export function perkLevel(perks: Record<string, number>, id: string): number {
+  return perks[id] ?? 0;
+}
+
+/* --------------------------------------------------------------- legacy */
+
+/** Second prestige layer, unlocked once Clout stops being the bottleneck. */
+export const LEGACY_UNLOCK_PRESTIGES = 5;
+export const LEGACY_UNLOCK_CLOUT = 50;
+
+export function canGoLegacy(prestigeCount: number, lifetimeClout: number): boolean {
+  return prestigeCount >= LEGACY_UNLOCK_PRESTIGES && lifetimeClout >= LEGACY_UNLOCK_CLOUT;
+}
+
+export function legacyForReset(lifetimeClout: number): number {
+  if (lifetimeClout < LEGACY_UNLOCK_CLOUT) return 0;
+  return Math.floor(Math.pow(lifetimeClout / LEGACY_UNLOCK_CLOUT, 0.7));
+}
+
+/** Legacy is deliberately strong — it is meant to reshape a whole run. */
+export function legacyMultiplier(legacy: number): number {
+  return 1 + legacy * 0.5;
+}
+
+/* -------------------------------------------------------- multipliers */
+
 export function cloutMultiplier(clout: number): number {
   return 1 + clout * 0.02;
 }
+
+export interface GameState {
+  owned: Record<string, number>;
+  perks: Record<string, number>;
+  clout: number;
+  legacy: number;
+  totalRepsEarned: number;
+  achievements: string[];
+}
+
+/** Small permanent boost per unlocked achievement, so they are worth chasing. */
+export function achievementMultiplier(achievements: string[]): number {
+  return 1 + achievements.length * 0.02;
+}
+
+function globalMultiplier(s: GameState): number {
+  return (
+    cloutMultiplier(s.clout) *
+    legacyMultiplier(s.legacy) *
+    rankMultiplier(s.totalRepsEarned) *
+    achievementMultiplier(s.achievements)
+  );
+}
+
+export function repsPerClick(s: GameState): number {
+  const base =
+    1 +
+    CLICKER_UPGRADES.filter((u) => u.kind === "click").reduce((sum, u) => {
+      const owned = s.owned[u.id] ?? 0;
+      return sum + u.power * owned * milestoneMultiplier(owned);
+    }, 0);
+  const perk = 1 + perkLevel(s.perks, "fists") * 0.3;
+  return base * perk * globalMultiplier(s);
+}
+
+export function repsPerSecond(s: GameState): number {
+  const base = CLICKER_UPGRADES.filter((u) => u.kind === "auto").reduce((sum, u) => {
+    const owned = s.owned[u.id] ?? 0;
+    return sum + u.power * owned * milestoneMultiplier(owned);
+  }, 0);
+  const perk = 1 + perkLevel(s.perks, "engine") * 0.3;
+  return base * perk * globalMultiplier(s);
+}
+
+export function costMultiplier(perks: Record<string, number>): number {
+  return Math.max(0.4, 1 - perkLevel(perks, "discount") * 0.03);
+}
+
+export function offlineCapSeconds(perks: Record<string, number>): number {
+  return (4 + perkLevel(perks, "offline") * 2) * 60 * 60;
+}
+
+export function headstartReps(perks: Record<string, number>): number {
+  const level = perkLevel(perks, "headstart");
+  return level === 0 ? 0 : Math.round(50 * Math.pow(4, level));
+}
+
+/* ---------------------------------------------------------- prestige */
 
 const PRESTIGE_THRESHOLD = 100_000;
 
@@ -50,11 +245,111 @@ export function canPrestige(totalRepsEarned: number): boolean {
   return cloutForPrestige(totalRepsEarned) >= 1;
 }
 
+/** Reps still needed before the next Clout point is earned. */
+export function repsToNextClout(totalRepsEarned: number): number {
+  const next = cloutForPrestige(totalRepsEarned) + 1;
+  return Math.max(0, next * next * PRESTIGE_THRESHOLD - totalRepsEarned);
+}
+
+/* ------------------------------------------------------- golden reps */
+
+export interface GoldenBuff {
+  kind: "frenzy" | "windfall";
+  /** Frenzy: click multiplier. Windfall: instant reps already granted. */
+  value: number;
+  expiresAt: number;
+}
+
+export const FRENZY_SECONDS = 15;
+
+export function goldenChancePerTick(perks: Record<string, number>): number {
+  // ~1 per 90s at level 0, down to ~1 per 30s fully upgraded.
+  return 0.011 + perkLevel(perks, "golden") * 0.002;
+}
+
+export function frenzyMultiplier(perks: Record<string, number>): number {
+  return 7 + perkLevel(perks, "golden");
+}
+
+/** Windfall pays out a slice of current production, so it scales with the run. */
+export function windfallReps(perSecond: number, perClick: number, perks: Record<string, number>): number {
+  const base = perSecond * 60 + perClick * 20;
+  return Math.max(50, base * (1 + perkLevel(perks, "golden") * 0.15));
+}
+
+/* --------------------------------------------------------------- combo */
+
+export const COMBO_MAX_BASE = 3;
+
+export function comboWindowMs(perks: Record<string, number>): number {
+  return 1200 + perkLevel(perks, "combo") * 250;
+}
+
+export function comboCap(perks: Record<string, number>): number {
+  return COMBO_MAX_BASE + perkLevel(perks, "combo") * 0.5;
+}
+
+/** Ramps toward the cap the longer a click streak is kept alive. */
+export function comboMultiplier(streak: number, perks: Record<string, number>): number {
+  const cap = comboCap(perks);
+  return Math.min(cap, 1 + streak * 0.02);
+}
+
+/* -------------------------------------------------------- achievements */
+
+export interface ClickerAchievement {
+  id: string;
+  name: string;
+  description: string;
+  test: (s: AchievementContext) => boolean;
+}
+
+export interface AchievementContext {
+  totalClicks: number;
+  totalRepsEarned: number;
+  lifetimeReps: number;
+  owned: Record<string, number>;
+  clout: number;
+  legacy: number;
+  prestigeCount: number;
+  goldenCollected: number;
+  bestCombo: number;
+}
+
+function totalUpgrades(owned: Record<string, number>): number {
+  return Object.values(owned).reduce((a, b) => a + b, 0);
+}
+
+export const CLICKER_ACHIEVEMENTS: ClickerAchievement[] = [
+  { id: "click100", name: "Aufgewärmt", description: "100 Klicks", test: (s) => s.totalClicks >= 100 },
+  { id: "click1k", name: "Trainingsplan", description: "1.000 Klicks", test: (s) => s.totalClicks >= 1_000 },
+  { id: "click10k", name: "Sehnenscheide", description: "10.000 Klicks", test: (s) => s.totalClicks >= 10_000 },
+  { id: "reps1k", name: "Erste Sätze", description: "1.000 Reps insgesamt", test: (s) => s.lifetimeReps >= 1_000 },
+  { id: "reps1m", name: "Millionär", description: "1 Mio Reps insgesamt", test: (s) => s.lifetimeReps >= 1_000_000 },
+  { id: "reps1b", name: "Milliardenschwer", description: "1 Mrd Reps insgesamt", test: (s) => s.lifetimeReps >= 1_000_000_000 },
+  { id: "reps1t", name: "Astronomisch", description: "1 Bio Reps insgesamt", test: (s) => s.lifetimeReps >= 1e12 },
+  { id: "up10", name: "Ausgerüstet", description: "10 Upgrade-Stufen", test: (s) => totalUpgrades(s.owned) >= 10 },
+  { id: "up100", name: "Vollausstattung", description: "100 Upgrade-Stufen", test: (s) => totalUpgrades(s.owned) >= 100 },
+  { id: "up500", name: "Ausrüstungs-Fetisch", description: "500 Upgrade-Stufen", test: (s) => totalUpgrades(s.owned) >= 500 },
+  { id: "milestone", name: "Meilenstein", description: "Ein Upgrade auf Stufe 25", test: (s) => Object.values(s.owned).some((n) => n >= 25) },
+  { id: "milestone2", name: "Doppelt gemoppelt", description: "Ein Upgrade auf Stufe 50", test: (s) => Object.values(s.owned).some((n) => n >= 50) },
+  { id: "allup", name: "Sammler", description: "Jedes Upgrade mindestens einmal", test: (s) => CLICKER_UPGRADES.every((u) => (s.owned[u.id] ?? 0) > 0) },
+  { id: "prestige1", name: "Rebranded", description: "Einmal prestigen", test: (s) => s.prestigeCount >= 1 },
+  { id: "prestige10", name: "Serien-Rebrand", description: "10 Rebrands", test: (s) => s.prestigeCount >= 10 },
+  { id: "clout50", name: "Bekannt", description: "50 Clout besessen", test: (s) => s.clout >= 50 },
+  { id: "legacy1", name: "Vermächtnis", description: "Erstes Legacy", test: (s) => s.legacy >= 1 },
+  { id: "legacy10", name: "Dynastie", description: "10 Legacy", test: (s) => s.legacy >= 10 },
+  { id: "golden1", name: "Glückstreffer", description: "Eine goldene Rep gefangen", test: (s) => s.goldenCollected >= 1 },
+  { id: "golden25", name: "Goldgräber", description: "25 goldene Reps gefangen", test: (s) => s.goldenCollected >= 25 },
+  { id: "combo100", name: "Im Flow", description: "Combo von 100 Klicks", test: (s) => s.bestCombo >= 100 },
+  { id: "rank10", name: "Aufgestiegen", description: "Rang 10 erreicht", test: (s) => rankFor(s.totalRepsEarned).index >= 9 },
+];
+
 export function formatReps(n: number): string {
   const sign = n < 0 ? "-" : "";
   const abs = Math.abs(n);
   if (abs < 1000) return sign + Math.floor(abs).toString();
-  const units = ["K", "M", "B", "T", "Qa", "Qi"];
+  const units = ["K", "M", "B", "T", "Qa", "Qi", "Sx", "Sp", "Oc"];
   let value = abs;
   let unitIndex = -1;
   while (value >= 1000 && unitIndex < units.length - 1) {
