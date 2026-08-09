@@ -129,7 +129,7 @@ Es ist flache Vektorgrafik statt Emoji oder Fotos: Emoji sehen auf jedem Gerät 
 
 Die Progression ist geschichtet, damit immer ein nächstes Ziel auf einer anderen Zeitskala offen ist:
 
-- **16 Upgrades** vom Protein Shake bis zu den Olympia-Rechten, mit ×1/×10/MAX-Kauf. Alle 25 Stufen **verdoppelt** sich die Wirkung eines Upgrades — jedes hat damit sein eigenes Langzeitziel.
+- **16 Upgrades** vom Protein Shake bis zu den Olympia-Rechten, mit ×1/×10/MAX-Kauf. Alle 25 Stufen **verdoppelt** sich die Wirkung eines Upgrades — jedes hat damit sein eigenes Langzeitziel. Ein eigener Knopf kauft in einem Zug **genau bis zur nächsten Verdopplung** und nennt den Preis vorher; er ist gesperrt, solange der ganze Sprung nicht bezahlbar ist, damit man nicht auf halber Strecke ohne Reps stehenbleibt.
 - **24 Ränge** nach Gesamt-Reps (Rookie bis Endgegner), jeder gibt dauerhaft +8% auf alles.
 - **Rebrand (Prestige)** tauscht den Fortschritt in **Clout**.
 - **7 Clout-Perks**, die jeden Rebrand überleben: stärkere Klicks, mehr Auto-Ertrag, Startkapital für den nächsten Lauf, längerer Offline-Ertrag, bessere goldene Reps, längere Combos, günstigere Upgrades. Clout ist damit eine Entscheidung statt nur einer größeren Zahl.

@@ -1,5 +1,5 @@
-import type { ReactNode } from "react";
-import { CLICKER_UPGRADES, gymTierFor, shopLevel } from "../../lib/clicker";
+import { useId, type ReactNode } from "react";
+import { CLICKER_UPGRADES, GYM_TIERS, gymTierFor, shopLevel } from "../../lib/clicker";
 
 /**
  * The gym, drawn from the save file.
@@ -26,7 +26,7 @@ const BLEED = 600;
 
 const FLOOR_SLOTS = [90, 180, 270, 360, 450, 540, 630, 720, 810];
 const WALL_SLOTS = [100, 225, 350, 475, 600, 725, 830];
-const WALL_Y = 120;
+const WALL_Y = 118;
 
 const DARK = "#23262c";
 const MID = "#3a3f48";
@@ -40,87 +40,120 @@ function growth(level: number): number {
 /* ------------------------------------------------------- equipment shapes */
 
 type Draw = (accent: string) => ReactNode;
+/** `w` is the half-width, used for the contact shadow under the piece. */
+interface Piece {
+  w: number;
+  draw: Draw;
+}
 
-const FLOOR_PIECES: Record<string, Draw> = {
-  trainer: (a) => (
-    <>
-      <rect x={-9} y={-14} width={6} height={14} rx={2} fill={DARK} />
-      <rect x={3} y={-14} width={6} height={14} rx={2} fill={DARK} />
-      <rect x={-8} y={-38} width={16} height={25} rx={6} fill={MID} />
-      <circle cx={0} cy={-45} r={8} fill={a} />
-      <rect x={-22} y={-36} width={44} height={4} rx={2} fill={LIGHT} />
-      <rect x={-27} y={-41} width={6} height={14} rx={2} fill={DARK} />
-      <rect x={21} y={-41} width={6} height={14} rx={2} fill={DARK} />
-    </>
-  ),
-  ringlight: (a) => (
-    <>
-      <path d="M-15 0 L0 -12 L15 0" stroke={MID} strokeWidth={4} fill="none" strokeLinecap="round" />
-      <rect x={-2} y={-42} width={4} height={32} fill={MID} />
-      <circle cx={0} cy={-54} r={15} fill="none" stroke={a} strokeWidth={5} />
-    </>
-  ),
-  studio: (a) => (
-    <>
-      <rect x={-24} y={-70} width={7} height={70} rx={2} fill={MID} />
-      <rect x={17} y={-70} width={7} height={70} rx={2} fill={MID} />
-      <rect x={-26} y={-74} width={52} height={6} rx={2} fill={a} />
-      <rect x={-30} y={-48} width={60} height={4} rx={2} fill={LIGHT} />
-      <rect x={-34} y={-53} width={6} height={14} rx={2} fill={DARK} />
-      <rect x={28} y={-53} width={6} height={14} rx={2} fill={DARK} />
-    </>
-  ),
-  aiteam: (a) => (
-    <>
-      <rect x={-17} y={-64} width={34} height={64} rx={4} fill={DARK} />
-      {[0, 1, 2, 3].map((i) => (
-        <rect key={i} x={-11} y={-56 + i * 14} width={22} height={6} rx={2} fill={i < 2 ? a : LIGHT} />
-      ))}
-    </>
-  ),
-  camera: (a) => (
-    <>
-      <path d="M-11 0 L0 -44 L11 0" stroke={MID} strokeWidth={4} fill="none" strokeLinecap="round" />
-      <rect x={-16} y={-60} width={26} height={17} rx={4} fill={DARK} />
-      <circle cx={14} cy={-51} r={6} fill={a} />
-    </>
-  ),
-  supplement: (a) => (
-    <>
-      <rect x={-25} y={-54} width={50} height={54} rx={4} fill={DARK} />
-      <rect x={-25} y={-31} width={50} height={3} fill={LIGHT} />
-      {[-18, -5, 8].map((x) => (
-        <rect key={x} x={x} y={-48} width={12} height={15} rx={3} fill={a} />
-      ))}
-      {[-18, -5, 8].map((x) => (
-        <rect key={`b${x}`} x={x} y={-25} width={12} height={15} rx={3} fill={MID} />
-      ))}
-    </>
-  ),
-  agency: (a) => (
-    <>
-      <rect x={-22} y={-11} width={5} height={11} fill={DARK} />
-      <rect x={17} y={-11} width={5} height={11} fill={DARK} />
-      <rect x={-27} y={-17} width={54} height={6} rx={2} fill={MID} />
-      <rect x={-15} y={-42} width={30} height={22} rx={3} fill="#0d0f12" stroke={a} strokeWidth={2} />
-    </>
-  ),
-  federation: (a) => (
-    <>
-      <rect x={-31} y={-18} width={21} height={18} rx={1} fill={DARK} />
-      <rect x={-10} y={-32} width={20} height={32} rx={1} fill={MID} />
-      <rect x={10} y={-13} width={21} height={13} rx={1} fill={DARK} />
-      <circle cx={0} cy={-42} r={7} fill={a} />
-    </>
-  ),
-  olympia: (a) => (
-    <>
-      <rect x={-22} y={-62} width={9} height={62} rx={1} fill={MID} />
-      <rect x={13} y={-62} width={9} height={62} rx={1} fill={MID} />
-      <rect x={-28} y={-68} width={56} height={6} rx={2} fill={LIGHT} />
-      <path d="M0 -86 q9 9 0 18 q-9 -9 0 -18" fill={a} />
-    </>
-  ),
+const FLOOR_PIECES: Record<string, Piece> = {
+  trainer: {
+    w: 30,
+    draw: (a) => (
+      <>
+        <rect x={-9} y={-14} width={6} height={14} rx={2} fill={DARK} />
+        <rect x={3} y={-14} width={6} height={14} rx={2} fill={DARK} />
+        <rect x={-8} y={-38} width={16} height={25} rx={6} fill={MID} />
+        <circle cx={0} cy={-45} r={8} fill={a} />
+        <rect x={-22} y={-36} width={44} height={4} rx={2} fill={LIGHT} />
+        <rect x={-27} y={-41} width={6} height={14} rx={2} fill={DARK} />
+        <rect x={21} y={-41} width={6} height={14} rx={2} fill={DARK} />
+      </>
+    ),
+  },
+  ringlight: {
+    w: 18,
+    draw: (a) => (
+      <>
+        <path d="M-15 0 L0 -12 L15 0" stroke={MID} strokeWidth={4} fill="none" strokeLinecap="round" />
+        <rect x={-2} y={-42} width={4} height={32} fill={MID} />
+        <circle cx={0} cy={-54} r={15} fill="none" stroke={a} strokeWidth={5} />
+        <circle cx={0} cy={-54} r={11} fill={a} opacity={0.12} />
+      </>
+    ),
+  },
+  studio: {
+    w: 34,
+    draw: (a) => (
+      <>
+        <rect x={-24} y={-70} width={7} height={70} rx={2} fill={MID} />
+        <rect x={17} y={-70} width={7} height={70} rx={2} fill={MID} />
+        <rect x={-26} y={-74} width={52} height={6} rx={2} fill={a} />
+        <rect x={-30} y={-48} width={60} height={4} rx={2} fill={LIGHT} />
+        <rect x={-34} y={-53} width={6} height={14} rx={2} fill={DARK} />
+        <rect x={28} y={-53} width={6} height={14} rx={2} fill={DARK} />
+      </>
+    ),
+  },
+  aiteam: {
+    w: 19,
+    draw: (a) => (
+      <>
+        <rect x={-17} y={-64} width={34} height={64} rx={4} fill={DARK} />
+        {[0, 1, 2, 3].map((i) => (
+          <rect key={i} x={-11} y={-56 + i * 14} width={22} height={6} rx={2} fill={i < 2 ? a : LIGHT} />
+        ))}
+      </>
+    ),
+  },
+  camera: {
+    w: 17,
+    draw: (a) => (
+      <>
+        <path d="M-11 0 L0 -44 L11 0" stroke={MID} strokeWidth={4} fill="none" strokeLinecap="round" />
+        <rect x={-16} y={-60} width={26} height={17} rx={4} fill={DARK} />
+        <circle cx={14} cy={-51} r={6} fill={a} />
+      </>
+    ),
+  },
+  supplement: {
+    w: 27,
+    draw: (a) => (
+      <>
+        <rect x={-25} y={-54} width={50} height={54} rx={4} fill={DARK} />
+        <rect x={-25} y={-31} width={50} height={3} fill={LIGHT} />
+        {[-18, -5, 8].map((x) => (
+          <rect key={x} x={x} y={-48} width={12} height={15} rx={3} fill={a} />
+        ))}
+        {[-18, -5, 8].map((x) => (
+          <rect key={`b${x}`} x={x} y={-25} width={12} height={15} rx={3} fill={MID} />
+        ))}
+      </>
+    ),
+  },
+  agency: {
+    w: 28,
+    draw: (a) => (
+      <>
+        <rect x={-22} y={-11} width={5} height={11} fill={DARK} />
+        <rect x={17} y={-11} width={5} height={11} fill={DARK} />
+        <rect x={-27} y={-17} width={54} height={6} rx={2} fill={MID} />
+        <rect x={-15} y={-42} width={30} height={22} rx={3} fill="#0d0f12" stroke={a} strokeWidth={2} />
+      </>
+    ),
+  },
+  federation: {
+    w: 32,
+    draw: (a) => (
+      <>
+        <rect x={-31} y={-18} width={21} height={18} rx={1} fill={DARK} />
+        <rect x={-10} y={-32} width={20} height={32} rx={1} fill={MID} />
+        <rect x={10} y={-13} width={21} height={13} rx={1} fill={DARK} />
+        <circle cx={0} cy={-42} r={7} fill={a} />
+      </>
+    ),
+  },
+  olympia: {
+    w: 29,
+    draw: (a) => (
+      <>
+        <rect x={-22} y={-62} width={9} height={62} rx={1} fill={MID} />
+        <rect x={13} y={-62} width={9} height={62} rx={1} fill={MID} />
+        <rect x={-28} y={-68} width={56} height={6} rx={2} fill={LIGHT} />
+        <path d="M0 -86 q9 9 0 18 q-9 -9 0 -18" fill={a} />
+      </>
+    ),
+  },
 };
 
 const WALL_PIECES: Record<string, Draw> = {
@@ -185,6 +218,10 @@ export function GymView({
 }) {
   const tier = gymTierFor(prestigeCount);
   const accent = tier.accent;
+  // The scene renders twice in the DOM (desktop and mobile blocks), so gradient
+  // ids have to be unique per instance or the second definition wins for both.
+  const uid = useId().replace(/:/g, "");
+  const id = (name: string) => `${name}-${uid}`;
 
   // Pieces take the next free slot in upgrade order, so an early gym is
   // sparse but evenly spread instead of everything huddling on the left.
@@ -205,20 +242,24 @@ export function GymView({
   const bench = shopLevel(shop, "bench");
   const bar = shopLevel(shop, "bar");
   const empty = floorItems.length === 0 && wallItems.length === 0;
+  // Ceiling lights: a garage has two bare bulbs, a campus is properly lit.
+  const lamps = 2 + Math.floor(tier.index / 2);
 
   return (
     <div className="relative">
-      <div className="mb-2 flex items-end justify-between gap-3">
+      <div className="mb-2.5 flex items-end justify-between gap-3">
         <div className="min-w-0">
           <div className="truncate font-display text-lg leading-tight tracking-wide text-ge-white">{tier.name}</div>
           <div className="truncate text-[12px] text-white/45">{tier.tagline}</div>
         </div>
-        <div className="shrink-0 text-right">
-          <div className="text-[11px] text-white/40">Gym-Stufe</div>
-          <div className="font-display text-lg leading-tight" style={{ color: accent }}>
-            {tier.index + 1}
-            <span className="text-white/30"> / {9}</span>
-          </div>
+        <div className="flex shrink-0 items-center gap-1.5" title={`Gym-Stufe ${tier.index + 1} von ${GYM_TIERS.length}`}>
+          {GYM_TIERS.map((t) => (
+            <span
+              key={t.index}
+              className="h-1.5 w-1.5 rounded-full transition-colors"
+              style={{ background: t.index <= tier.index ? accent : "rgba(255,255,255,0.14)" }}
+            />
+          ))}
         </div>
       </div>
 
@@ -230,16 +271,56 @@ export function GymView({
         role="img"
         aria-label={`Dein Gym: ${tier.name}, ${floorItems.length + wallItems.length} Geräte`}
       >
-        {/* Windows — the room gets more daylight the further up you move. */}
+        <defs>
+          {/* Light falls from the ceiling, so every surface is brighter at the top. */}
+          <linearGradient id={id("wall")} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#ffffff" stopOpacity={0.055} />
+            <stop offset="100%" stopColor="#ffffff" stopOpacity={0} />
+          </linearGradient>
+          <linearGradient id={id("floor")} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor="#ffffff" stopOpacity={0.07} />
+            <stop offset="100%" stopColor="#000000" stopOpacity={0.35} />
+          </linearGradient>
+          <linearGradient id={id("beam")} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={accent} stopOpacity={0.11} />
+            <stop offset="100%" stopColor={accent} stopOpacity={0} />
+          </linearGradient>
+          <radialGradient id={id("vig")} cx="50%" cy="45%" r="72%">
+            <stop offset="55%" stopColor="#000000" stopOpacity={0} />
+            <stop offset="100%" stopColor="#000000" stopOpacity={0.45} />
+          </radialGradient>
+        </defs>
+
+        <rect x={-BLEED} y={0} width={WIDTH + BLEED * 2} height={WALL_BOTTOM} fill={`url(#${id("wall")})`} />
+
+        {/* Windows — the room gets more daylight the further up you move.
+            Drawn before the lamps so the light washes over them. */}
         {Array.from({ length: tier.windows }).map((_, i) => {
           const gap = WIDTH / (tier.windows + 1);
-          const x = gap * (i + 1) - 26;
+          const x = gap * (i + 1) - 27;
           return (
             <g key={i}>
-              <rect x={x} y={26} width={52} height={52} rx={4} fill="#0c0e12" />
-              <rect x={x} y={26} width={52} height={52} rx={4} fill={accent} opacity={0.1} />
-              <rect x={x + 24} y={26} width={4} height={52} fill={tier.wall} opacity={0.9} />
-              <rect x={x} y={50} width={52} height={4} fill={tier.wall} opacity={0.9} />
+              <rect x={x - 3} y={53} width={60} height={60} rx={6} fill="#000000" opacity={0.25} />
+              <rect x={x} y={56} width={54} height={54} rx={4} fill="#0c0e12" />
+              <rect x={x} y={56} width={54} height={54} rx={4} fill={accent} opacity={0.12} />
+              <rect x={x + 25} y={56} width={4} height={54} fill={tier.wall} opacity={0.9} />
+              <rect x={x} y={81} width={54} height={4} fill={tier.wall} opacity={0.9} />
+              <rect x={x - 2} y={54} width={58} height={58} rx={5} fill="none" stroke={MID} strokeWidth={2} />
+            </g>
+          );
+        })}
+
+        {/* Ceiling rail and lamps, with the light they throw down the wall.
+            Offset by half a spacing so they never sit right on a window. */}
+        <rect x={-BLEED} y={10} width={WIDTH + BLEED * 2} height={4} fill={DARK} />
+        {Array.from({ length: lamps }).map((_, i) => {
+          const x = (WIDTH * (i + 0.5)) / lamps;
+          return (
+            <g key={i} transform={`translate(${x},0)`}>
+              <rect x={-1.5} y={14} width={3} height={14} fill={MID} />
+              <path d="M-17 42 L17 42 L10 28 L-10 28 z" fill={DARK} />
+              <ellipse cx={0} cy={42} rx={17} ry={3.5} fill={accent} opacity={0.55} />
+              <path d={`M-17 44 L17 44 L52 ${WALL_BOTTOM} L-52 ${WALL_BOTTOM} z`} fill={`url(#${id("beam")})`} />
             </g>
           );
         })}
@@ -271,17 +352,42 @@ export function GymView({
           );
         })}
 
-        {/* Floor: baseboard, surface, and a lighter strip for a hint of depth. */}
+        {/* Floor: baseboard, surface, gradient for depth, and lane markings. */}
         <rect x={-BLEED} y={WALL_BOTTOM - 6} width={WIDTH + BLEED * 2} height={6} fill={tier.trim} />
         <rect x={-BLEED} y={WALL_BOTTOM} width={WIDTH + BLEED * 2} height={HEIGHT - WALL_BOTTOM} fill={tier.floor} />
-        <rect x={-BLEED} y={WALL_BOTTOM} width={WIDTH + BLEED * 2} height={2} fill="#ffffff" opacity={0.05} />
+        <rect
+          x={-BLEED}
+          y={WALL_BOTTOM}
+          width={WIDTH + BLEED * 2}
+          height={HEIGHT - WALL_BOTTOM}
+          fill={`url(#${id("floor")})`}
+        />
+        {[248, 268, 288].map((y) => (
+          <rect key={y} x={-BLEED} y={y} width={WIDTH + BLEED * 2} height={1} fill="#ffffff" opacity={0.035} />
+        ))}
 
+        {/* Contact shadows first, so nothing casts a shadow over its neighbour. */}
         {floorItems.map((it) => {
-          const draw = FLOOR_PIECES[it.id];
-          if (!draw) return null;
+          const piece = FLOOR_PIECES[it.id];
+          if (!piece) return null;
+          return (
+            <ellipse
+              key={`sh-${it.id}`}
+              cx={it.x}
+              cy={FLOOR_Y + 2}
+              rx={piece.w * growth(it.level) * 1.1}
+              ry={5}
+              fill="#000000"
+              opacity={0.4}
+            />
+          );
+        })}
+        {floorItems.map((it) => {
+          const piece = FLOOR_PIECES[it.id];
+          if (!piece) return null;
           return (
             <g key={it.id} transform={`translate(${it.x},${FLOOR_Y}) scale(${growth(it.level)})`}>
-              {draw(accent)}
+              {piece.draw(accent)}
             </g>
           );
         })}
@@ -289,6 +395,7 @@ export function GymView({
         {/* Front row — fixtures sit closer to the viewer than the equipment. */}
         {bench > 0 && (
           <g transform="translate(210,292)">
+            <ellipse cx={0} cy={2} rx={44} ry={5} fill="#000000" opacity={0.4} />
             <rect x={-34} y={-16} width={68} height={9} rx={4} fill={MID} />
             <rect x={-26} y={-7} width={7} height={7} fill={DARK} />
             <rect x={19} y={-7} width={7} height={7} fill={DARK} />
@@ -297,6 +404,7 @@ export function GymView({
         )}
         {bar > 0 && (
           <g transform="translate(680,292)">
+            <ellipse cx={0} cy={2} rx={46} ry={5} fill="#000000" opacity={0.4} />
             <rect x={-40} y={-30} width={80} height={30} rx={4} fill={DARK} />
             <rect x={-40} y={-34} width={80} height={6} rx={3} fill={accent} opacity={0.8} />
             {[-26, -8, 10].map((x) => (
@@ -304,6 +412,15 @@ export function GymView({
             ))}
           </g>
         )}
+
+        <rect
+          x={-BLEED}
+          y={0}
+          width={WIDTH + BLEED * 2}
+          height={HEIGHT}
+          fill={`url(#${id("vig")})`}
+          pointerEvents="none"
+        />
       </svg>
 
       {empty && (

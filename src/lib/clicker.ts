@@ -78,6 +78,26 @@ export function nextMilestone(owned: number): number {
   return (Math.floor(owned / MILESTONE_STEP) + 1) * MILESTONE_STEP;
 }
 
+/** Levels still missing before the next doubling. */
+export function levelsToMilestone(owned: number): number {
+  return nextMilestone(owned) - owned;
+}
+
+/**
+ * Price of `count` further levels at the current discount. Rounds per level the
+ * same way the purchase does, so the price on the button is the price charged.
+ */
+export function bulkCostWithDiscount(
+  baseCost: number,
+  owned: number,
+  count: number,
+  discount: number
+): number {
+  let total = 0;
+  for (let i = 0; i < count; i++) total += Math.ceil(upgradeCost(baseCost, owned + i) * discount);
+  return total;
+}
+
 /* ----------------------------------------------------------------- ranks */
 
 export interface Rank {

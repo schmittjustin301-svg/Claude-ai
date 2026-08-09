@@ -7,6 +7,7 @@ import {
   CLICKER_UPGRADES,
   CLOUT_PERKS,
   COIN_SHOP,
+  bulkCostWithDiscount,
   canGoLegacy,
   cloutForPrestige,
   cloutMultiplier,
@@ -18,8 +19,8 @@ import {
   LEGACY_UNLOCK_PRESTIGES,
   legacyForReset,
   legacyMultiplier,
+  levelsToMilestone,
   milestoneMultiplier,
-  nextMilestone,
   nextRank,
   perkCost,
   perkLevel,
@@ -328,8 +329,10 @@ export function ClickerScreen() {
           const affordable = s.reps >= cost;
           if (!(owned > 0 || s.lifetimeReps >= u.baseCost * 0.4)) return null;
           const mult = milestoneMultiplier(owned);
-          const toNext = nextMilestone(owned);
           const milestoneProgress = (owned % 25) / 25;
+          const missing = levelsToMilestone(owned);
+          const milestoneCost = bulkCostWithDiscount(u.baseCost, owned, missing, costMultiplier(s.perks));
+          const canReachMilestone = s.reps >= milestoneCost;
 
           return (
             <div
@@ -375,16 +378,28 @@ export function ClickerScreen() {
                 >
                   MAX
                 </button>
-                {owned > 0 && (
-                  <span className="ml-auto shrink-0 text-[10px] text-white/30">
-                    Stufe {toNext} → ×{mult * 2}
-                  </span>
-                )}
               </div>
 
               {owned > 0 && (
-                <div className="mt-2 pl-7">
+                <div className="mt-2 space-y-1.5 pl-7">
                   <Meter value={milestoneProgress} color="gold" />
+                  {/* One click to the next doubling — otherwise you have to
+                      count levels yourself and guess how many ×10 buys fit. */}
+                  <button
+                    onClick={() => s.buyUpgrade(u.id, missing)}
+                    disabled={!canReachMilestone}
+                    className={clsx(
+                      "flex w-full items-center justify-between gap-2 rounded-lg px-2.5 py-1.5 text-[11px] transition",
+                      canReachMilestone
+                        ? "bg-ge-gold/15 text-ge-gold hover:bg-ge-gold/25"
+                        : "bg-white/[0.04] text-white/30"
+                    )}
+                  >
+                    <span className="truncate">
+                      +{missing} Stufen → ×{mult * 2}
+                    </span>
+                    <span className="shrink-0 font-mono">{formatReps(milestoneCost)} Reps</span>
+                  </button>
                 </div>
               )}
             </div>
