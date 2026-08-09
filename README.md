@@ -117,6 +117,12 @@ Video-Arbeit ist ein eigenes Modul mit eigenem Tab, getrennt von der Athleten-Bi
 
 Der Verbrauch zeigt die von dieser App gestarteten Generierungen. Higgsfield bietet keine Guthaben-Abfrage an — der echte Kontostand steht auf cloud.higgsfield.ai.
 
+### Grind Clicker
+
+Ein Clicker-Minigame im eigenen Tab: Reps sammeln, Upgrades kaufen (vom Protein Shake bis zum AI Content Team), und ab genug Gesamt-Reps per **Rebrand** prestigen — das setzt den Fortschritt zurück und tauscht ihn gegen Clout, das dauerhaft +2% pro Punkt gibt. Fortschritt wird lokal gespeichert und läuft offline weiter, beim Öffnen bekommst du den Zwischenertrag gutgeschrieben.
+
+Es hängt bewusst nicht am Empire-Fortschritt: eigener Store, eigene Währung, keine Kopplung an XP oder Contracts.
+
 ### Brain — Wissensgraph
 
 Der Brain-Tab zeigt als Netzwerk, was die App über dein Business weiß. Knotenfarben: Athleten rot, Shows weiß, Posts & Clips grau, Business grün, Ziele gold. Die Knotengröße wächst mit der Zahl der Verbindungen, Klick öffnet ein Detailpanel mit Link in die Obsidian-Note.

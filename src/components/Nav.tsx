@@ -18,7 +18,7 @@ export const TABS: { key: TabKey; label: string; icon: string }[] = [
   { key: "overview", label: "Empire", icon: "🏙️" },
   { key: "today", label: "Today", icon: "☑️" },
   { key: "boss", label: "Boss", icon: "⚔️" },
-  { key: "clicker", label: "Clicker", icon: "🏋️" },
+  { key: "clicker", label: "Clicker", icon: "💪" },
   { key: "earnings", label: "Earnings", icon: "💰" },
   { key: "athletes", label: "Athletes", icon: "🏋️" },
   { key: "cliplab", label: "Clip Lab", icon: "🎞️" },
