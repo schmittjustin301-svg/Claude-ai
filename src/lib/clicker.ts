@@ -12,28 +12,30 @@ export interface ClickerUpgrade {
   baseCost: number;
   kind: "click" | "auto";
   power: number;
+  /** Where this shows up in the gym view: standing on the floor or hung on the wall. */
+  place: "floor" | "wall";
 }
 
 /** Fitness-empire ladder, from a protein shake to owning the whole sport. */
 export const CLICKER_UPGRADES: ClickerUpgrade[] = [
-  { id: "shake", name: "Protein Shake", icon: "🥤", description: "+1 Rep pro Klick", baseCost: 15, kind: "click", power: 1 },
-  { id: "bands", name: "Resistance Bands", icon: "🎗️", description: "+1 Rep/Sek", baseCost: 25, kind: "auto", power: 1 },
-  { id: "trainer", name: "Personal Trainer", icon: "🏋️", description: "+5 Reps pro Klick", baseCost: 150, kind: "click", power: 5 },
-  { id: "ringlight", name: "Ring Light Setup", icon: "💡", description: "+5 Reps/Sek", baseCost: 300, kind: "auto", power: 5 },
-  { id: "editor", name: "Viral Hook Editor", icon: "🎬", description: "+25 Reps/Sek", baseCost: 1_500, kind: "auto", power: 25 },
-  { id: "sponsor", name: "Sponsorship Deal", icon: "🤝", description: "+50 Reps pro Klick", baseCost: 5_000, kind: "click", power: 50 },
-  { id: "studio", name: "Eigenes Studio", icon: "🏟️", description: "+200 Reps/Sek", baseCost: 20_000, kind: "auto", power: 200 },
-  { id: "aiteam", name: "AI Content Team", icon: "🤖", description: "+1.000 Reps/Sek", baseCost: 100_000, kind: "auto", power: 1_000 },
+  { id: "shake", name: "Protein Shake", icon: "🥤", description: "+1 Rep pro Klick", baseCost: 15, kind: "click", power: 1, place: "wall" },
+  { id: "bands", name: "Resistance Bands", icon: "🎗️", description: "+1 Rep/Sek", baseCost: 25, kind: "auto", power: 1, place: "wall" },
+  { id: "trainer", name: "Personal Trainer", icon: "🏋️", description: "+5 Reps pro Klick", baseCost: 150, kind: "click", power: 5, place: "floor" },
+  { id: "ringlight", name: "Ring Light Setup", icon: "💡", description: "+5 Reps/Sek", baseCost: 300, kind: "auto", power: 5, place: "floor" },
+  { id: "editor", name: "Viral Hook Editor", icon: "🎬", description: "+25 Reps/Sek", baseCost: 1_500, kind: "auto", power: 25, place: "wall" },
+  { id: "sponsor", name: "Sponsorship Deal", icon: "🤝", description: "+50 Reps pro Klick", baseCost: 5_000, kind: "click", power: 50, place: "wall" },
+  { id: "studio", name: "Eigenes Studio", icon: "🏟️", description: "+200 Reps/Sek", baseCost: 20_000, kind: "auto", power: 200, place: "floor" },
+  { id: "aiteam", name: "AI Content Team", icon: "🤖", description: "+1.000 Reps/Sek", baseCost: 100_000, kind: "auto", power: 1_000, place: "floor" },
 
   // Late game — each tier is roughly an order of magnitude past the last.
-  { id: "camera", name: "Kamera-Crew", icon: "📹", description: "+500 Reps pro Klick", baseCost: 400_000, kind: "click", power: 500 },
-  { id: "gymchain", name: "Gym-Kette", icon: "🏢", description: "+6.000 Reps/Sek", baseCost: 1_200_000, kind: "auto", power: 6_000 },
-  { id: "supplement", name: "Supplement-Linie", icon: "💊", description: "+35.000 Reps/Sek", baseCost: 8_000_000, kind: "auto", power: 35_000 },
-  { id: "agency", name: "Athleten-Agentur", icon: "📇", description: "+8.000 Reps pro Klick", baseCost: 40_000_000, kind: "click", power: 8_000 },
-  { id: "network", name: "Streaming-Netzwerk", icon: "📡", description: "+250.000 Reps/Sek", baseCost: 200_000_000, kind: "auto", power: 250_000 },
-  { id: "federation", name: "Eigene Föderation", icon: "🏅", description: "+2 Mio Reps/Sek", baseCost: 1_500_000_000, kind: "auto", power: 2_000_000 },
-  { id: "empire", name: "Medien-Imperium", icon: "👑", description: "+400.000 Reps pro Klick", baseCost: 10_000_000_000, kind: "click", power: 400_000 },
-  { id: "olympia", name: "Olympia-Rechte", icon: "🏛️", description: "+25 Mio Reps/Sek", baseCost: 80_000_000_000, kind: "auto", power: 25_000_000 },
+  { id: "camera", name: "Kamera-Crew", icon: "📹", description: "+500 Reps pro Klick", baseCost: 400_000, kind: "click", power: 500, place: "floor" },
+  { id: "gymchain", name: "Gym-Kette", icon: "🏢", description: "+6.000 Reps/Sek", baseCost: 1_200_000, kind: "auto", power: 6_000, place: "wall" },
+  { id: "supplement", name: "Supplement-Linie", icon: "💊", description: "+35.000 Reps/Sek", baseCost: 8_000_000, kind: "auto", power: 35_000, place: "floor" },
+  { id: "agency", name: "Athleten-Agentur", icon: "📇", description: "+8.000 Reps pro Klick", baseCost: 40_000_000, kind: "click", power: 8_000, place: "floor" },
+  { id: "network", name: "Streaming-Netzwerk", icon: "📡", description: "+250.000 Reps/Sek", baseCost: 200_000_000, kind: "auto", power: 250_000, place: "wall" },
+  { id: "federation", name: "Eigene Föderation", icon: "🏅", description: "+2 Mio Reps/Sek", baseCost: 1_500_000_000, kind: "auto", power: 2_000_000, place: "floor" },
+  { id: "empire", name: "Medien-Imperium", icon: "👑", description: "+400.000 Reps pro Klick", baseCost: 10_000_000_000, kind: "click", power: 400_000, place: "wall" },
+  { id: "olympia", name: "Olympia-Rechte", icon: "🏛️", description: "+25 Mio Reps/Sek", baseCost: 80_000_000_000, kind: "auto", power: 25_000_000, place: "floor" },
 ];
 
 /** Classic cost curve: +15% per level already owned. */
@@ -171,6 +173,102 @@ export function legacyMultiplier(legacy: number): number {
   return 1 + legacy * 0.5;
 }
 
+/* ------------------------------------------------------------- the gym */
+
+/**
+ * The gym you train in. One step up per Rebrand — the visible reward for
+ * prestiging, so a reset reads as moving into a bigger place rather than
+ * losing everything.
+ */
+export interface GymTier {
+  index: number;
+  name: string;
+  tagline: string;
+  /** Back wall, floor and trim colours. Kept near-black so the room stays calm. */
+  wall: string;
+  floor: string;
+  trim: string;
+  accent: string;
+  windows: number;
+}
+
+export const GYM_TIERS: GymTier[] = [
+  { index: 0, name: "Garage", tagline: "Wo alles anfängt", wall: "#111113", floor: "#181818", trim: "#26262a", accent: "#8a8f98", windows: 1 },
+  { index: 1, name: "Kellerstudio", tagline: "Kein Fenster, kein Problem", wall: "#111216", floor: "#1a1b1f", trim: "#2a2c32", accent: "#a3a9b4", windows: 0 },
+  { index: 2, name: "Hinterhof-Gym", tagline: "Die ersten Stammgäste", wall: "#121317", floor: "#1c1e22", trim: "#2d3038", accent: "#ff1432", windows: 2 },
+  { index: 3, name: "Stadtteil-Studio", tagline: "Eigenes Schild an der Tür", wall: "#131519", floor: "#1e2126", trim: "#31353e", accent: "#ff1432", windows: 3 },
+  { index: 4, name: "Premium-Club", tagline: "Handtuchservice inklusive", wall: "#14161b", floor: "#20242a", trim: "#363b45", accent: "#ffd24a", windows: 3 },
+  { index: 5, name: "Sportzentrum", tagline: "Drei Etagen, ein Ziel", wall: "#15181d", floor: "#222730", trim: "#3a404b", accent: "#ffd24a", windows: 4 },
+  { index: 6, name: "Mega-Gym", tagline: "Rund um die Uhr voll", wall: "#161a20", floor: "#242a34", trim: "#3e4552", accent: "#39ff88", windows: 4 },
+  { index: 7, name: "Arena-Komplex", tagline: "Mit eigener Tribüne", wall: "#171c24", floor: "#262d39", trim: "#424a59", accent: "#39ff88", windows: 5 },
+  { index: 8, name: "Olympia-Campus", tagline: "Ein ganzes Gelände", wall: "#181e28", floor: "#28303e", trim: "#46505f", accent: "#ffd24a", windows: 6 },
+];
+
+export function gymTierFor(prestigeCount: number): GymTier {
+  return GYM_TIERS[Math.min(prestigeCount, GYM_TIERS.length - 1)];
+}
+
+/* ------------------------------------------------------------ coin shop */
+
+/**
+ * Quests pay Coins, not Clout. Deliberately a separate currency: Clout is the
+ * prestige reward and buying perks with quest income would let quests
+ * short-circuit the whole prestige loop. Coins buy gym equipment instead —
+ * smaller bonuses, plus the pieces that show up in the gym view.
+ */
+export interface ShopItem {
+  id: string;
+  name: string;
+  icon: string;
+  description: string;
+  baseCost: number;
+  /** 0 marks a consumable: bought again and again, never levelled. */
+  maxLevel: number;
+}
+
+export const COIN_SHOP: ShopItem[] = [
+  { id: "bench", name: "Extra Hantelbank", icon: "🪑", description: "+5% Reps pro Klick je Stufe", baseCost: 3, maxLevel: 10 },
+  { id: "music", name: "Sound-Anlage", icon: "🔊", description: "+5% Reps/Sek je Stufe", baseCost: 3, maxLevel: 10 },
+  { id: "mirror", name: "Spiegelwand", icon: "🪞", description: "+20% Wert goldener Reps je Stufe", baseCost: 5, maxLevel: 5 },
+  { id: "bar", name: "Saftbar", icon: "🧃", description: "+1 Coin pro erfüllter Quest je Stufe", baseCost: 8, maxLevel: 5 },
+  { id: "clock", name: "Stoppuhr", icon: "⏱️", description: "-10% Quest-Ziele je Stufe", baseCost: 6, maxLevel: 5 },
+  { id: "preworkout", name: "Pre-Workout", icon: "⚡", description: "10 Minuten lang alles ×3", baseCost: 6, maxLevel: 0 },
+  { id: "reroll", name: "Neue Aufträge", icon: "🔄", description: "Tauscht alle offenen Quests aus", baseCost: 2, maxLevel: 0 },
+];
+
+export const PREWORKOUT_MS = 10 * 60 * 1000;
+export const PREWORKOUT_MULTIPLIER = 3;
+
+export function shopLevel(shop: Record<string, number>, id: string): number {
+  return shop[id] ?? 0;
+}
+
+export function shopCost(item: ShopItem, level: number): number {
+  if (item.maxLevel === 0) return item.baseCost;
+  return Math.ceil(item.baseCost * Math.pow(1.7, level));
+}
+
+/** Only the levelled items decorate the gym; consumables have nothing to show. */
+export function shopClickBonus(shop: Record<string, number>): number {
+  return 1 + shopLevel(shop, "bench") * 0.05;
+}
+
+export function shopAutoBonus(shop: Record<string, number>): number {
+  return 1 + shopLevel(shop, "music") * 0.05;
+}
+
+export function goldenValueBonus(shop: Record<string, number>): number {
+  return 1 + shopLevel(shop, "mirror") * 0.2;
+}
+
+export function questCoinBonus(shop: Record<string, number>): number {
+  return shopLevel(shop, "bar");
+}
+
+export function questTargetFactor(shop: Record<string, number>): number {
+  return Math.max(0.5, 1 - shopLevel(shop, "clock") * 0.1);
+}
+
 /* -------------------------------------------------------- multipliers */
 
 export function cloutMultiplier(clout: number): number {
@@ -180,10 +278,13 @@ export function cloutMultiplier(clout: number): number {
 export interface GameState {
   owned: Record<string, number>;
   perks: Record<string, number>;
+  shop: Record<string, number>;
   clout: number;
   legacy: number;
   totalRepsEarned: number;
   achievements: string[];
+  /** Active temporary multiplier (Pre-Workout), 1 when nothing is running. */
+  boost: number;
 }
 
 /** Small permanent boost per unlocked achievement, so they are worth chasing. */
@@ -196,7 +297,8 @@ function globalMultiplier(s: GameState): number {
     cloutMultiplier(s.clout) *
     legacyMultiplier(s.legacy) *
     rankMultiplier(s.totalRepsEarned) *
-    achievementMultiplier(s.achievements)
+    achievementMultiplier(s.achievements) *
+    (s.boost || 1)
   );
 }
 
@@ -208,7 +310,7 @@ export function repsPerClick(s: GameState): number {
       return sum + u.power * owned * milestoneMultiplier(owned);
     }, 0);
   const perk = 1 + perkLevel(s.perks, "fists") * 0.3;
-  return base * perk * globalMultiplier(s);
+  return base * perk * shopClickBonus(s.shop) * globalMultiplier(s);
 }
 
 export function repsPerSecond(s: GameState): number {
@@ -217,7 +319,7 @@ export function repsPerSecond(s: GameState): number {
     return sum + u.power * owned * milestoneMultiplier(owned);
   }, 0);
   const perk = 1 + perkLevel(s.perks, "engine") * 0.3;
-  return base * perk * globalMultiplier(s);
+  return base * perk * shopAutoBonus(s.shop) * globalMultiplier(s);
 }
 
 export function costMultiplier(perks: Record<string, number>): number {
@@ -272,9 +374,14 @@ export function frenzyMultiplier(perks: Record<string, number>): number {
 }
 
 /** Windfall pays out a slice of current production, so it scales with the run. */
-export function windfallReps(perSecond: number, perClick: number, perks: Record<string, number>): number {
+export function windfallReps(
+  perSecond: number,
+  perClick: number,
+  perks: Record<string, number>,
+  shop: Record<string, number> = {}
+): number {
   const base = perSecond * 60 + perClick * 20;
-  return Math.max(50, base * (1 + perkLevel(perks, "golden") * 0.15));
+  return Math.max(50, base * (1 + perkLevel(perks, "golden") * 0.15) * goldenValueBonus(shop));
 }
 
 /* --------------------------------------------------------------- combo */
@@ -314,6 +421,8 @@ export interface AchievementContext {
   prestigeCount: number;
   goldenCollected: number;
   bestCombo: number;
+  questsDone: number;
+  shopLevels: number;
 }
 
 function totalUpgrades(owned: Record<string, number>): number {
@@ -343,6 +452,10 @@ export const CLICKER_ACHIEVEMENTS: ClickerAchievement[] = [
   { id: "golden25", name: "Goldgräber", description: "25 goldene Reps gefangen", test: (s) => s.goldenCollected >= 25 },
   { id: "combo100", name: "Im Flow", description: "Combo von 100 Klicks", test: (s) => s.bestCombo >= 100 },
   { id: "rank10", name: "Aufgestiegen", description: "Rang 10 erreicht", test: (s) => rankFor(s.totalRepsEarned).index >= 9 },
+  { id: "quest10", name: "Auftragslage", description: "10 Quests erfüllt", test: (s) => s.questsDone >= 10 },
+  { id: "quest50", name: "Immer geliefert", description: "50 Quests erfüllt", test: (s) => s.questsDone >= 50 },
+  { id: "shop5", name: "Eingerichtet", description: "5 Ausstattungs-Stufen gekauft", test: (s) => s.shopLevels >= 5 },
+  { id: "gym4", name: "Umgezogen", description: "Ins vierte Gym einziehen", test: (s) => s.prestigeCount >= 3 },
 ];
 
 export function formatReps(n: number): string {
@@ -415,15 +528,21 @@ export interface Quest {
   reward: number;
 }
 
-export function makeQuest(kind: QuestKind, tier: number, startValue: number): Quest {
+export function makeQuest(
+  kind: QuestKind,
+  tier: number,
+  startValue: number,
+  targetFactor = 1,
+  rewardBonus = 0
+): Quest {
   const def = QUEST_DEFS[kind];
   return {
     id: `${kind}-${tier}-${Math.random().toString(36).slice(2, 8)}`,
     kind,
     tier,
-    target: Math.round(def.target(tier)),
+    target: Math.max(1, Math.round(def.target(tier) * targetFactor)),
     startValue,
-    reward: def.reward(tier),
+    reward: def.reward(tier) + rewardBonus,
   };
 }
 

@@ -3,6 +3,13 @@ import {
   CLICKER_ACHIEVEMENTS,
   CLICKER_UPGRADES,
   CLOUT_PERKS,
+  COIN_SHOP,
+  PREWORKOUT_MS,
+  PREWORKOUT_MULTIPLIER,
+  questCoinBonus,
+  questTargetFactor,
+  shopCost,
+  shopLevel,
   cloutForPrestige,
   comboMultiplier,
   comboWindowMs,
@@ -40,9 +47,14 @@ interface Persisted {
   totalClicks: number;
   owned: Record<string, number>;
   perks: Record<string, number>;
+  /** Levels of the gym equipment bought with Coins. */
+  shop: Record<string, number>;
   clout: number;
   /** Clout ever earned, so spending it does not block the Legacy gate. */
   lifetimeClout: number;
+  /** Quest currency. Deliberately separate from Clout — see COIN_SHOP. */
+  coins: number;
+  lifetimeCoins: number;
   legacy: number;
   prestigeCount: number;
   legacyCount: number;
@@ -51,6 +63,8 @@ interface Persisted {
   bestCombo: number;
   quests: Quest[];
   questsDone: number;
+  /** Pre-Workout: end of the temporary global multiplier, 0 when inactive. */
+  boostUntil: number;
   lastTick: number;
 }
 
@@ -62,8 +76,11 @@ function seed(): Persisted {
     totalClicks: 0,
     owned: {},
     perks: {},
+    shop: {},
     clout: 0,
     lifetimeClout: 0,
+    coins: 0,
+    lifetimeCoins: 0,
     legacy: 0,
     prestigeCount: 0,
     legacyCount: 0,
@@ -72,6 +89,7 @@ function seed(): Persisted {
     bestCombo: 0,
     quests: [],
     questsDone: 0,
+    boostUntil: 0,
     lastTick: Date.now(),
   };
 }
@@ -154,8 +172,11 @@ function stripTransient(s: Persisted): Persisted {
     totalClicks: s.totalClicks,
     owned: s.owned,
     perks: s.perks,
+    shop: s.shop,
     clout: s.clout,
     lifetimeClout: s.lifetimeClout,
+    coins: s.coins,
+    lifetimeCoins: s.lifetimeCoins,
     legacy: s.legacy,
     prestigeCount: s.prestigeCount,
     legacyCount: s.legacyCount,
@@ -164,6 +185,7 @@ function stripTransient(s: Persisted): Persisted {
     bestCombo: s.bestCombo,
     quests: s.quests,
     questsDone: s.questsDone,
+    boostUntil: s.boostUntil,
     lastTick: s.lastTick,
   };
 }
@@ -187,6 +209,7 @@ interface ClickerStore extends Persisted {
   buyUpgrade(id: string, count?: number): void;
   buyMax(id: string): void;
   buyPerk(id: string): void;
+  buyShopItem(id: string): void;
   prestige(): void;
   goLegacy(): void;
   tick(): void;
@@ -207,16 +230,22 @@ export const useClickerStore = create<ClickerStore>((set, get) => {
     return {
       owned: s.owned,
       perks: s.perks,
+      shop: s.shop,
       clout: s.clout,
       legacy: s.legacy,
       totalRepsEarned: s.totalRepsEarned,
       achievements: s.achievements,
+      boost: Date.now() < s.boostUntil ? PREWORKOUT_MULTIPLIER : 1,
     };
   }
 
+  /**
+   * Capped at three. A Rebrand can unlock a handful of awards at once, and an
+   * uncapped stack covered half the screen with notifications.
+   */
   function pushToast(text: string, kind: ClickerToast["kind"]) {
     const id = toastId++;
-    set((s) => ({ toasts: [...s.toasts, { id, text, kind }] }));
+    set((s) => ({ toasts: [...s.toasts, { id, text, kind }].slice(-3) }));
     setTimeout(() => set((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })), 4000);
   }
 
@@ -233,6 +262,8 @@ export const useClickerStore = create<ClickerStore>((set, get) => {
       prestigeCount: s.prestigeCount,
       goldenCollected: s.goldenCollected,
       bestCombo: s.bestCombo,
+      questsDone: s.questsDone,
+      shopLevels: Object.values(s.shop).reduce((a, b) => a + b, 0),
     };
     const unlocked: string[] = [];
     for (const a of CLICKER_ACHIEVEMENTS) {
@@ -268,11 +299,13 @@ export const useClickerStore = create<ClickerStore>((set, get) => {
     if (s.quests.length >= 3) return;
     const taken = new Set(s.quests.map((q) => q.kind));
     const tier = Math.floor(s.questsDone / 3);
+    const factor = questTargetFactor(s.shop);
+    const bonus = questCoinBonus(s.shop);
     const next = [...s.quests];
     for (const kind of QUEST_KINDS) {
       if (next.length >= 3) break;
       if (taken.has(kind)) continue;
-      next.push(makeQuest(kind, tier, counterFor(kind)));
+      next.push(makeQuest(kind, tier, counterFor(kind), factor, bonus));
     }
     set({ quests: next });
   }
@@ -379,6 +412,35 @@ export const useClickerStore = create<ClickerStore>((set, get) => {
       save(get());
     },
 
+    buyShopItem(id) {
+      const s = get();
+      const def = COIN_SHOP.find((i) => i.id === id);
+      if (!def) return;
+      const level = shopLevel(s.shop, id);
+      if (def.maxLevel > 0 && level >= def.maxLevel) return;
+      const cost = shopCost(def, level);
+      if (s.coins < cost) return;
+      set({ coins: s.coins - cost });
+
+      if (def.maxLevel === 0) {
+        // Consumables do something once instead of levelling up.
+        if (id === "preworkout") {
+          set({ boostUntil: Date.now() + PREWORKOUT_MS });
+          pushToast(`⚡ Pre-Workout: ×${PREWORKOUT_MULTIPLIER} für 10 Minuten`, "golden");
+        } else if (id === "reroll") {
+          set({ quests: [] });
+          refillQuests();
+          pushToast("🔄 Neue Aufträge", "rank");
+        }
+      } else {
+        set({ shop: { ...s.shop, [id]: level + 1 } });
+        pushToast(`${def.icon} ${def.name} Stufe ${level + 1}`, "rank");
+      }
+      sound.levelUp();
+      checkAchievements();
+      save(get());
+    },
+
     prestige() {
       const s = get();
       const gain = cloutForPrestige(s.totalRepsEarned);
@@ -414,6 +476,9 @@ export const useClickerStore = create<ClickerStore>((set, get) => {
       const s = get();
       const gain = legacyForReset(s.lifetimeClout);
       if (gain < 1) return;
+      // Coins and gym equipment survive on purpose: they are the quest economy,
+      // not the prestige economy, and wiping them would punish quest play for a
+      // reset it has nothing to do with.
       set({
         reps: 0,
         totalRepsEarned: 0,
@@ -480,7 +545,7 @@ export const useClickerStore = create<ClickerStore>((set, get) => {
         });
         pushToast(`✨ Frenzy! ×${frenzyMultiplier(s.perks)} pro Klick`, "golden");
       } else {
-        const amount = windfallReps(repsPerSecond(state()), repsPerClick(state()), s.perks);
+        const amount = windfallReps(repsPerSecond(state()), repsPerClick(state()), s.perks, s.shop);
         grant(amount);
         pushToast(`✨ Windfall! +${Math.round(amount).toLocaleString("de-DE")} Reps`, "golden");
       }
@@ -498,13 +563,13 @@ export const useClickerStore = create<ClickerStore>((set, get) => {
       if (questProgress(quest, counterFor(quest.kind)) < 1) return;
 
       set({
-        clout: s.clout + quest.reward,
-        lifetimeClout: s.lifetimeClout + quest.reward,
+        coins: s.coins + quest.reward,
+        lifetimeCoins: s.lifetimeCoins + quest.reward,
         questsDone: s.questsDone + 1,
         quests: s.quests.filter((q) => q.id !== id),
       });
       sound.achievement();
-      pushToast(`Quest erfüllt: +${quest.reward} Clout`, "rank");
+      pushToast(`Quest erfüllt: +${quest.reward} Coins`, "rank");
       refillQuests();
       checkAchievements();
       save(get());

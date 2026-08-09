@@ -119,7 +119,13 @@ Der Verbrauch zeigt die von dieser App gestarteten Generierungen. Higgsfield bie
 
 ### Grind Clicker
 
-Ein Clicker-Minigame im eigenen Tab. Auf dem Desktop liegen **alle** Bereiche als Dashboard nebeneinander — Grind, Quests, Upgrades, Rebrand, Perks, Ränge, Awards sind gleichzeitig sichtbar, ohne zwischen Tabs zu wechseln. Auf dem Handy ist dafür kein Platz, dort bleiben es drei Panes (Grind / Upgrades / Meta).
+Ein Clicker-Minigame im eigenen Tab. Auf dem Desktop liegen **alle** Bereiche als Dashboard nebeneinander — Gym, Training, Aufträge, Ausrüstung, Umziehen, Perks, Ränge, Awards sind gleichzeitig sichtbar, ohne zwischen Tabs zu wechseln. Auf dem Handy ist dafür kein Platz, dort bleiben es drei Panes (Training / Kaufen / Meta).
+
+#### Das Gym
+
+Oben steht dein Gym als gezeichneter Raum (`GymView.tsx`), gefüllt aus dem Spielstand: **jedes gekaufte Upgrade stellt ein Gerät hinein** — Hantelstange, Ringlicht, Squat-Rack, Serverschrank, Kamera, Podium — und jeder **Rebrand zieht dich in ein größeres Gym um**, von der Garage bis zum Olympia-Campus (9 Stufen, jede mit eigener Wand-, Boden- und Akzentfarbe und mehr Fenstern). Geräte belegen der Reihe nach freie Plätze, damit ein junges Gym leer und aufgeräumt wirkt und ein spätes voll.
+
+Es ist flache Vektorgrafik statt Emoji oder Fotos: Emoji sehen auf jedem Gerät anders aus, und Fotos würden dem Rest der App die Aufmerksamkeit wegnehmen.
 
 Die Progression ist geschichtet, damit immer ein nächstes Ziel auf einer anderen Zeitskala offen ist:
 
@@ -130,8 +136,9 @@ Die Progression ist geschichtet, damit immer ein nächstes Ziel auf einer andere
 - **Legacy** als zweite Prestige-Ebene (ab 5 Rebrands und 50 verdientem Clout): setzt *auch* Clout und Perks zurück und gibt dafür +50% auf alles, dauerhaft.
 - **Goldene Reps** tauchen zufällig auf und geben entweder einen Frenzy-Multiplikator auf Klicks oder eine Sofortauszahlung — belohnt aktives Zuschauen.
 - **Klick-Combo**, die bei schnellem Klicken hochzählt und wieder abfällt.
-- **22 Awards** mit je +2% dauerhaft.
-- **Quests**: drei Aufträge gleichzeitig (klicken, Reps verdienen, Upgrades kaufen, goldene Reps fangen, Combo halten), die nach dem Einlösen sofort nachgefüllt werden und Clout geben. Die Schwierigkeit steigt mit der Zahl der erledigten Quests, damit sie im späten Spiel nicht trivial werden. Upgrade-Quests zählen nach einem Rebrand von vorn — sonst wären sie durch den Reset unerfüllbar.
+- **26 Awards** mit je +2% dauerhaft.
+- **Aufträge**: drei Quests gleichzeitig (klicken, Reps verdienen, Upgrades kaufen, goldene Reps fangen, Combo halten), die nach dem Einlösen sofort nachgefüllt werden. Die Schwierigkeit steigt mit der Zahl der erledigten Aufträge, damit sie im späten Spiel nicht trivial werden. Upgrade-Quests zählen nach einem Rebrand von vorn — sonst wären sie durch den Reset unerfüllbar.
+- **Coins** sind die Auftrags-Währung, bewusst getrennt von Clout: würden Quests Clout zahlen, könnte man den Prestige-Kreislauf an den Rebrands vorbei abkürzen. Coins gehen stattdessen in die **Gym-Ausstattung** — Hantelbank, Sound-Anlage, Spiegelwand, Saftbar, Stoppuhr (kleine Dauerboni, alle auch im Gym oben sichtbar) sowie zwei Verbrauchsartikel: Pre-Workout (10 Minuten alles ×3) und ein Auftrags-Tausch. Ausstattung und Coins überleben Rebrand *und* Legacy — sie gehören nicht zum Prestige-Kreislauf.
 
 Fortschritt wird überall als Balken gezeigt (nächster Rang, Clout beim nächsten Rebrand, nächster Upgrade-Meilenstein, Legacy-Freischaltung), damit auch ohne Rechnen sichtbar ist, wie weit das nächste Ziel noch weg ist.
 

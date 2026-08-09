@@ -63,7 +63,7 @@ function App() {
   const Screen = SCREENS[tab];
 
   return (
-    <div className="ge-grid-bg min-h-screen bg-ge-black text-ge-white">
+    <div className="ge-ambient min-h-screen bg-ge-black text-ge-white">
       <Toasts />
       <LevelUpOverlay />
       <Nav active={tab} onChange={setTab} />
