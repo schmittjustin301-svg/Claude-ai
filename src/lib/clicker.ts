@@ -359,3 +359,78 @@ export function formatReps(n: number): string {
   const decimals = value < 10 ? 2 : value < 100 ? 1 : 0;
   return `${sign}${value.toFixed(decimals)}${units[unitIndex]}`;
 }
+
+/* --------------------------------------------------------------- quests */
+
+export type QuestKind = "clicks" | "reps" | "upgrades" | "golden" | "combo";
+
+export interface QuestDef {
+  kind: QuestKind;
+  label: (target: number) => string;
+  /** Scales with how far the player already is, so quests stay meaningful. */
+  target: (tier: number) => number;
+  reward: (tier: number) => number;
+}
+
+export const QUEST_DEFS: Record<QuestKind, QuestDef> = {
+  clicks: {
+    kind: "clicks",
+    label: (t) => `${t.toLocaleString("de-DE")} Klicks`,
+    target: (tier) => 50 * Math.pow(2, tier),
+    reward: (tier) => 1 + tier,
+  },
+  reps: {
+    kind: "reps",
+    label: (t) => `${formatReps(t)} Reps verdienen`,
+    target: (tier) => 2_000 * Math.pow(3.5, tier),
+    reward: (tier) => 1 + tier,
+  },
+  upgrades: {
+    kind: "upgrades",
+    label: (t) => `${t} Upgrade-Stufen kaufen`,
+    target: (tier) => 5 + tier * 5,
+    reward: (tier) => 1 + tier,
+  },
+  golden: {
+    kind: "golden",
+    label: (t) => `${t} goldene Reps fangen`,
+    target: (tier) => 1 + tier,
+    reward: (tier) => 2 + tier,
+  },
+  combo: {
+    kind: "combo",
+    label: (t) => `Combo von ${t} halten`,
+    target: (tier) => 25 * (tier + 1),
+    reward: (tier) => 2 + tier,
+  },
+};
+
+export interface Quest {
+  id: string;
+  kind: QuestKind;
+  tier: number;
+  target: number;
+  /** Snapshot of the counter when the quest was issued. */
+  startValue: number;
+  reward: number;
+}
+
+export function makeQuest(kind: QuestKind, tier: number, startValue: number): Quest {
+  const def = QUEST_DEFS[kind];
+  return {
+    id: `${kind}-${tier}-${Math.random().toString(36).slice(2, 8)}`,
+    kind,
+    tier,
+    target: Math.round(def.target(tier)),
+    startValue,
+    reward: def.reward(tier),
+  };
+}
+
+export function questLabel(quest: Quest): string {
+  return QUEST_DEFS[quest.kind].label(quest.target);
+}
+
+export function questProgress(quest: Quest, current: number): number {
+  return Math.max(0, Math.min(1, (current - quest.startValue) / quest.target));
+}

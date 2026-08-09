@@ -19,8 +19,13 @@ import {
   repsPerSecond,
   upgradeCost,
   windfallReps,
+  makeQuest,
+  questProgress,
+  QUEST_DEFS,
   type GameState,
   type GoldenBuff,
+  type Quest,
+  type QuestKind,
 } from "../lib/clicker";
 import { sound } from "../lib/sound";
 
@@ -44,6 +49,8 @@ interface Persisted {
   achievements: string[];
   goldenCollected: number;
   bestCombo: number;
+  quests: Quest[];
+  questsDone: number;
   lastTick: number;
 }
 
@@ -63,6 +70,8 @@ function seed(): Persisted {
     achievements: [],
     goldenCollected: 0,
     bestCombo: 0,
+    quests: [],
+    questsDone: 0,
     lastTick: Date.now(),
   };
 }
@@ -153,6 +162,8 @@ function stripTransient(s: Persisted): Persisted {
     achievements: s.achievements,
     goldenCollected: s.goldenCollected,
     bestCombo: s.bestCombo,
+    quests: s.quests,
+    questsDone: s.questsDone,
     lastTick: s.lastTick,
   };
 }
@@ -180,6 +191,8 @@ interface ClickerStore extends Persisted {
   goLegacy(): void;
   tick(): void;
   collectGolden(): void;
+  claimQuest(id: string): void;
+  questValue(kind: QuestKind): number;
   dismissOfflineGain(): void;
   dismissToast(id: number): void;
   gameState(): GameState;
@@ -235,6 +248,35 @@ export const useClickerStore = create<ClickerStore>((set, get) => {
     sound.achievement();
   }
 
+  /** Current value of the counter a quest tracks. */
+  function counterFor(kind: QuestKind): number {
+    const s = get();
+    switch (kind) {
+      case "clicks": return s.totalClicks;
+      case "reps": return s.lifetimeReps;
+      case "upgrades": return Object.values(s.owned).reduce((a, b) => a + b, 0);
+      case "golden": return s.goldenCollected;
+      case "combo": return s.bestCombo;
+    }
+  }
+
+  const QUEST_KINDS = Object.keys(QUEST_DEFS) as QuestKind[];
+
+  /** Tops the board back up to three, scaling difficulty with quests completed. */
+  function refillQuests() {
+    const s = get();
+    if (s.quests.length >= 3) return;
+    const taken = new Set(s.quests.map((q) => q.kind));
+    const tier = Math.floor(s.questsDone / 3);
+    const next = [...s.quests];
+    for (const kind of QUEST_KINDS) {
+      if (next.length >= 3) break;
+      if (taken.has(kind)) continue;
+      next.push(makeQuest(kind, tier, counterFor(kind)));
+    }
+    set({ quests: next });
+  }
+
   function grant(amount: number) {
     set((s) => ({
       reps: s.reps + amount,
@@ -265,6 +307,7 @@ export const useClickerStore = create<ClickerStore>((set, get) => {
       } else {
         set({ lastTick: Date.now() });
       }
+      refillQuests();
       save(get());
     },
 
@@ -354,6 +397,13 @@ export const useClickerStore = create<ClickerStore>((set, get) => {
         buff: null,
         golden: null,
       });
+      // Quests keyed to per-run counters would be unreachable after a reset,
+      // so rebase them onto the fresh values.
+      set((st) => ({
+        quests: st.quests.map((q) =>
+          q.kind === "upgrades" ? { ...q, startValue: 0 } : q
+        ),
+      }));
       sound.levelUp();
       pushToast(`Rebrand: +${gain} Clout`, "rank");
       checkAchievements();
@@ -435,6 +485,27 @@ export const useClickerStore = create<ClickerStore>((set, get) => {
         pushToast(`✨ Windfall! +${Math.round(amount).toLocaleString("de-DE")} Reps`, "golden");
       }
       sound.achievement();
+      checkAchievements();
+      save(get());
+    },
+
+    questValue: counterFor,
+
+    claimQuest(id) {
+      const s = get();
+      const quest = s.quests.find((q) => q.id === id);
+      if (!quest) return;
+      if (questProgress(quest, counterFor(quest.kind)) < 1) return;
+
+      set({
+        clout: s.clout + quest.reward,
+        lifetimeClout: s.lifetimeClout + quest.reward,
+        questsDone: s.questsDone + 1,
+        quests: s.quests.filter((q) => q.id !== id),
+      });
+      sound.achievement();
+      pushToast(`Quest erfüllt: +${quest.reward} Clout`, "rank");
+      refillQuests();
       checkAchievements();
       save(get());
     },

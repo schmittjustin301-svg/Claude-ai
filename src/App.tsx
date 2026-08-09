@@ -68,7 +68,10 @@ function App() {
       <LevelUpOverlay />
       <Nav active={tab} onChange={setTab} />
 
-      <main className="mx-auto flex h-screen max-w-2xl flex-col gap-4 overflow-hidden px-4 pt-6 pb-24 md:ml-56 md:max-w-3xl md:px-8 md:pb-8">
+      {/* Wider than the old max-w-3xl, which left most of a desktop window
+          empty — but still capped, since full-width prose and chat get hard to
+          read. Screens that want the extra room use multi-column layouts. */}
+      <main className="mx-auto flex h-screen max-w-2xl flex-col gap-4 overflow-hidden px-4 pt-6 pb-24 md:ml-56 md:max-w-5xl md:px-8 md:pb-8 2xl:max-w-7xl">
         <RandomEventBanner />
         <div className={tab === "chat" ? "flex min-h-0 flex-1 flex-col" : "flex-1 overflow-y-auto pb-4"}>
           <Screen />
