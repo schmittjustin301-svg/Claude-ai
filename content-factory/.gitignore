@@ -6,3 +6,4 @@ storage/
 apps/*/.env
 *.log
 .DS_Store
+dump.rdb
