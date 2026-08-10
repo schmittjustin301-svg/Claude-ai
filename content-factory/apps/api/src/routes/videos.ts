@@ -2,6 +2,7 @@ import fs from "node:fs";
 import { Router } from "express";
 import { z } from "zod";
 import { prisma } from "../db.js";
+import { param } from "../lib/params.js";
 import { requireAuth, type AuthedRequest } from "../middleware/auth.js";
 import { renderQueue } from "../lib/queue.js";
 import { absolutePathFor, publicUrlFor } from "../lib/storage.js";
@@ -90,7 +91,7 @@ videosRouter.get("/", async (req: AuthedRequest, res) => {
 
 videosRouter.get("/:id", async (req: AuthedRequest, res) => {
   const video = await prisma.generatedVideo.findFirst({
-    where: { id: req.params.id, project: { userId: req.userId } },
+    where: { id: param(req, "id"), project: { userId: req.userId } },
     include: includeGraph,
   });
   if (!video) {
@@ -107,7 +108,7 @@ const updateSchema = z.object({
 });
 
 videosRouter.patch("/:id", async (req: AuthedRequest, res) => {
-  const video = await prisma.generatedVideo.findFirst({ where: { id: req.params.id, project: { userId: req.userId } } });
+  const video = await prisma.generatedVideo.findFirst({ where: { id: param(req, "id"), project: { userId: req.userId } } });
   if (!video) {
     res.status(404).json({ error: "Video not found" });
     return;
@@ -126,7 +127,7 @@ videosRouter.patch("/:id", async (req: AuthedRequest, res) => {
 });
 
 videosRouter.post("/:id/regenerate", async (req: AuthedRequest, res) => {
-  const video = await prisma.generatedVideo.findFirst({ where: { id: req.params.id, project: { userId: req.userId } } });
+  const video = await prisma.generatedVideo.findFirst({ where: { id: param(req, "id"), project: { userId: req.userId } } });
   if (!video) {
     res.status(404).json({ error: "Video not found" });
     return;
@@ -140,7 +141,7 @@ videosRouter.post("/:id/regenerate", async (req: AuthedRequest, res) => {
 });
 
 videosRouter.delete("/:id", async (req: AuthedRequest, res) => {
-  const video = await prisma.generatedVideo.findFirst({ where: { id: req.params.id, project: { userId: req.userId } } });
+  const video = await prisma.generatedVideo.findFirst({ where: { id: param(req, "id"), project: { userId: req.userId } } });
   if (!video) {
     res.status(404).json({ error: "Video not found" });
     return;
@@ -156,7 +157,7 @@ videosRouter.delete("/:id", async (req: AuthedRequest, res) => {
 });
 
 videosRouter.get("/:id/download", async (req: AuthedRequest, res) => {
-  const video = await prisma.generatedVideo.findFirst({ where: { id: req.params.id, project: { userId: req.userId } } });
+  const video = await prisma.generatedVideo.findFirst({ where: { id: param(req, "id"), project: { userId: req.userId } } });
   if (!video?.outputPath) {
     res.status(404).json({ error: "Video not rendered yet" });
     return;

@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { z } from "zod";
 import { prisma } from "../db.js";
+import { param } from "../lib/params.js";
 import { requireAuth, type AuthedRequest } from "../middleware/auth.js";
 
 export const projectsRouter = Router();
@@ -36,7 +37,7 @@ projectsRouter.post("/", async (req: AuthedRequest, res) => {
 
 projectsRouter.get("/:id", async (req: AuthedRequest, res) => {
   const project = await prisma.project.findFirst({
-    where: { id: req.params.id, userId: req.userId },
+    where: { id: param(req, "id"), userId: req.userId },
     include: {
       _count: { select: { clips: true, combinations: true, generatedVideos: true } },
     },
@@ -49,7 +50,7 @@ projectsRouter.get("/:id", async (req: AuthedRequest, res) => {
 });
 
 projectsRouter.delete("/:id", async (req: AuthedRequest, res) => {
-  const project = await prisma.project.findFirst({ where: { id: req.params.id, userId: req.userId } });
+  const project = await prisma.project.findFirst({ where: { id: param(req, "id"), userId: req.userId } });
   if (!project) {
     res.status(404).json({ error: "Project not found" });
     return;

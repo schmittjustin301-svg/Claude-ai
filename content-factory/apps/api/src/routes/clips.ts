@@ -4,6 +4,7 @@ import { Router } from "express";
 import multer from "multer";
 import { z } from "zod";
 import { prisma } from "../db.js";
+import { param } from "../lib/params.js";
 import { requireAuth, type AuthedRequest } from "../middleware/auth.js";
 import { probeDurationSec } from "../lib/ffprobe.js";
 import { generateClipThumbnail } from "../lib/thumbnail.js";
@@ -144,7 +145,7 @@ const updateSchema = z.object({
 
 clipsRouter.patch("/:id", async (req: AuthedRequest, res) => {
   const clip = await prisma.clip.findFirst({
-    where: { id: req.params.id, project: { userId: req.userId } },
+    where: { id: param(req, "id"), project: { userId: req.userId } },
   });
   if (!clip) {
     res.status(404).json({ error: "Clip not found" });
@@ -161,7 +162,7 @@ clipsRouter.patch("/:id", async (req: AuthedRequest, res) => {
 
 clipsRouter.delete("/:id", async (req: AuthedRequest, res) => {
   const clip = await prisma.clip.findFirst({
-    where: { id: req.params.id, project: { userId: req.userId } },
+    where: { id: param(req, "id"), project: { userId: req.userId } },
   });
   if (!clip) {
     res.status(404).json({ error: "Clip not found" });

@@ -75,9 +75,22 @@ easy to unit test) that:
 `apps/worker/src/ffmpegPipeline.ts`: for each combination, concatenates
 `hook → main → [broll] → cta → [outro]` into one 1080×1920 MP4 using a single
 ffmpeg `filter_complex` graph — each input is scaled+cropped to fill the
-vertical frame (cover-fit, keeps subjects centered/safe), the audio tracks
-are concatenated and loudness-normalized (`loudnorm`), and a thumbnail is
-extracted from the midpoint of the result.
+vertical frame (cover-fit, keeps subjects centered/safe) and the audio tracks
+are concatenated and loudness-normalized (`loudnorm`).
+
+The poster is the video's **first frame** — what a viewer sees when the post
+loads — dimmed, with the **hook's name set across it in Anton**, since the
+hook is what the video is about. The headline steps down through four sizes
+to fit inside four lines; a word wider than the line shrinks the type rather
+than being broken mid-word (`apps/worker/src/posterText.ts`).
+
+Anton ships in `assets/fonts/` because ffmpeg's `drawtext` needs a real font
+file on disk and Anton is not installed on a typical host — bundling it means
+identical posters on every machine. Override with `POSTER_FONT_PATH` to use a
+different typeface.
+
+> If your source clips fade in from black, so will the poster. Shift
+> `FIRST_FRAME_AT` in `ffmpegPipeline.ts` to grab slightly later.
 
 ## Known limitations (read before demoing)
 
@@ -85,10 +98,11 @@ extracted from the midpoint of the result.
   every input; a silent clip will fail the render (status flips to `FAILED`
   with the ffmpeg error attached, it won't crash the worker). Adding a
   silent-audio fallback for music-only/no-audio clips is a good next task.
-- **Hard cuts only** — no crossfade transitions, captions/subtitles, text
-  overlays, logos, or background music yet. The brief lists these under
-  "Automatic Video Editing"; they're real scope on their own and are Phase 2
-  work once the core pipeline is proven out.
+- **Hard cuts only** — no crossfade transitions, captions/subtitles, burned-in
+  text overlays, logos, or background music *in the video itself* yet. (The
+  poster image does get an Anton headline; the video frames do not.) The brief
+  lists these under "Automatic Video Editing"; they're real scope on their own
+  and are Phase 2 work once the core pipeline is proven out.
 - **No trimming** — the full duration of each clip is used as uploaded.
 - Local-disk storage only (fine for one server; swap `storage.ts` for S3 to
   scale beyond one machine).
