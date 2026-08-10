@@ -1,0 +1,152 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ClipCategory {
+  HOOK
+  MAIN
+  CTA
+  BROLL
+  OUTRO
+}
+
+enum ClipStatus {
+  PROCESSING
+  READY
+  FAILED
+}
+
+enum VideoStatus {
+  DRAFT
+  QUEUED
+  RENDERING
+  READY
+  SCHEDULED
+  PUBLISHED
+  FAILED
+}
+
+enum RenderJobStatus {
+  PENDING
+  RUNNING
+  DONE
+  FAILED
+}
+
+model User {
+  id           String    @id @default(uuid())
+  email        String    @unique
+  passwordHash String
+  name         String?
+  createdAt    DateTime  @default(now())
+  projects     Project[]
+}
+
+// A Project is the container for a batch of clips + generated videos.
+// Maps to "Campaign" in the product brief; kept as one entity for the MVP.
+model Project {
+  id          String   @id @default(uuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  clips           Clip[]
+  combinations    Combination[]
+  generatedVideos GeneratedVideo[]
+
+  @@index([userId])
+}
+
+model Clip {
+  id          String       @id @default(uuid())
+  projectId   String
+  project     Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  category    ClipCategory
+  name        String
+  filePath    String
+  thumbnailPath String?
+  durationSec Float?
+  tags        String[]     @default([])
+  description String?
+  speaker     String?
+  topic       String?
+  priority    Int          @default(1)
+  status      ClipStatus   @default(PROCESSING)
+  createdAt   DateTime     @default(now())
+
+  combinationsAsHook  Combination[] @relation("HookClip")
+  combinationsAsMain  Combination[] @relation("MainClip")
+  combinationsAsCta   Combination[] @relation("CtaClip")
+  combinationsAsBroll Combination[] @relation("BrollClip")
+  combinationsAsOutro Combination[] @relation("OutroClip")
+
+  @@index([projectId, category])
+}
+
+model Combination {
+  id          String   @id @default(uuid())
+  projectId   String
+  project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  hookClipId  String
+  hookClip    Clip     @relation("HookClip", fields: [hookClipId], references: [id])
+  mainClipId  String
+  mainClip    Clip     @relation("MainClip", fields: [mainClipId], references: [id])
+  ctaClipId   String
+  ctaClip     Clip     @relation("CtaClip", fields: [ctaClipId], references: [id])
+  brollClipId String?
+  brollClip   Clip?    @relation("BrollClip", fields: [brollClipId], references: [id])
+  outroClipId String?
+  outroClip   Clip?    @relation("OutroClip", fields: [outroClipId], references: [id])
+
+  score       Float    @default(0)
+  createdAt   DateTime @default(now())
+
+  generatedVideo GeneratedVideo?
+
+  @@index([projectId])
+  @@index([projectId, hookClipId, mainClipId, ctaClipId])
+}
+
+model GeneratedVideo {
+  id            String      @id @default(uuid())
+  projectId     String
+  project       Project     @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  combinationId String      @unique
+  combination   Combination @relation(fields: [combinationId], references: [id], onDelete: Cascade)
+
+  status        VideoStatus @default(DRAFT)
+  outputPath    String?
+  thumbnailPath String?
+  durationSec   Float?
+  caption       String?
+  hashtags      String[]    @default([])
+  errorMessage  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  renderJob RenderJob?
+
+  @@index([projectId, status])
+}
+
+model RenderJob {
+  id               String          @id @default(uuid())
+  generatedVideoId String          @unique
+  generatedVideo   GeneratedVideo  @relation(fields: [generatedVideoId], references: [id], onDelete: Cascade)
+  status           RenderJobStatus @default(PENDING)
+  progress         Int             @default(0)
+  error            String?
+  startedAt        DateTime?
+  completedAt      DateTime?
+  createdAt        DateTime        @default(now())
+}
