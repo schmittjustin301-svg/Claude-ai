@@ -119,10 +119,21 @@ vertical frame (cover-fit, keeps subjects centered/safe) and the audio tracks
 are concatenated and loudness-normalized (`loudnorm`).
 
 The poster is the video's **first frame** — what a viewer sees when the post
-loads — dimmed, with the **hook's name set across it in Anton**, since the
-hook is what the video is about. The headline steps down through four sizes
-to fit inside four lines; a word wider than the line shrinks the type rather
-than being broken mid-word (`apps/worker/src/posterText.ts`).
+loads — with the **hook's name set in Anton across the lower third**, since
+the hook is what the video is about. The headline steps down through four
+sizes to fit inside four lines; a word wider than the line shrinks the type
+rather than being broken mid-word (`apps/worker/src/posterText.ts`).
+
+Two things keep the subject visible:
+
+- **The type sits low, not centred.** In a 9:16 reel the face is in the
+  upper-middle, so centred text lands straight on it. The headline is
+  centred horizontally but anchored to the bottom, clearing
+  `BOTTOM_SAFE_MARGIN` (400px of 1920) so Instagram's and TikTok's own
+  overlays don't cover it. Extra lines grow upward, never downward.
+- **A gradient scrim instead of a flat dim.** Only the bottom ~60% darkens,
+  ramping in smoothly, so the face keeps its original brightness while the
+  type stays readable over whatever is behind it.
 
 Anton ships in `assets/fonts/` because ffmpeg's `drawtext` needs a real font
 file on disk and Anton is not installed on a typical host — bundling it means

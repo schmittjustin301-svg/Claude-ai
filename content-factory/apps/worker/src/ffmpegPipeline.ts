@@ -133,15 +133,51 @@ export async function renderCombinationVideo(
 }
 
 /**
- * Builds the poster: the video's first frame, dimmed, with the hook's name
- * set in Anton across the middle. The hook is what the video is *about*, so
- * it makes the better headline — and the first frame is what a viewer sees
- * when the post loads, so the poster matches the opening of the video.
+ * Builds the poster: the video's first frame with the hook's name set in
+ * Anton across the lower third. The hook is what the video is *about*, so it
+ * makes the better headline — and the first frame is what a viewer sees when
+ * the post loads, so the poster matches the opening of the video.
+ *
+ * The headline sits low on purpose: in a 9:16 reel the subject's face is in
+ * the upper-middle, so centred type lands straight on it. Instead of dimming
+ * the whole frame, a gradient scrim darkens only the bottom — the face stays
+ * bright, the type stays readable.
  *
  * Note: if a source clip fades in from black, so does this poster. Shift
  * FIRST_FRAME_AT below to grab slightly later if that becomes a problem.
  */
 const FIRST_FRAME_AT = 0;
+
+/**
+ * Space kept clear below the headline, in pixels of a 1920-tall frame.
+ * Instagram and TikTok both lay their own UI (caption, handle, buttons) over
+ * roughly the bottom fifth, so text placed lower than this gets covered.
+ */
+const BOTTOM_SAFE_MARGIN = 400;
+
+/** Where the scrim starts, as a fraction of frame height, and how dark it gets. */
+const SCRIM_START = 0.4;
+const SCRIM_STRENGTH = 0.82;
+const SCRIM_DESATURATION = 0.45;
+
+/**
+ * A gradient scrim across the bottom of the frame.
+ *
+ * Commas inside the expressions are escaped because fluent-ffmpeg joins the
+ * filter array with commas — an unescaped one silently ends the filter and
+ * the scrim disappears without any error.
+ *
+ * The ramp is normalised by plane height (Y/H) rather than absolute pixels so
+ * it lines up on the subsampled chroma planes as well as on luma.
+ */
+function scrimFilter(): string {
+  const ramp = `max(0\\,min(1\\,(Y-${SCRIM_START}*H)/(${1 - SCRIM_START}*H)))`;
+  return [
+    `geq=lum='lum(X\\,Y)*(1-${SCRIM_STRENGTH}*${ramp})'`,
+    `cb='128+(cb(X\\,Y)-128)*(1-${SCRIM_DESATURATION}*${ramp})'`,
+    `cr='128+(cr(X\\,Y)-128)*(1-${SCRIM_DESATURATION}*${ramp})'`,
+  ].join(":");
+}
 
 async function renderPoster(videoPath: string, generatedVideoId: string, headline: string): Promise<string> {
   const thumbnailFilename = `${generatedVideoId}.jpg`;
@@ -159,22 +195,23 @@ async function renderPoster(videoPath: string, generatedVideoId: string, headlin
         .seekInput(FIRST_FRAME_AT)
         .frames(1)
         .videoFilters([
-          // Dim the frame so white type stays legible over any footage. Kept
-          // light — a heavier scrim turns already-dark footage into a black
-          // rectangle; the drop shadow below carries legibility over bright
-          // frames.
-          `drawbox=x=0:y=0:w=iw:h=ih:color=black@0.3:t=fill`,
+          // geq addresses lum/cb/cr, so the frame has to be in a planar YUV
+          // format first — on an RGB input the scrim silently does nothing.
+          "format=yuv420p",
+          scrimFilter(),
           [
             `drawtext=fontfile='${escapeFilterPath(ANTON_FONT_PATH)}'`,
             `textfile='${escapeFilterPath(textFilePath)}'`,
             `fontcolor=white`,
             `fontsize=${fontSize}`,
             `line_spacing=${lineSpacing}`,
+            // Horizontally centred; anchored to the bottom so extra lines
+            // grow upward instead of creeping into the platform UI.
             `x=(w-text_w)/2`,
-            `y=(h-text_h)/2`,
-            `shadowcolor=black@0.55`,
-            `shadowx=5`,
-            `shadowy=5`,
+            `y=h-${BOTTOM_SAFE_MARGIN}-text_h`,
+            `shadowcolor=black@0.5`,
+            `shadowx=4`,
+            `shadowy=4`,
           ].join(":"),
         ])
         .outputOptions(["-q:v", "3"])
