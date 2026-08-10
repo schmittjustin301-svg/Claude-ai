@@ -98,8 +98,22 @@ extracted from the midpoint of the result.
 
 ## Setup
 
-Requires Node 20+, Docker (for Postgres/Redis), and **ffmpeg + ffprobe on
-the worker host** (`apt install ffmpeg` / `brew install ffmpeg`).
+This runs on your own computer. Three things need to be installed first:
+
+| | Windows | macOS | Linux |
+|---|---|---|---|
+| **Node 20+** | [nodejs.org](https://nodejs.org) installer | `brew install node` | `apt install nodejs npm` |
+| **Docker Desktop** (runs Postgres + Redis) | [docker.com](https://docker.com/products/docker-desktop) | same | `apt install docker.io docker-compose-v2` |
+| **ffmpeg + ffprobe** (does the rendering) | `winget install Gyan.FFmpeg` | `brew install ffmpeg` | `apt install ffmpeg` |
+
+Check ffmpeg landed correctly — both must print a version:
+
+```bash
+ffmpeg -version
+ffprobe -version
+```
+
+Then, once (Docker Desktop must be running):
 
 ```bash
 cd content-factory
@@ -109,14 +123,27 @@ cp .env.example apps/api/.env
 cp .env.example apps/worker/.env    # same values — must share STORAGE_ROOT
 cp .env.example apps/web/.env       # only VITE_API_PROXY_TARGET is read
 
-docker compose up -d postgres redis
-npm run db:migrate                  # creates the schema
-npm run db:generate                 # regenerate the Prisma client after schema changes
-
-npm run dev:api      # http://localhost:4000
-npm run dev:worker    # picks up render jobs from Redis
-npm run dev:web       # http://localhost:5173
+npm run setup     # starts Postgres + Redis, creates the database schema
 ```
+
+And every time you want to use it:
+
+```bash
+npm run dev       # starts API + render worker + web UI together
+```
+
+Then open **http://localhost:5173**. Ctrl-C stops all three.
+
+<details>
+<summary>Running the three processes separately (for debugging)</summary>
+
+```bash
+npm run dev:api      # http://localhost:4000
+npm run dev:worker   # picks up render jobs from Redis
+npm run dev:web      # http://localhost:5173
+npm run db:generate  # regenerate the Prisma client after a schema change
+```
+</details>
 
 Open `http://localhost:5173`, register an account, create a project, and:
 

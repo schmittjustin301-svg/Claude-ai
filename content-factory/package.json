@@ -7,11 +7,16 @@
     "packages/*"
   ],
   "scripts": {
+    "dev": "concurrently -n api,worker,web -c cyan,magenta,green \"npm:dev:api\" \"npm:dev:worker\" \"npm:dev:web\"",
     "dev:api": "npm run dev -w apps/api",
     "dev:worker": "npm run dev -w apps/worker",
     "dev:web": "npm run dev -w apps/web",
+    "setup": "docker compose up -d postgres redis && npm run db:migrate",
     "build": "npm run build -w packages/shared && npm run build -w apps/api && npm run build -w apps/worker && npm run build -w apps/web",
     "db:migrate": "npm run db:migrate -w apps/api",
     "db:generate": "npm run db:generate -w apps/api"
+  },
+  "devDependencies": {
+    "concurrently": "^10.0.4"
   }
 }
