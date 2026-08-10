@@ -1,11 +1,10 @@
-import fs from "node:fs";
 import { Router } from "express";
 import { z } from "zod";
 import { prisma } from "../db.js";
 import { param } from "../lib/params.js";
 import { requireAuth, type AuthedRequest } from "../middleware/auth.js";
 import { renderQueue } from "../lib/queue.js";
-import { absolutePathFor, publicUrlFor } from "../lib/storage.js";
+import { absolutePathFor, publicUrlFor, removeFileQuietly } from "../lib/storage.js";
 
 export const videosRouter = Router();
 videosRouter.use(requireAuth);
@@ -146,13 +145,9 @@ videosRouter.delete("/:id", async (req: AuthedRequest, res) => {
     res.status(404).json({ error: "Video not found" });
     return;
   }
-  if (video.outputPath) {
-    fs.rm(absolutePathFor("rendered", video.outputPath), { force: true }, () => {});
-  }
-  if (video.thumbnailPath) {
-    fs.rm(absolutePathFor("thumbnails", video.thumbnailPath), { force: true }, () => {});
-  }
   await prisma.generatedVideo.delete({ where: { id: video.id } });
+  removeFileQuietly(video.outputPath);
+  removeFileQuietly(video.thumbnailPath);
   res.status(204).send();
 });
 
@@ -162,7 +157,7 @@ videosRouter.get("/:id/download", async (req: AuthedRequest, res) => {
     res.status(404).json({ error: "Video not rendered yet" });
     return;
   }
-  res.download(absolutePathFor("rendered", video.outputPath));
+  res.download(absolutePathFor(video.outputPath));
 });
 
 function toVideoDTO(video: any) {
@@ -171,8 +166,8 @@ function toVideoDTO(video: any) {
     projectId: video.projectId,
     combinationId: video.combinationId,
     status: video.status,
-    outputUrl: video.outputPath ? publicUrlFor("rendered", video.outputPath) : null,
-    thumbnailUrl: video.thumbnailPath ? publicUrlFor("thumbnails", video.thumbnailPath) : null,
+    outputUrl: video.outputPath ? publicUrlFor(video.outputPath) : null,
+    thumbnailUrl: video.thumbnailPath ? publicUrlFor(video.thumbnailPath) : null,
     durationSec: video.durationSec,
     caption: video.caption,
     hashtags: video.hashtags,

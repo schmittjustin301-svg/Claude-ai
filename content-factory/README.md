@@ -31,11 +31,51 @@ can be scaled independently, or run on a machine with more CPU) picks jobs
 off the queue and renders them. This is what keeps the website responsive
 under load, per the brief's requirement for async rendering.
 
-**Storage** is a local-disk adapter (`apps/api/src/lib/storage.ts` /
-`apps/worker/src/storage.ts`) behind a small interface (`uploads` /
-`rendered` / `thumbnails` directories, `STORAGE_ROOT` env var shared by API
-and worker). Swapping to S3/GCS later means rewriting that one module — no
-caller changes.
+### Where your files live
+
+Everything sits under one folder — `content-factory/storage/` by default,
+set by `STORAGE_ROOT` (the API and worker must point at the same place).
+It's laid out to be browsable by hand in Explorer or Finder:
+
+```
+storage/
+  road-to-olympia/                one folder per project, named after it
+    hooks/
+      why-your-legs-wont-grow.mp4
+      12-week-transformation.mp4
+    main/
+      squat-depth-breakdown.mp4
+      the-diet-nobody-follows.mp4
+    cta/
+      follow-for-more.mp4
+      link-in-bio.mp4
+    broll/
+    outro/
+    finished/                     ← ready-to-post videos
+      12-week-transformation__the-diet-nobody-follows__link-in-bio__d4bff7ea.mp4
+      why-your-legs-wont-grow__volume-beats-weight__comment-plan__b4d575d5.mp4
+  _thumbnails/                    preview images (app-internal)
+  _incoming/                      upload staging, empties itself
+```
+
+Clips are named after the clip, not by id, so the folders mean something on
+their own. A finished video is named after the three clips it was built
+from — `hook__main__cta__id` — so you can tell what any file is without
+opening the app. The trailing id keeps names unique when the same
+combination of names recurs; duplicates within a folder get `-2`, `-3`.
+
+**Moving a clip between categories in the UI moves the file on disk**, and
+renaming a clip renames its file, so the folders never drift out of sync
+with the library.
+
+To put the storage somewhere else — an external drive, say — point
+`STORAGE_ROOT` at it in both `apps/api/.env` and `apps/worker/.env`. Paths
+in the database are relative to that root, so the whole tree can be moved
+as long as both processes agree on where it is.
+
+Storage is a local-disk adapter (`apps/api/src/lib/storage.ts` /
+`apps/worker/src/storage.ts`). Swapping to S3/GCS later means rewriting
+those two modules — no caller changes.
 
 ### Data model
 

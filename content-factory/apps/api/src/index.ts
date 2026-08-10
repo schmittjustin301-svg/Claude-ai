@@ -2,7 +2,7 @@ import cors from "cors";
 import express from "express";
 import { Prisma } from "@prisma/client";
 import { env } from "./env.js";
-import { ensureStorageDirs, storageDirs } from "./lib/storage.js";
+import { STORAGE_ROOT, ensureStorageDirs } from "./lib/storage.js";
 import { authRouter } from "./routes/auth.js";
 import { projectsRouter } from "./routes/projects.js";
 import { clipsRouter } from "./routes/clips.js";
@@ -18,9 +18,9 @@ app.use(express.json());
 
 app.get("/health", (_req, res) => res.json({ ok: true }));
 
-app.use("/files/uploads", express.static(storageDirs.uploads));
-app.use("/files/rendered", express.static(storageDirs.rendered));
-app.use("/files/thumbnails", express.static(storageDirs.thumbnails));
+// One mount for the whole storage tree; stored paths are already relative to
+// its root. express.static rejects traversal above the root itself.
+app.use("/files", express.static(STORAGE_ROOT));
 
 app.use("/auth", authRouter);
 app.use("/projects", projectsRouter);

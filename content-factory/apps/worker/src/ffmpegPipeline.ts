@@ -5,7 +5,14 @@ import { randomUUID } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import ffmpeg from "fluent-ffmpeg";
 import { prisma } from "./db.js";
-import { storageDirs } from "./storage.js";
+import {
+  absolutePathFor,
+  finishedDirFor,
+  finishedRelativePath,
+  slugify,
+  thumbnailRelativePath,
+  thumbnailsDir,
+} from "./storage.js";
 import { escapeFilterPath, layoutPosterText } from "./posterText.js";
 
 const OUTPUT_WIDTH = 1080;
@@ -18,8 +25,9 @@ const ANTON_FONT_PATH =
   fileURLToPath(new URL("../../../assets/fonts/Anton-Regular.ttf", import.meta.url));
 
 export interface RenderResult {
-  outputFilename: string;
-  thumbnailFilename: string;
+  /** Paths relative to STORAGE_ROOT, as stored in the database. */
+  outputPath: string;
+  thumbnailPath: string;
   durationSec: number;
 }
 
@@ -46,6 +54,7 @@ export async function renderCombinationVideo(
   const video = await prisma.generatedVideo.findUniqueOrThrow({
     where: { id: generatedVideoId },
     include: {
+      project: { select: { slug: true } },
       combination: {
         include: { hookClip: true, mainClip: true, brollClip: true, ctaClip: true, outroClip: true },
       },
@@ -57,10 +66,19 @@ export async function renderCombinationVideo(
     (c): c is NonNullable<typeof c> => c !== null,
   );
 
-  const inputPaths = orderedClips.map((c) => path.join(storageDirs.uploads, c.filePath));
+  const inputPaths = orderedClips.map((c) => absolutePathFor(c.filePath));
 
-  const outputFilename = `${generatedVideoId}.mp4`;
-  const outputPath = path.join(storageDirs.rendered, outputFilename);
+  // Name the file after the combination it came from, so the finished folder
+  // is readable without opening the app: which hook, which main, which CTA.
+  // The id suffix keeps it unique when the same names recur.
+  const outputFilename =
+    [
+      slugify(combo.hookClip.name, 28),
+      slugify(combo.mainClip.name, 28),
+      slugify(combo.ctaClip.name, 28),
+      generatedVideoId.slice(0, 8),
+    ].join("__") + ".mp4";
+  const outputPath = path.join(finishedDirFor(video.project.slug), outputFilename);
 
   const filterParts: string[] = [];
   inputPaths.forEach((_p, i) => {
@@ -105,10 +123,13 @@ export async function renderCombinationVideo(
   });
 
   const durationSec = await probeDuration(outputPath);
+  const thumbnailPath = await renderPoster(outputPath, generatedVideoId, combo.hookClip.name);
 
-  const thumbnailFilename = await renderPoster(outputPath, generatedVideoId, combo.hookClip.name);
-
-  return { outputFilename, thumbnailFilename, durationSec };
+  return {
+    outputPath: finishedRelativePath(video.project.slug, outputFilename),
+    thumbnailPath,
+    durationSec,
+  };
 }
 
 /**
@@ -124,7 +145,7 @@ const FIRST_FRAME_AT = 0;
 
 async function renderPoster(videoPath: string, generatedVideoId: string, headline: string): Promise<string> {
   const thumbnailFilename = `${generatedVideoId}.jpg`;
-  const outPath = path.join(storageDirs.thumbnails, thumbnailFilename);
+  const outPath = path.join(thumbnailsDir(), thumbnailFilename);
   const { text, fontSize, lineSpacing } = layoutPosterText(headline);
 
   // drawtext reads the headline from a file so that apostrophes, colons and
@@ -165,5 +186,5 @@ async function renderPoster(videoPath: string, generatedVideoId: string, headlin
     await fs.rm(textFilePath, { force: true });
   }
 
-  return thumbnailFilename;
+  return thumbnailRelativePath(thumbnailFilename);
 }

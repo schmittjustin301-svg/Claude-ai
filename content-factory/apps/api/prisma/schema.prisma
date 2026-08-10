@@ -54,6 +54,8 @@ model Project {
   userId      String
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   name        String
+  // Folder name for this project's clips on disk, e.g. "road-to-olympia".
+  slug        String
   description String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -62,6 +64,7 @@ model Project {
   combinations    Combination[]
   generatedVideos GeneratedVideo[]
 
+  @@unique([userId, slug])
   @@index([userId])
 }
 

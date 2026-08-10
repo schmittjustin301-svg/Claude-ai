@@ -34,8 +34,8 @@ async function processJob(job: Job<RenderJobPayload>) {
       where: { id: generatedVideoId },
       data: {
         status: "READY",
-        outputPath: result.outputFilename,
-        thumbnailPath: result.thumbnailFilename,
+        outputPath: result.outputPath,
+        thumbnailPath: result.thumbnailPath,
         durationSec: result.durationSec,
         errorMessage: null,
       },

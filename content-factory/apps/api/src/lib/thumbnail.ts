@@ -1,5 +1,6 @@
+import path from "node:path";
 import ffmpeg from "fluent-ffmpeg";
-import { storageDirs } from "./storage.js";
+import { STORAGE_ROOT, THUMBNAILS_DIR, thumbnailRelativePath } from "./storage.js";
 
 /**
  * Extracts a single poster frame so the library can show what a clip is
@@ -11,11 +12,11 @@ export function generateClipThumbnail(absVideoPath: string, filenameBase: string
   return new Promise((resolve) => {
     ffmpeg(absVideoPath)
       .on("error", () => resolve(null))
-      .on("end", () => resolve(filename))
+      .on("end", () => resolve(thumbnailRelativePath(filename)))
       .screenshots({
         timestamps: ["25%"],
         filename,
-        folder: storageDirs.thumbnails,
+        folder: path.join(STORAGE_ROOT, THUMBNAILS_DIR),
         size: "324x576",
       });
   });

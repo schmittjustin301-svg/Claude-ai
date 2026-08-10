@@ -1,4 +1,5 @@
 import path from "node:path";
+import fsp from "node:fs/promises";
 import { randomUUID } from "node:crypto";
 import { Router } from "express";
 import multer from "multer";
@@ -8,14 +9,28 @@ import { param } from "../lib/params.js";
 import { requireAuth, type AuthedRequest } from "../middleware/auth.js";
 import { probeDurationSec } from "../lib/ffprobe.js";
 import { generateClipThumbnail } from "../lib/thumbnail.js";
-import { absolutePathFor, publicUrlFor, storageDirs } from "../lib/storage.js";
+import { slugify, uniqueFilename } from "../lib/slug.js";
+import {
+  INCOMING_DIR,
+  STORAGE_ROOT,
+  absolutePathFor,
+  clipDirFor,
+  clipRelativePath,
+  ensureProjectDirs,
+  publicUrlFor,
+  removeFileQuietly,
+  type ClipCategoryKey,
+} from "../lib/storage.js";
 
 export const clipsRouter = Router();
 clipsRouter.use(requireAuth);
 
+// Uploads land in a staging folder first: the destination depends on the
+// project and category in the request body, and multer cannot rely on those
+// having been parsed before the file part arrives.
 const upload = multer({
   storage: multer.diskStorage({
-    destination: storageDirs.uploads,
+    destination: path.join(STORAGE_ROOT, INCOMING_DIR),
     filename: (_req, file, cb) => {
       const ext = path.extname(file.originalname) || ".mp4";
       cb(null, `${randomUUID()}${ext}`);
@@ -60,24 +75,36 @@ clipsRouter.post("/upload", upload.single("file"), async (req: AuthedRequest, re
   }
   const meta = parsed.data;
 
+  const stagedPath = req.file.path;
+
   const project = await assertProjectOwnership(meta.projectId, req.userId);
   if (!project) {
+    fsp.rm(stagedPath, { force: true }).catch(() => {});
     res.status(404).json({ error: "Project not found" });
     return;
   }
 
-  const filePath = req.file.filename;
-  const absPath = absolutePathFor("uploads", filePath);
+  const clipName = meta.name?.trim() || path.parse(req.file.originalname).name;
+
+  // Move out of staging into <project>/<category>/<clip-name>.mp4
+  ensureProjectDirs(project.slug);
+  const targetDir = clipDirFor(project.slug, meta.category);
+  const ext = path.extname(req.file.originalname) || ".mp4";
+  const filename = uniqueFilename(targetDir, slugify(clipName), ext);
+  const absPath = path.join(targetDir, filename);
+  await fsp.rename(stagedPath, absPath);
+
+  const filePath = clipRelativePath(project.slug, meta.category, filename);
   const [durationSec, thumbnailPath] = await Promise.all([
     probeDurationSec(absPath),
-    generateClipThumbnail(absPath, path.parse(filePath).name),
+    generateClipThumbnail(absPath, randomUUID()),
   ]);
 
   const clip = await prisma.clip.create({
     data: {
       projectId: meta.projectId,
       category: meta.category,
-      name: meta.name?.trim() || req.file.originalname,
+      name: clipName,
       filePath,
       thumbnailPath,
       durationSec: durationSec ?? undefined,
@@ -146,6 +173,7 @@ const updateSchema = z.object({
 clipsRouter.patch("/:id", async (req: AuthedRequest, res) => {
   const clip = await prisma.clip.findFirst({
     where: { id: param(req, "id"), project: { userId: req.userId } },
+    include: { project: { select: { slug: true } } },
   });
   if (!clip) {
     res.status(404).json({ error: "Clip not found" });
@@ -156,7 +184,28 @@ clipsRouter.patch("/:id", async (req: AuthedRequest, res) => {
     res.status(400).json({ error: parsed.error.flatten() });
     return;
   }
-  const updated = await prisma.clip.update({ where: { id: clip.id }, data: parsed.data });
+
+  // Dragging a clip to another category, or renaming it, has to move the file
+  // too — otherwise the folders on disk drift out of sync with the library.
+  const nextCategory = (parsed.data.category ?? clip.category) as ClipCategoryKey;
+  const nextName = parsed.data.name?.trim() || clip.name;
+  const categoryChanged = nextCategory !== clip.category;
+  const nameChanged = nextName !== clip.name;
+
+  let filePath = clip.filePath;
+  if (categoryChanged || nameChanged) {
+    const targetDir = clipDirFor(clip.project.slug, nextCategory);
+    ensureProjectDirs(clip.project.slug);
+    const ext = path.extname(clip.filePath) || ".mp4";
+    const filename = uniqueFilename(targetDir, slugify(nextName), ext);
+    await fsp.rename(absolutePathFor(clip.filePath), path.join(targetDir, filename));
+    filePath = clipRelativePath(clip.project.slug, nextCategory, filename);
+  }
+
+  const updated = await prisma.clip.update({
+    where: { id: clip.id },
+    data: { ...parsed.data, filePath },
+  });
   res.json({ clip: toClipDTO(updated) });
 });
 
@@ -169,6 +218,8 @@ clipsRouter.delete("/:id", async (req: AuthedRequest, res) => {
     return;
   }
   await prisma.clip.delete({ where: { id: clip.id } });
+  removeFileQuietly(clip.filePath);
+  removeFileQuietly(clip.thumbnailPath);
   res.status(204).send();
 });
 
@@ -193,9 +244,9 @@ export function toClipDTO(clip: {
     projectId: clip.projectId,
     category: clip.category,
     name: clip.name,
-    fileUrl: publicUrlFor("uploads", clip.filePath),
-    previewUrl: publicUrlFor("uploads", clip.filePath),
-    thumbnailUrl: clip.thumbnailPath ? publicUrlFor("thumbnails", clip.thumbnailPath) : null,
+    fileUrl: publicUrlFor(clip.filePath),
+    previewUrl: publicUrlFor(clip.filePath),
+    thumbnailUrl: clip.thumbnailPath ? publicUrlFor(clip.thumbnailPath) : null,
     durationSec: clip.durationSec,
     tags: clip.tags,
     description: clip.description,

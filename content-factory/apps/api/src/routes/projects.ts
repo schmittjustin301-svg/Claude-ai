@@ -2,6 +2,8 @@ import { Router } from "express";
 import { z } from "zod";
 import { prisma } from "../db.js";
 import { param } from "../lib/params.js";
+import { slugify } from "../lib/slug.js";
+import { ensureProjectDirs } from "../lib/storage.js";
 import { requireAuth, type AuthedRequest } from "../middleware/auth.js";
 
 export const projectsRouter = Router();
@@ -29,9 +31,23 @@ projectsRouter.post("/", async (req: AuthedRequest, res) => {
     res.status(400).json({ error: parsed.error.flatten() });
     return;
   }
-  const project = await prisma.project.create({
-    data: { ...parsed.data, userId: req.userId! },
+
+  // The slug is this project's folder name on disk, so it has to be unique
+  // per user — two campaigns called "Q3" must not share a clip folder.
+  const base = slugify(parsed.data.name);
+  const taken = await prisma.project.findMany({
+    where: { userId: req.userId, slug: { startsWith: base } },
+    select: { slug: true },
   });
+  const takenSet = new Set(taken.map((p) => p.slug));
+  let slug = base;
+  for (let i = 2; takenSet.has(slug); i++) slug = `${base}-${i}`;
+
+  const project = await prisma.project.create({
+    data: { ...parsed.data, slug, userId: req.userId! },
+  });
+  ensureProjectDirs(slug);
+
   res.status(201).json({ project });
 });
 
