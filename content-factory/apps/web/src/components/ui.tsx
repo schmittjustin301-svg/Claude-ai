@@ -41,11 +41,14 @@ export function Input({ className, ...props }: InputHTMLAttributes<HTMLInputElem
   );
 }
 
+// No width in the base classes: Tailwind resolves conflicting utilities by
+// stylesheet order, not class order, so a hardcoded `w-full` here would beat
+// the `w-48`/`w-56` callers pass in. Width is the caller's job.
 export function Select({ className, ...props }: SelectHTMLAttributes<HTMLSelectElement>) {
   return (
     <select
       className={clsx(
-        "w-full rounded-lg border border-cf-border bg-cf-surface-2 px-3 py-2 text-sm text-cf-text focus:border-cf-accent focus:outline-none",
+        "rounded-lg border border-cf-border bg-cf-surface-2 px-3 py-2 text-sm text-cf-text focus:border-cf-accent focus:outline-none",
         className,
       )}
       {...props}

@@ -19,6 +19,7 @@ interface Clip {
   name: string;
   fileUrl: string;
   previewUrl: string;
+  thumbnailUrl: string | null;
   durationSec: number | null;
   tags: string[];
   description: string | null;
@@ -136,7 +137,18 @@ function ClipCard({ clip, onDelete }: { clip: Clip; onDelete: () => void }) {
       onDragStart={(e) => e.dataTransfer.setData("text/clip-id", clip.id)}
       className="cursor-grab rounded-xl border border-cf-border bg-cf-surface-2 p-2 active:cursor-grabbing"
     >
-      <video src={clip.previewUrl} className="mb-2 aspect-[9/16] w-full rounded-lg bg-black object-cover" muted preload="metadata" />
+      <video
+        src={clip.previewUrl}
+        poster={clip.thumbnailUrl ?? undefined}
+        className="mb-2 aspect-[9/16] w-full rounded-lg bg-black object-cover"
+        muted
+        preload="none"
+        onMouseEnter={(e) => void e.currentTarget.play().catch(() => {})}
+        onMouseLeave={(e) => {
+          e.currentTarget.pause();
+          e.currentTarget.currentTime = 0;
+        }}
+      />
       <p className="truncate text-xs font-medium">{clip.name}</p>
       <div className="mt-1 flex flex-wrap items-center gap-1 text-[10px] text-cf-muted">
         {clip.durationSec != null && <span>{clip.durationSec.toFixed(1)}s</span>}
@@ -200,7 +212,7 @@ function UploadModal({
         <input ref={fileRef} type="file" accept="video/*" multiple className="text-sm" />
         <div>
           <label className="mb-1 block text-xs text-cf-muted">Category</label>
-          <Select value={category} onChange={(e) => setCategory(e.target.value as Category)}>
+          <Select className="w-full" value={category} onChange={(e) => setCategory(e.target.value as Category)}>
             {CATEGORIES.map((c) => (
               <option key={c.key} value={c.key}>
                 {c.label}

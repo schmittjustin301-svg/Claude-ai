@@ -6,6 +6,7 @@ import { z } from "zod";
 import { prisma } from "../db.js";
 import { requireAuth, type AuthedRequest } from "../middleware/auth.js";
 import { probeDurationSec } from "../lib/ffprobe.js";
+import { generateClipThumbnail } from "../lib/thumbnail.js";
 import { absolutePathFor, publicUrlFor, storageDirs } from "../lib/storage.js";
 
 export const clipsRouter = Router();
@@ -66,7 +67,10 @@ clipsRouter.post("/upload", upload.single("file"), async (req: AuthedRequest, re
 
   const filePath = req.file.filename;
   const absPath = absolutePathFor("uploads", filePath);
-  const durationSec = await probeDurationSec(absPath);
+  const [durationSec, thumbnailPath] = await Promise.all([
+    probeDurationSec(absPath),
+    generateClipThumbnail(absPath, path.parse(filePath).name),
+  ]);
 
   const clip = await prisma.clip.create({
     data: {
@@ -74,6 +78,7 @@ clipsRouter.post("/upload", upload.single("file"), async (req: AuthedRequest, re
       category: meta.category,
       name: meta.name?.trim() || req.file.originalname,
       filePath,
+      thumbnailPath,
       durationSec: durationSec ?? undefined,
       tags: meta.tags ? meta.tags.split(",").map((t) => t.trim()).filter(Boolean) : [],
       description: meta.description,
@@ -172,6 +177,7 @@ export function toClipDTO(clip: {
   category: string;
   name: string;
   filePath: string;
+  thumbnailPath: string | null;
   durationSec: number | null;
   tags: string[];
   description: string | null;
@@ -188,6 +194,7 @@ export function toClipDTO(clip: {
     name: clip.name,
     fileUrl: publicUrlFor("uploads", clip.filePath),
     previewUrl: publicUrlFor("uploads", clip.filePath),
+    thumbnailUrl: clip.thumbnailPath ? publicUrlFor("thumbnails", clip.thumbnailPath) : null,
     durationSec: clip.durationSec,
     tags: clip.tags,
     description: clip.description,
