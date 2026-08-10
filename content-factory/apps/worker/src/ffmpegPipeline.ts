@@ -1,10 +1,21 @@
+import fs from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
+import { randomUUID } from "node:crypto";
+import { fileURLToPath } from "node:url";
 import ffmpeg from "fluent-ffmpeg";
 import { prisma } from "./db.js";
 import { storageDirs } from "./storage.js";
+import { escapeFilterPath, layoutPosterText } from "./posterText.js";
 
 const OUTPUT_WIDTH = 1080;
 const OUTPUT_HEIGHT = 1920;
+
+// src/ and dist/ sit at the same depth under apps/worker, so this resolves
+// correctly whether running via tsx or from a build.
+const ANTON_FONT_PATH =
+  process.env.POSTER_FONT_PATH ??
+  fileURLToPath(new URL("../../../assets/fonts/Anton-Regular.ttf", import.meta.url));
 
 export interface RenderResult {
   outputFilename: string;
@@ -95,18 +106,64 @@ export async function renderCombinationVideo(
 
   const durationSec = await probeDuration(outputPath);
 
-  const thumbnailFilename = `${generatedVideoId}.jpg`;
-  await new Promise<void>((resolve, reject) => {
-    ffmpeg(outputPath)
-      .on("error", (err) => reject(err))
-      .on("end", () => resolve())
-      .screenshots({
-        timestamps: ["50%"],
-        filename: thumbnailFilename,
-        folder: storageDirs.thumbnails,
-        size: `${OUTPUT_WIDTH}x${OUTPUT_HEIGHT}`,
-      });
-  });
+  const thumbnailFilename = await renderPoster(outputPath, generatedVideoId, combo.hookClip.name);
 
   return { outputFilename, thumbnailFilename, durationSec };
+}
+
+/**
+ * Builds the poster: the video's first frame, dimmed, with the hook's name
+ * set in Anton across the middle. The hook is what the video is *about*, so
+ * it makes the better headline — and the first frame is what a viewer sees
+ * when the post loads, so the poster matches the opening of the video.
+ *
+ * Note: if a source clip fades in from black, so does this poster. Shift
+ * FIRST_FRAME_AT below to grab slightly later if that becomes a problem.
+ */
+const FIRST_FRAME_AT = 0;
+
+async function renderPoster(videoPath: string, generatedVideoId: string, headline: string): Promise<string> {
+  const thumbnailFilename = `${generatedVideoId}.jpg`;
+  const outPath = path.join(storageDirs.thumbnails, thumbnailFilename);
+  const { text, fontSize, lineSpacing } = layoutPosterText(headline);
+
+  // drawtext reads the headline from a file so that apostrophes, colons and
+  // other filtergraph metacharacters in a clip name can never break the graph.
+  const textFilePath = path.join(os.tmpdir(), `poster-${randomUUID()}.txt`);
+  await fs.writeFile(textFilePath, text, "utf8");
+
+  try {
+    await new Promise<void>((resolve, reject) => {
+      ffmpeg(videoPath)
+        .seekInput(FIRST_FRAME_AT)
+        .frames(1)
+        .videoFilters([
+          // Dim the frame so white type stays legible over any footage. Kept
+          // light — a heavier scrim turns already-dark footage into a black
+          // rectangle; the drop shadow below carries legibility over bright
+          // frames.
+          `drawbox=x=0:y=0:w=iw:h=ih:color=black@0.3:t=fill`,
+          [
+            `drawtext=fontfile='${escapeFilterPath(ANTON_FONT_PATH)}'`,
+            `textfile='${escapeFilterPath(textFilePath)}'`,
+            `fontcolor=white`,
+            `fontsize=${fontSize}`,
+            `line_spacing=${lineSpacing}`,
+            `x=(w-text_w)/2`,
+            `y=(h-text_h)/2`,
+            `shadowcolor=black@0.55`,
+            `shadowx=5`,
+            `shadowy=5`,
+          ].join(":"),
+        ])
+        .outputOptions(["-q:v", "3"])
+        .on("error", (err) => reject(err))
+        .on("end", () => resolve())
+        .save(outPath);
+    });
+  } finally {
+    await fs.rm(textFilePath, { force: true });
+  }
+
+  return thumbnailFilename;
 }
