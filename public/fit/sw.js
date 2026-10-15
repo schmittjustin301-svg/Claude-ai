@@ -1,7 +1,7 @@
 // FIT Service Worker: App-Dateien offline verfügbar halten.
 // Strategie: sofort aus dem Cache antworten, im Hintergrund aktualisieren.
 // Nach einem Update zeigt der nächste App-Start die neue Version.
-const CACHE = 'fit-v1';
+const CACHE = 'fit-v2';
 const ASSETS = [
   '/fit/',
   '/fit/index.html',
@@ -12,6 +12,7 @@ const ASSETS = [
   '/fit/icon-192.png',
   '/fit/icon-512.png',
   '/fit/apple-touch-icon.png',
+  '/fit/vendor/html5-qrcode.min.js',
 ];
 
 self.addEventListener('install', (e) => {

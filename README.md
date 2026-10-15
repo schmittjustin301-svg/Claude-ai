@@ -10,6 +10,7 @@ Eigenständige Mini-App unter `public/fit/` (reines HTML/CSS/JS, kein Build-Schr
 
 - **Training:** Trainingsplan (Vorlagen Push/Pull/Beine oder Ober/Unter), Sätze/Gewicht/Wdh. loggen, „Letztes Mal“-Werte, Pausen-Timer, Rekorde (e1RM) mit Verlauf
 - **Ernährung:** eigene Lebensmittel-Liste (je 100 g), Mahlzeiten pro Tag, Schnelleintrag nur mit Makros, „von gestern kopieren“
+- **Barcode-/QR-Scanner:** Produkt scannen → bekannte Produkte sofort (offline), neue werden mit Nährwerten aus [Open Food Facts](https://world.openfoodfacts.org) vorausgefüllt (gesendet wird nur die Barcode-Nummer). Scanner-Bibliothek `html5-qrcode` (Apache-2.0) liegt lokal unter `public/fit/vendor/`.
 - **Makro-Rechner:** Mifflin-St Jeor, Aktivität, Defizit, Protein/Fett pro kg → Tagesziel
 - **Körper:** Gewicht mit 7-Tage-Schnitt, Tempo und Prognose, Maße, Fortschrittsfotos mit Vorher/Nachher
 - **Täglich:** Wasser, Schlaf, Schritte, Cardio, Supplements

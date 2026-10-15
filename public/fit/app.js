@@ -274,12 +274,14 @@ function toast(msg) {
   toast.t = setTimeout(() => t.classList.add('hidden'), 2400);
 }
 function openSheet(fn) {
+  if (fn !== sheetScan) stopScanner();
   ui.sheet = fn;
   $('#sheet').classList.remove('hidden');
   renderSheet();
   $('.sheet-panel').scrollTop = 0;
 }
 function closeSheet() {
+  stopScanner();
   ui.sheet = null;
   ui.pick = null;
   $('#sheet').classList.add('hidden');
@@ -287,6 +289,7 @@ function closeSheet() {
 }
 function renderSheet() {
   if (!ui.sheet) return;
+  if (ui.sheet === sheetScan && $('#reader')) return; // laufendes Kamerabild nicht zerstören
   const body = $('#sheetBody');
   body.innerHTML = ui.sheet();
   hydratePhotos(body);
@@ -588,7 +591,7 @@ views.food = () => {
 views.foods = () => {
   const list = S.foods.slice().sort((a, b) => (b.fav ? 1 : 0) - (a.fav ? 1 : 0) || a.name.localeCompare(b.name, 'de'));
   return `
-  ${topBar(backBtn('food', 'Essen'), '<button type="button" class="btn small primary" data-a="newFood">+ Neu</button>')}
+  ${topBar(backBtn('food', 'Essen'), '<div class="row"><button type="button" class="btn small" data-a="scan">📷 Scannen</button><button type="button" class="btn small primary" data-a="newFood">+ Neu</button></div>')}
   <h1>Lebensmittel</h1>
   <p class="muted small">Deine eigene Liste. Werte je 100 g. Häufig Gegessenes mit ★ markieren, dann steht es beim Eintragen oben. Richtwerte bitte mit der Verpackung abgleichen.</p>
   <div class="card"><div class="list">${list.map((f) => `<button type="button" class="item" data-a="editFood" data-id="${f.id}"><div class="grow"><b>${f.fav ? '★ ' : ''}${esc(f.name)}</b><div>${mtxt(f)}</div></div><span class="chev">›</span></button>`).join('') || '<div class="empty">Leer.</div>'}</div></div>`;
@@ -785,7 +788,7 @@ function sheetFoodPicker() {
   }
   return `<h2>${esc(pk.slot)}</h2>
     <input id="pickQ" data-i="pickQ" placeholder="🔍 Lebensmittel suchen" value="${esc(pk.q)}" autocomplete="off">
-    <div class="row" style="margin:10px 0"><button type="button" class="btn small grow" data-a="quickMode">⚡ Nur Makros</button><button type="button" class="btn small grow" data-a="newFood">+ Neues Lebensmittel</button></div>
+    <div class="row" style="margin:10px 0"><button type="button" class="btn small grow" data-a="scan">📷 Scannen</button><button type="button" class="btn small grow" data-a="quickMode">⚡ Nur Makros</button><button type="button" class="btn small grow" data-a="newFood">+ Neu</button></div>
     <div class="list" id="pickList">${pickList(pk.q)}</div>`;
 }
 function pickList(q) {
@@ -796,10 +799,11 @@ function pickList(q) {
   return list.map((f) => `<button type="button" class="item" data-a="pickFood" data-id="${f.id}"><div class="grow"><b>${f.fav ? '★ ' : ''}${esc(f.name)}</b><div>${mtxt(f)} <span class="muted tiny">/100 g</span></div></div><span class="chev">›</span></button>`).join('');
 }
 
-function sheetFoodEdit(id, preset = '') {
+function sheetFoodEdit(id, preset = {}, note = '') {
   return () => {
-    const f = S.foods.find((x) => x.id === id) || { name: preset, kcal: '', p: '', c: '', f: '', portion: 100, fav: false };
-    return `<h2>${id ? 'Lebensmittel bearbeiten' : 'Neues Lebensmittel'}</h2><div id="foodForm">
+    const f = S.foods.find((x) => x.id === id) || { name: '', kcal: '', p: '', c: '', f: '', portion: 100, fav: false, barcode: '', ...preset };
+    return `<h2>${id ? 'Lebensmittel bearbeiten' : 'Neues Lebensmittel'}</h2>
+      ${note ? `<div class="card" style="background:var(--card2)"><span class="small">${note}</span></div>` : ''}<div id="foodForm">
       <label class="field"><span>Name</span><input name="name" value="${esc(f.name)}"></label>
       <p class="muted small" style="margin:-2px 0 8px">Nährwerte je 100 g (steht auf der Verpackung).</p>
       <div class="grid2">
@@ -809,6 +813,7 @@ function sheetFoodEdit(id, preset = '') {
         <label class="field"><span>Fett g</span><input name="f" type="number" inputmode="decimal" value="${f.f}"></label>
       </div>
       <label class="field"><span>Standard-Portion (g)</span><input name="portion" type="number" inputmode="decimal" value="${f.portion}"></label>
+      <label class="field"><span>Barcode (optional)</span><input name="barcode" inputmode="numeric" value="${esc(f.barcode || '')}" placeholder="wird beim Scannen ausgefüllt"></label>
       <label class="check-row field"><input type="checkbox" name="fav" ${f.fav ? 'checked' : ''}> ★ Favorit</label></div>
       <button type="button" class="btn primary block" data-a="saveFood" data-id="${id || ''}">Speichern</button>
       ${id ? `<button type="button" class="btn ghost block danger" data-a="delFood" data-id="${id}">Löschen</button>` : ''}
@@ -936,6 +941,148 @@ async function keepAwake(on) {
   } catch { /* nicht unterstützt */ }
 }
 document.addEventListener('visibilitychange', () => { if (!document.hidden && S.active) keepAwake(true); });
+
+// ---------- Barcode- / QR-Scanner ----------
+// Bibliothek liegt lokal (vendor/), damit Scannen bekannter Produkte auch offline klappt.
+// Nährwerte neuer Produkte kommen aus Open Food Facts – dabei wird nur die Barcode-Nummer gesendet.
+let scanner = null;
+let scanBusy = false;
+function sheetScan() {
+  return `<h2>Barcode / QR-Code scannen</h2>
+    <div id="reader" class="reader"></div>
+    <p id="scanMsg" class="muted small center" style="margin:8px 0 12px">Kamera wird gestartet …</p>
+    <div class="row" style="margin-bottom:10px"><input id="manualCode" class="grow" inputmode="numeric" placeholder="oder Barcode-Nummer eintippen" autocomplete="off"><button type="button" class="btn" data-a="scanManual">OK</button></div>
+    <button type="button" class="btn ghost block" data-a="scanCancel">Abbrechen</button>`;
+}
+async function loadScanLib() {
+  if (window.__Html5QrcodeLibrary__) return window.__Html5QrcodeLibrary__;
+  await new Promise((res, rej) => {
+    const s = document.createElement('script');
+    s.src = '/fit/vendor/html5-qrcode.min.js';
+    s.onload = res;
+    s.onerror = () => rej(new Error('Scanner konnte nicht geladen werden'));
+    document.head.appendChild(s);
+  });
+  return window.__Html5QrcodeLibrary__;
+}
+async function startScanner() {
+  const msg = (t) => { const m = $('#scanMsg'); if (m) m.innerHTML = t; };
+  try {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error('Kamera wird hier nicht unterstützt');
+    const lib = await loadScanLib();
+    if (ui.sheet !== sheetScan || !$('#reader')) return;
+    const F = lib.Html5QrcodeSupportedFormats;
+    const sc = new lib.Html5Qrcode('reader', {
+      verbose: false,
+      formatsToSupport: [F.EAN_13, F.EAN_8, F.UPC_A, F.UPC_E, F.QR_CODE, F.CODE_128],
+      useBarCodeDetectorIfSupported: true,
+    });
+    scanner = sc;
+    await sc.start(
+      { facingMode: 'environment' },
+      { fps: 12, qrbox: (w, h) => ({ width: Math.max(50, Math.floor(w * 0.85)), height: Math.max(50, Math.floor(Math.min(w * 0.55, h * 0.8))) }) },
+      (text) => onScan(text),
+      () => {},
+    );
+    if (scanner !== sc) { try { await sc.stop(); sc.clear(); } catch { /* schon weg */ } return; }
+    msg('Barcode oder QR-Code in den Rahmen halten');
+  } catch (e) {
+    scanner = null;
+    const denied = /permission|notallowed/i.test(String(e && (e.name || e.message || e)));
+    msg(denied
+      ? 'Kein Kamerazugriff. iPhone: Einstellungen → Safari → Kamera → „Erlauben“. Oder Nummer unten eintippen.'
+      : `Kamera nicht verfügbar (${esc((e && e.message) || e)}). Du kannst die Nummer unten eintippen.`);
+  }
+}
+async function stopScanner() {
+  const sc = scanner;
+  scanner = null;
+  if (!sc) return;
+  try { if (sc.isScanning) await sc.stop(); sc.clear(); } catch { /* egal */ }
+}
+async function onScan(text) {
+  if (scanBusy) return;
+  scanBusy = true;
+  if (navigator.vibrate) navigator.vibrate(60);
+  await stopScanner();
+  try { await handleCode(text); } finally { scanBusy = false; }
+}
+// EAN/UPC direkt, oder GS1-Digital-Link-QR (…/01/<GTIN>…)
+function extractCode(text) {
+  const t = String(text).trim();
+  if (/^\d{8,14}$/.test(t)) return t;
+  const m = t.match(/\/01\/(\d{14})(?:\/|\?|$)/);
+  return m ? m[1] : null;
+}
+const sameCode = (a, b) => a.replace(/^0+/, '') === b.replace(/^0+/, '');
+async function handleCode(text) {
+  const code = extractCode(text);
+  if (!code) {
+    const isUrl = /^https?:\/\//i.test(text);
+    openSheet(() => `<h2>QR-Code gelesen</h2>
+      <div class="card" style="background:var(--card2);word-break:break-all"><span class="small">${esc(text)}</span></div>
+      <p class="muted small">Das ist kein Produkt-Barcode – dazu gibt es keine Nährwerte.</p>
+      ${isUrl ? `<a class="btn block" href="${esc(text)}" target="_blank" rel="noopener noreferrer">Link öffnen</a>` : ''}
+      <button type="button" class="btn primary block" data-a="scan">Nochmal scannen</button>
+      <button type="button" class="btn ghost block" data-a="scanCancel">Zurück</button>`);
+    return;
+  }
+  const local = S.foods.find((f) => f.barcode && sameCode(f.barcode, code));
+  if (local) { foundFood(local); return; }
+  const loading = () => `<h2>Suche Produkt …</h2><p class="muted small">Barcode ${esc(code)}</p>`;
+  openSheet(loading);
+  let prod = null, failed = false;
+  try { prod = await lookupProduct(code); } catch { failed = true; }
+  if (ui.sheet !== loading) return; // inzwischen geschlossen
+  const note = prod
+    ? '✅ Gefunden in Open Food Facts. Werte kurz mit der Packung vergleichen und speichern – beim nächsten Scan geht es dann sofort, auch offline.'
+    : failed
+      ? '📡 Datenbank gerade nicht erreichbar (offline?). Trag die Werte von der Packung ein – der Barcode wird gespeichert.'
+      : '🤷 Produkt nicht in der Datenbank. Trag die Werte von der Packung ein – der Barcode wird gespeichert.';
+  ui.sheet = null;
+  openSheet(sheetFoodEdit(null, { barcode: code, ...(prod || {}) }, note));
+}
+function foundFood(f) {
+  f.used = Date.now();
+  if (ui.pick) {
+    ui.pick.food = f.id;
+    ui.pick.amount = String(f.portion || 100);
+    ui.pick.mode = 'list';
+    ui.sheet = null;
+    openSheet(sheetFoodPicker);
+  } else {
+    openSheet(sheetFoodEdit(f.id));
+  }
+  toast(`Erkannt: ${f.name}`);
+}
+async function lookupProduct(code) {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 9000);
+  try {
+    const fields = 'product_name,product_name_de,brands,nutriments,serving_quantity';
+    const r = await fetch(`https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(code)}.json?fields=${fields}`, { signal: ctrl.signal });
+    if (r.status === 404) return null;
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    const j = await r.json();
+    if (j.status !== 1 || !j.product) return null;
+    const p = j.product, n = p.nutriments || {};
+    const val = (k) => (n[k] != null && n[k] !== '' && Number.isFinite(+n[k]) ? +n[k] : null);
+    let kcal = val('energy-kcal_100g');
+    if (kcal == null && val('energy_100g') != null) kcal = val('energy_100g') / 4.184; // kJ → kcal
+    const brand = p.brands ? String(p.brands).split(',')[0].trim() : '';
+    const base = (p.product_name_de || p.product_name || '').trim();
+    const name = base ? (brand && !base.toLowerCase().includes(brand.toLowerCase()) ? `${base} (${brand})` : base) : `Produkt ${code}`;
+    const serving = num(p.serving_quantity);
+    return {
+      name,
+      kcal: kcal != null ? r0(kcal) : '',
+      p: val('proteins_100g') != null ? r1(val('proteins_100g')) : '',
+      c: val('carbohydrates_100g') != null ? r1(val('carbohydrates_100g')) : '',
+      f: val('fat_100g') != null ? r1(val('fat_100g')) : '',
+      portion: serving > 0 && serving < 2000 ? r0(serving) : 100,
+    };
+  } finally { clearTimeout(timer); }
+}
 
 // ---------- Backup ----------
 async function exportData() {
@@ -1129,12 +1276,20 @@ A.copyDay = () => {
   S.meals[ui.date] = entries(ui.date).concat(y.map((e) => ({ ...e, id: uid() })));
   commit();
 };
-A.newFood = () => { const q = ui.pick ? ui.pick.q : ''; ui.sheet = null; openSheet(sheetFoodEdit(null, q)); };
+A.scan = () => { ui.sheet = null; openSheet(sheetScan); startScanner(); };
+A.scanManual = () => {
+  const v = ($('#manualCode').value || '').replace(/\D/g, '');
+  if (v.length < 8) return toast('Barcode hat 8–14 Ziffern');
+  stopScanner();
+  handleCode(v);
+};
+A.scanCancel = () => { if (ui.pick) { stopScanner(); A.pickBack(); } else closeSheet(); };
+A.newFood = () => { const q = ui.pick ? ui.pick.q : ''; ui.sheet = null; openSheet(sheetFoodEdit(null, { name: q })); };
 A.editFood = (el) => openSheet(sheetFoodEdit(el.dataset.id));
 A.saveFood = (el) => {
   const v = formVals($('#foodForm'));
   if (!v.name.trim()) return toast('Name fehlt');
-  const data = { name: v.name.trim(), p: num(v.p), c: num(v.c), f: num(v.f), portion: num(v.portion, 100) || 100, fav: v.fav };
+  const data = { name: v.name.trim(), p: num(v.p), c: num(v.c), f: num(v.f), portion: num(v.portion, 100) || 100, fav: v.fav, barcode: (v.barcode || '').replace(/\D/g, '') };
   data.kcal = v.kcal === '' ? r0(data.p * 4 + data.c * 4 + data.f * 9) : num(v.kcal);
   let f = S.foods.find((x) => x.id === el.dataset.id);
   if (f) Object.assign(f, data);
@@ -1257,6 +1412,7 @@ document.addEventListener('change', (e) => { const el = e.target.closest('[data-
 document.addEventListener('input', (e) => { const el = e.target.closest('[data-i]'); if (el && I[el.dataset.i]) I[el.dataset.i](el, e); });
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Enter' && e.target.id === 'newEx') A.addSessionExGo(e.target);
+  if (e.key === 'Enter' && e.target.id === 'manualCode') A.scanManual();
   if (e.key === 'Escape' && ui.sheet) closeSheet();
 });
 
