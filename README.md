@@ -4,6 +4,20 @@ Persönliche Business-Tycoon-App, die den Aufbau eines Content-/Editing-Business
 
 Dies ist **Phase 0 + Phase 1** aus dem Projekt-Brief: eine React-PWA mit dem kompletten Gameplay-Feature-Set, lokal persistiert. Phase 2–5 (JARVIS-Backend, YouTube/Instagram/TikTok) sind vorbereitet, aber noch nicht live geschaltet, weil sie eigene Secrets/Accounts brauchen.
 
+## FIT – privater Fitness-Tracker (`/fit/`)
+
+Eigenständige Mini-App unter `public/fit/` (reines HTML/CSS/JS, kein Build-Schritt nötig). Sie wird mit dem normalen Vercel-Deploy ausgeliefert und ist unter `https://<deine-vercel-adresse>/fit/` erreichbar.
+
+- **Training:** Trainingsplan (Vorlagen Push/Pull/Beine oder Ober/Unter), Sätze/Gewicht/Wdh. loggen, „Letztes Mal“-Werte, Pausen-Timer, Rekorde (e1RM) mit Verlauf
+- **Ernährung:** eigene Lebensmittel-Liste (je 100 g), Mahlzeiten pro Tag, Schnelleintrag nur mit Makros, „von gestern kopieren“
+- **Makro-Rechner:** Mifflin-St Jeor, Aktivität, Defizit, Protein/Fett pro kg → Tagesziel
+- **Körper:** Gewicht mit 7-Tage-Schnitt, Tempo und Prognose, Maße, Fortschrittsfotos mit Vorher/Nachher
+- **Täglich:** Wasser, Schlaf, Schritte, Cardio, Supplements
+
+**Datenschutz:** Kein Konto, kein Server. Alle Daten liegen nur auf dem Gerät (localStorage, Fotos in IndexedDB). Unter „Mehr“ gibt es Backup/Import als JSON-Datei – regelmäßig sichern (z. B. in „Dateien“/iCloud Drive).
+
+**Aufs iPhone:** `/fit/` in Safari öffnen → Teilen → „Zum Home-Bildschirm“. Läuft danach auch offline.
+
 ## Starten
 
 ```bash

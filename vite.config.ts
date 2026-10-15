@@ -22,6 +22,13 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg'],
+      // Die Fitness-App unter /fit/ ist eigenständig und hat ihren eigenen
+      // Service Worker; der GRIND-EMPIRE-Worker darf sie weder vorab cachen
+      // noch ihre Seitenaufrufe auf die eigene index.html umbiegen.
+      workbox: {
+        globIgnores: ['fit/**'],
+        navigateFallbackDenylist: [/^\/fit(\/|$)/],
+      },
       manifest: {
         name: 'GRIND EMPIRE',
         short_name: 'GRIND EMPIRE',

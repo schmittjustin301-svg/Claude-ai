@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>FIT</title>
+  <meta name="theme-color" content="#0b0d10">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="FIT">
+  <link rel="manifest" href="/fit/manifest.webmanifest">
+  <link rel="icon" href="/fit/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="/fit/apple-touch-icon.png">
+  <link rel="stylesheet" href="/fit/styles.css">
+</head>
+<body>
+  <main id="app"></main>
+
+  <div id="restbar" class="restbar hidden"></div>
+
+  <nav class="tabs" id="tabs">
+    <button type="button" data-a="tab" data-v="today"><span class="ti">◉</span>Heute</button>
+    <button type="button" data-a="tab" data-v="train"><span class="ti">🏋️</span>Training</button>
+    <button type="button" data-a="tab" data-v="food"><span class="ti">🍽️</span>Essen</button>
+    <button type="button" data-a="tab" data-v="body"><span class="ti">📈</span>Körper</button>
+    <button type="button" data-a="tab" data-v="more"><span class="ti">☰</span>Mehr</button>
+  </nav>
+
+  <div id="sheet" class="sheet hidden" aria-hidden="true">
+    <div class="sheet-bg" data-a="closeSheet"></div>
+    <div class="sheet-panel"><div class="sheet-grip"></div><div id="sheetBody"></div></div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="/fit/app.js" defer></script>
+</body>
+</html>
