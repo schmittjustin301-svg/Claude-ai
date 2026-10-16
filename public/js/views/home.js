@@ -4,6 +4,7 @@ import { dkey, sumMacros, weightChange, currentWeight, prEvents, weekKeys, worko
 import { esc, fmt, fmtFixed, icon, ring, mrow, bar, delta, longDate, relDay, fmtDur, WD, formVals, markInvalid, plural, fmtClock } from '../ui.js';
 import { entries, plannedFor, workoutsOn, lastWorkoutOfDay, exName, daily, getDay, dayW, weightsSorted } from '../domain.js';
 import { uid } from '../store.js';
+import { monsterCan } from '../can.js';
 
 function view() {
   const S = app.S, k = dkey();
@@ -110,10 +111,18 @@ function habitsCard(k) {
   const S = app.S, d = getDay(k), p = S.profile;
   return `<div class="section">Tageswerte</div>
   <div class="card">
-    <div class="row between"><span class="row small">${icon('drop', 'sm gold')} Wasser <b class="num">${fmtFixed(d.water / 1000, 2)} / ${fmtFixed(p.waterGoal / 1000, 1)} l</b></span>
-      <div class="row"><button type="button" class="icon-btn sm" data-a="water" data-v="-250" aria-label="250 ml weniger">${icon('minus', 'sm')}</button><button type="button" class="btn sm" data-a="water" data-v="250">+250</button><button type="button" class="btn sm" data-a="water" data-v="500">+500</button></div></div>
-    <div class="mt">${bar(d.water, p.waterGoal, { over: false })}</div>
-    <div class="grid2 mt">
+    <div class="water">
+      ${monsterCan(p.waterGoal > 0 ? d.water / p.waterGoal : 0)}
+      <div class="grow">
+        <div class="label">${icon('drop', 'sm')} Wasser</div>
+        <div style="margin-top:8px"><span class="big">${fmtFixed(d.water / 1000, 2)}</span> <span class="unit">/ ${fmtFixed(p.waterGoal / 1000, 1)} l</span></div>
+        <div class="small ${d.water >= p.waterGoal ? 'gold' : 'muted'}" style="margin:4px 0 12px">${d.water >= p.waterGoal ? 'Ziel erreicht – stark!' : `noch ${fmt(p.waterGoal - d.water)} ml · ${fmt(Math.ceil((p.waterGoal - d.water) / 500))} ${Math.ceil((p.waterGoal - d.water) / 500) === 1 ? 'Dose' : 'Dosen'} à 0,5 l`}</div>
+        <div class="grid2"><button type="button" class="btn sm" data-a="water" data-v="250">+250 ml</button><button type="button" class="btn sm primary" data-a="water" data-v="500">+500 ml</button></div>
+        <button type="button" class="btn sm ghost block" style="margin-top:6px" data-a="water" data-v="-250" ${d.water <= 0 ? 'disabled' : ''}>${icon('minus', 'sm')} 250 ml</button>
+      </div>
+    </div>
+    <hr class="divider">
+    <div class="grid2">
       <label class="field" style="margin:0"><span>${icon('moon', 'sm')} Schlaf (h)</span><input type="number" inputmode="decimal" step="0.25" min="0" max="24" data-c="dayField" data-f="sleep" value="${d.sleep ?? ''}" placeholder="–"></label>
       <label class="field" style="margin:0"><span>${icon('pulse', 'sm')} Schritte</span><input type="number" inputmode="numeric" min="0" max="100000" data-c="dayField" data-f="steps" value="${d.steps ?? ''}" placeholder="–"></label>
     </div>
@@ -169,7 +178,12 @@ A.quickTrain = () => {
   if (plan.length === 1) return A.previewDay({ dataset: { id: plan[0].id } });
   go('train');
 };
-A.water = (el) => { const d = dayW(dkey()); d.water = Math.max(0, d.water + Number(el.dataset.v)); commit(); };
+A.water = (el) => {
+  const d = dayW(dkey()), goal = app.S.profile.waterGoal, before = d.water;
+  d.water = Math.max(0, d.water + Number(el.dataset.v));
+  commit();
+  if (before < goal && d.water >= goal) { if (navigator.vibrate) navigator.vibrate([20, 40, 20]); toast('Trinkziel erreicht – Dose voll!'); }
+};
 A.supp = (el) => { const d = dayW(dkey()); const i = d.supps.indexOf(el.dataset.id); if (i >= 0) d.supps.splice(i, 1); else d.supps.push(el.dataset.id); commit(); };
 C.dayField = (el) => {
   const f = el.dataset.f;
