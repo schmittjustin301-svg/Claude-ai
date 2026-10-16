@@ -958,7 +958,7 @@ async function loadScanLib() {
   if (window.__Html5QrcodeLibrary__) return window.__Html5QrcodeLibrary__;
   await new Promise((res, rej) => {
     const s = document.createElement('script');
-    s.src = '/fit/vendor/html5-qrcode.min.js';
+    s.src = '/vendor/html5-qrcode.min.js';
     s.onload = res;
     s.onerror = () => rej(new Error('Scanner konnte nicht geladen werden'));
     document.head.appendChild(s);
@@ -1439,5 +1439,5 @@ render();
 if (S.active) keepAwake(true);
 if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
 if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => navigator.serviceWorker.register('/fit/sw.js', { scope: '/fit/' }).catch((e) => console.warn('SW', e)));
+  window.addEventListener('load', () => navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch((e) => console.warn('SW', e)));
 }

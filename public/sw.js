@@ -1,18 +1,20 @@
 // FIT Service Worker: App-Dateien offline verfügbar halten.
 // Strategie: sofort aus dem Cache antworten, im Hintergrund aktualisieren.
 // Nach einem Update zeigt der nächste App-Start die neue Version.
-const CACHE = 'fit-v2';
+// Liegt unter derselben Adresse (/sw.js) wie früher der GRIND-EMPIRE-Worker und
+// ersetzt ihn dadurch automatisch; dessen alte Caches werden beim Aktivieren gelöscht.
+const CACHE = 'fit-v3';
 const ASSETS = [
-  '/fit/',
-  '/fit/index.html',
-  '/fit/app.js',
-  '/fit/styles.css',
-  '/fit/manifest.webmanifest',
-  '/fit/icon.svg',
-  '/fit/icon-192.png',
-  '/fit/icon-512.png',
-  '/fit/apple-touch-icon.png',
-  '/fit/vendor/html5-qrcode.min.js',
+  '/',
+  '/index.html',
+  '/app.js',
+  '/styles.css',
+  '/manifest.webmanifest',
+  '/icon.svg',
+  '/icon-192.png',
+  '/icon-512.png',
+  '/apple-touch-icon.png',
+  '/vendor/html5-qrcode.min.js',
 ];
 
 self.addEventListener('install', (e) => {
@@ -22,7 +24,7 @@ self.addEventListener('install', (e) => {
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k.startsWith('fit-') && k !== CACHE).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
       .then(() => self.clients.claim()),
   );
 });
@@ -30,8 +32,8 @@ self.addEventListener('activate', (e) => {
 self.addEventListener('fetch', (e) => {
   const req = e.request;
   const url = new URL(req.url);
-  if (req.method !== 'GET' || url.origin !== location.origin || !url.pathname.startsWith('/fit/')) return;
-  const key = req.mode === 'navigate' ? '/fit/index.html' : req;
+  if (req.method !== 'GET' || url.origin !== location.origin) return;
+  const key = req.mode === 'navigate' ? '/index.html' : req;
   e.respondWith(
     caches.open(CACHE).then(async (cache) => {
       const cached = await cache.match(key, { ignoreSearch: true });
