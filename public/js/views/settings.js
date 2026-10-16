@@ -16,6 +16,9 @@ function view() {
     <button type="button" class="item" data-a="go" data-v="goals"><div><b>Ziele</b><div class="muted small">Zielgewicht ${S.goals.weight != null ? fmtFixed(S.goals.weight) + ' kg' : 'nicht gesetzt'} · ${S.goals.weeklySessions}× Training pro Woche</div></div>${icon('right', 'chev')}</button>
   </div></div>
 
+  <div class="section">Profil</div>
+  <div class="card"><label class="field" style="margin:0"><span>Dein Name</span><input data-c="profName" value="${esc(p.name || '')}" placeholder="für die Begrüßung, optional" maxlength="30" autocomplete="given-name"></label></div>
+
   <div class="section">Tageswerte</div>
   <div class="card"><div class="grid3">
     <label class="field"><span>Wasser (ml)</span><input type="number" inputmode="numeric" step="250" data-c="prof" data-f="waterGoal" value="${p.waterGoal}"></label>
@@ -62,6 +65,7 @@ C.prof = (el) => {
   app.S.profile[el.dataset.f] = r.value;
   commit();
 };
+C.profName = (el) => { app.S.profile.name = el.value.trim().slice(0, 30); commit(); };
 C.supp = (el) => { app.S.supps[+el.dataset.i][el.dataset.f] = el.value.trim(); save(); };
 A.addSupp = () => { app.S.supps.push({ id: uid(), name: 'Neues Supplement', dose: '' }); commit(); };
 A.delSupp = (el) => { app.S.supps.splice(+el.dataset.i, 1); commit(); };
