@@ -3,37 +3,38 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>FIT</title>
-  <meta name="theme-color" content="#0b0d10">
+  <title>IRONCORE</title>
+  <meta name="description" content="Privates Fitness-Betriebssystem">
+  <meta name="robots" content="noindex, nofollow">
+  <meta name="referrer" content="no-referrer">
+  <meta name="theme-color" content="#0B0B0B">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="FIT">
+  <meta name="apple-mobile-web-app-title" content="IRONCORE">
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="icon" href="/icon.svg" type="image/svg+xml">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <link rel="stylesheet" href="/styles.css">
+  <link rel="preload" href="/fonts/inter.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/space-grotesk.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/css/ironcore.css">
 </head>
 <body>
   <main id="app"></main>
-
   <div id="restbar" class="restbar hidden"></div>
-
-  <nav class="tabs" id="tabs">
-    <button type="button" data-a="tab" data-v="today"><span class="ti">◉</span>Heute</button>
-    <button type="button" data-a="tab" data-v="train"><span class="ti">🏋️</span>Training</button>
-    <button type="button" data-a="tab" data-v="food"><span class="ti">🍽️</span>Essen</button>
-    <button type="button" data-a="tab" data-v="body"><span class="ti">📈</span>Körper</button>
-    <button type="button" data-a="tab" data-v="more"><span class="ti">☰</span>Mehr</button>
+  <nav class="tabs" id="tabs" aria-label="Hauptnavigation">
+    <button type="button" data-a="tab" data-v="home"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg>Home</button>
+    <button type="button" data-a="tab" data-v="train"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 6.5v11M3.5 9v6M17.5 6.5v11M20.5 9v6M6.5 12h11"/></svg>Training</button>
+    <button type="button" data-a="tab" data-v="food"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3v6a2 2 0 0 0 4 0V3M8 11v10M17 21V3c-2.2 1.4-3 4-3 7.5h3"/></svg>Ernährung</button>
+    <button type="button" data-a="tab" data-v="progress"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8M15 7h6v6"/></svg>Fortschritt</button>
+    <button type="button" data-a="tab" data-v="goals"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21a9 9 0 1 0 0-18 9 9 0 0 0 0 18zM12 16.5a4.5 4.5 0 1 0 0-9 4.5 4.5 0 0 0 0 9zM12 12.01V12"/></svg>Ziele</button>
   </nav>
-
-  <div id="sheet" class="sheet hidden" aria-hidden="true">
+  <div id="sheet" class="sheet hidden" role="dialog" aria-modal="true">
     <div class="sheet-bg" data-a="closeSheet"></div>
     <div class="sheet-panel"><div class="sheet-grip"></div><div id="sheetBody"></div></div>
   </div>
-
-  <div id="toast" class="toast hidden"></div>
-
-  <script src="/app.js" defer></script>
+  <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+  <noscript><p style="padding:24px;color:#F5F5F5">IRONCORE braucht JavaScript.</p></noscript>
+  <script type="module" src="/js/main.js"></script>
 </body>
 </html>
