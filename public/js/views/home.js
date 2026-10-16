@@ -1,7 +1,7 @@
 // Dashboard: alles Wichtige des Tages auf einen Blick, Schnellzugriff auf Gewicht, Essen, Training.
 import { app, A, C, registerView, commit, go, openSheet, closeSheet, toast } from '../core.js';
-import { dkey, sumMacros, weightChange, currentWeight, prEvents, weekKeys, workoutVolume, workoutSets, lastPerformance, validate, LIMITS } from '../logic.js';
-import { esc, fmt, fmtFixed, icon, ring, mrow, bar, delta, longDate, relDay, fmtDur, WD, formVals, markInvalid, plural, fmtClock } from '../ui.js';
+import { dkey, addDays, sumMacros, weightChange, currentWeight, rollingAvg, prEvents, weekKeys, weeklyTraining, workoutVolume, workoutSets, lastPerformance, validate, LIMITS } from '../logic.js';
+import { esc, fmt, fmtFixed, icon, mrow, delta, longDate, relDay, fmtDur, WD, formVals, markInvalid, fmtClock, hudRing, sparkline, microBars, corners, signed } from '../ui.js';
 import { entries, plannedFor, workoutsOn, lastWorkoutOfDay, exName, daily, getDay, dayW, weightsSorted } from '../domain.js';
 import { uid } from '../store.js';
 import { monsterCan } from '../can.js';
@@ -11,31 +11,69 @@ function view() {
   const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
   const hasData = S.workouts.length + S.weights.length + Object.keys(S.meals).length > 3;
   const backupOld = hasData && Date.now() - (S.settings.lastBackup || 0) > 7 * 864e5;
+  const notices = [
+    app.migrated ? `<div class="card gold-edge"><div class="row between top"><div class="small"><b>Deine FIT-Daten sind übernommen.</b><div class="muted tiny" style="margin-top:4px">Trainings, Plan, Gewicht, Essen, Maße und Fotos sind da. Prüf kurz unter „Ziele“ dein Zielgewicht.</div></div><button type="button" class="icon-btn sm plain" data-a="dismissMigrated" aria-label="Hinweis schließen">${icon('x', 'sm')}</button></div></div>` : '',
+    app.recovered ? `<div class="card" style="border-color:var(--danger)"><span class="small">Gespeicherte Daten waren beschädigt und wurden als Kopie gesichert. Lade dein letztes Backup unter Einstellungen → Daten.</span></div>` : '',
+    !S.settings.onboarded ? `<div class="card gold-edge"><b>Willkommen bei IRONCORE.</b><p class="muted small" style="margin:6px 0 12px">Zwei Minuten Einrichtung: Kalorien- und Makroziel berechnen, Zielgewicht festlegen.</p><div class="row"><button type="button" class="btn primary sm" data-a="go" data-v="calc">Ziele einrichten</button><button type="button" class="btn ghost sm" data-a="dismissOnboard">Später</button></div></div>` : '',
+    !standalone && !S.settings.hideInstall ? `<div class="card"><div class="row between top"><div class="small"><b>Als App installieren</b><div class="muted tiny" style="margin-top:4px">Safari → Teilen → „Zum Home-Bildschirm“. Läuft dann im Vollbild und offline.</div></div><button type="button" class="icon-btn sm plain" data-a="hideInstall" aria-label="Hinweis schließen">${icon('x', 'sm')}</button></div></div>` : '',
+    backupOld ? `<div class="card"><div class="row between"><span class="small">Letztes Backup ist über eine Woche her.</span><button type="button" class="btn outline sm" data-a="export">${icon('download', 'sm')} Sichern</button></div></div>` : '',
+  ].join('');
+  const kw = isoWeek(new Date());
   return `
   <div class="topbar">
-    <div><div class="wordmark">IRONCORE</div><div class="muted small" style="margin-top:6px">${longDate(k)}</div></div>
-    <button type="button" class="icon-btn" data-a="go" data-v="settings" aria-label="Einstellungen">${icon('sliders')}</button>
+    <div class="wordmark">IRONCORE</div>
+    <div class="row"><span class="meta">KW ${kw} · ${new Date().toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })}</span><button type="button" class="icon-btn" data-a="go" data-v="settings" aria-label="Einstellungen">${icon('sliders')}</button></div>
   </div>
-  ${app.migrated ? `<div class="card gold-edge"><div class="row between top"><div class="small"><b>Deine FIT-Daten sind übernommen.</b><div class="muted tiny mt0" style="margin-top:4px">Trainings, Plan, Gewicht, Essen, Maße und Fotos sind da. Prüf kurz unter „Ziele“ dein Zielgewicht.</div></div><button type="button" class="icon-btn sm plain" data-a="dismissMigrated">${icon('x', 'sm')}</button></div></div>` : ''}
-  ${app.recovered ? `<div class="card" style="border-color:var(--danger)"><span class="small">Gespeicherte Daten waren beschädigt und wurden als Kopie gesichert. Lade dein letztes Backup unter Einstellungen → Daten.</span></div>` : ''}
-  ${!S.settings.onboarded ? `<div class="card gold-edge"><b>Willkommen bei IRONCORE.</b><p class="muted small" style="margin:6px 0 12px">Zwei Minuten Einrichtung: Kalorien- und Makroziel berechnen, Zielgewicht festlegen.</p><div class="row"><button type="button" class="btn primary sm" data-a="go" data-v="calc">Ziele einrichten</button><button type="button" class="btn ghost sm" data-a="dismissOnboard">Später</button></div></div>` : ''}
-  ${!standalone && !S.settings.hideInstall ? `<div class="card"><div class="row between top"><div class="small"><b>Als App installieren</b><div class="muted tiny" style="margin-top:4px">Safari → Teilen → „Zum Home-Bildschirm“. Läuft dann im Vollbild und offline.</div></div><button type="button" class="icon-btn sm plain" data-a="hideInstall">${icon('x', 'sm')}</button></div></div>` : ''}
-  ${backupOld ? `<div class="card"><div class="row between"><span class="small">Letztes Backup ist über eine Woche her.</span><button type="button" class="btn outline sm" data-a="export">${icon('download', 'sm')} Sichern</button></div></div>` : ''}
+  <div class="greet"><h1>${greeting()}${S.profile.name ? `, ${esc(S.profile.name)}` : ''}</h1><div class="muted small" style="margin-top:6px">${longDate(k)}</div></div>
+  ${notices}
+  <div class="dash">
+    <div class="span">${cockpit(k)}</div>
+    <div class="span quick">
+      <button type="button" data-a="logWeight">${icon('scale')}Gewicht</button>
+      <button type="button" data-a="quickFood">${icon('food')}Essen</button>
+      <button type="button" data-a="go" data-v="progress">${icon('trend')}Verlauf</button>
+    </div>
+    <div>${nutritionCard(k)}${weekCard(k)}</div>
+    <div>${weightCard()}${prCard()}</div>
+    <div class="span">${habitsCard(k)}</div>
+  </div>`;
+}
+function greeting() { const h = new Date().getHours(); return h < 5 ? 'Gute Nacht' : h < 11 ? 'Guten Morgen' : h < 18 ? 'Hallo' : 'Guten Abend'; }
+function isoWeek(d) { const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const day = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - day); const y0 = new Date(Date.UTC(t.getUTCFullYear(), 0, 1)); return Math.ceil(((t - y0) / 864e5 + 1) / 7); }
 
-  <div class="quick">
-    <button type="button" data-a="logWeight">${icon('scale')}Gewicht</button>
-    <button type="button" data-a="quickFood">${icon('food')}Essen</button>
-    <button type="button" data-a="quickTrain">${icon('dumbbell')}${S.active ? 'Weiter' : 'Training'}</button>
-  </div>
-
-  ${S.active ? `<div class="card gold-edge tap" data-a="go" data-v="session"><div class="row between"><div><div class="label gold">Training läuft</div><div class="mid" style="margin-top:6px">${esc(S.active.name)}</div><div class="muted small">${fmtDur(Date.now() - S.active.start)} · ${S.active.exercises.reduce((a, e) => a + e.sets.filter((s) => s.done).length, 0)} Sätze erledigt</div></div><span class="btn primary sm">${icon('play', 'sm')} Weiter</span></div></div>` : ''}
-
-  ${weightCard()}
-  ${nutritionCard(k)}
-  ${workoutCard(k)}
-  ${weekCard(k)}
-  ${prCard()}
-  ${habitsCard(k)}`;
+// Hero 1: Cockpit – Woche als Segment-Ring, heutiges Training, START
+function cockpit(k) {
+  const S = app.S, wk = weekKeys(k);
+  const done = S.workouts.filter((w) => wk.includes(w.date)).length;
+  const target = S.goals.weeklySessions || 0;
+  const ringHtml = hudRing({ seg: { total: Math.max(target, done) || 1, filled: done }, label: `${done} von ${target} Einheiten diese Woche`,
+    center: `<span class="hud-v">${done}<span class="unit" style="font-size:15px">/${target || '–'}</span></span><span class="hud-l">Woche</span>` });
+  let body;
+  if (S.active) {
+    const a = S.active, sets = a.exercises.reduce((n, e) => n + e.sets.filter((s) => s.done).length, 0);
+    const vol = a.exercises.reduce((n, e) => n + e.sets.filter((s) => s.done).reduce((m, s) => m + (+s.w || 0) * (+s.r || 0), 0), 0);
+    body = { eyebrow: 'Training läuft', title: esc(a.name), tele: [['Dauer', fmtDur(Date.now() - a.start)], ['Sätze', sets], ['Volumen', fmt(vol) + ' kg']], cta: `<button type="button" class="btn primary block launch" data-a="go" data-v="session">${icon('play')} Training fortsetzen</button>` };
+  } else {
+    const doneToday = workoutsOn(k);
+    const plan = plannedFor(k).filter((d) => !doneToday.some((w) => w.dayId === d.id));
+    if (doneToday.length && !plan.length) {
+      const w = doneToday[doneToday.length - 1];
+      body = { eyebrow: 'Training erledigt', title: esc(w.name), tele: [['Dauer', fmtDur(w.end - w.start)], ['Sätze', workoutSets(w)], ['Volumen', fmt(workoutVolume(w)) + ' kg']], cta: `<button type="button" class="btn outline block" data-a="showWorkout" data-id="${w.id}">${icon('list', 'sm')} Zusammenfassung</button>` };
+    } else if (plan.length) {
+      const d = plan[0], last = lastWorkoutOfDay(d.id);
+      body = { eyebrow: 'Heute geplant', title: esc(d.name), sub: esc(d.ex.slice(0, 3).map((e) => exName(e.exId)).join(', ')) + (d.ex.length > 3 ? ` +${d.ex.length - 3}` : ''),
+        tele: [['Übungen', d.ex.length], ['Sätze', d.ex.reduce((n, e) => n + e.sets, 0)], ['Zuletzt', last ? fmt(workoutVolume(last)) + ' kg' : '–']],
+        cta: `<button type="button" class="btn primary block launch" data-a="startWorkout" data-id="${d.id}">${icon('play')} Start workout</button><button type="button" class="btn ghost block sm" style="margin-top:6px" data-a="previewDay" data-id="${d.id}">Letzte Leistung ansehen</button>` };
+    } else {
+      body = { eyebrow: 'Ruhetag', title: 'Regeneration', sub: 'Kein Training geplant. Muskeln wachsen in der Pause.', tele: null,
+        cta: `<button type="button" class="btn outline block" data-a="startWorkout" data-id="">${icon('plus', 'sm')} Freies Training starten</button>` };
+    }
+  }
+  return `<section class="hero corners" aria-label="Training heute">${corners()}
+    <div class="cockpit">${ringHtml}<div style="min-width:0"><div class="label gold">${body.eyebrow}</div><div class="cockpit-title">${body.title}</div>${body.sub ? `<div class="muted small">${body.sub}</div>` : ''}</div></div>
+    ${body.tele ? `<div class="telemetry">${body.tele.map(([l, v], i) => `<div><div class="meta">${l}</div><div class="v ${i === 2 ? 'gold' : ''}">${v}</div></div>`).join('')}</div>` : '<div style="height:16px"></div>'}
+    ${body.cta}
+  </section>`;
 }
 
 function weightCard() {
@@ -43,58 +81,46 @@ function weightCard() {
   if (!cw) return `<div class="card"><div class="card-h"><span class="t">${icon('scale')} Körpergewicht</span></div><div class="empty">Noch kein Gewicht eingetragen. Wiege dich morgens nach dem Aufstehen – ab der ersten Woche siehst du hier deinen Trend.</div><button type="button" class="btn outline sm mt" data-a="logWeight">${icon('plus', 'sm')} Gewicht eintragen</button></div>`;
   const ch7 = weightChange(d, dkey(), 7), ch30 = weightChange(d, dkey(), 30);
   const dir = goal != null && goal > cw.trend ? 'up' : 'down';
+  const pts = rollingAvg(d).filter((p) => p.x >= addDays(dkey(), -29));
   return `<div class="card tap" data-a="go" data-v="progress">
-    <div class="card-h"><span class="t">${icon('scale')} Körpergewicht</span><span class="muted tiny">${relDay(cw.latestDate)}: ${fmtFixed(cw.latest)} kg</span></div>
-    <div class="grid4">
-      <div class="stat"><div class="label">Ø 7 Tage</div><div class="v gold">${fmtFixed(cw.trend)}</div><div class="s">kg</div></div>
-      <div class="stat"><div class="label">Ziel</div><div class="v">${goal != null ? fmtFixed(goal) : '–'}</div><div class="s">${goal != null ? `${fmtFixed(Math.abs(cw.trend - goal))} kg ${cw.trend > goal ? 'übrig' : cw.trend < goal ? 'übrig' : ''}` : '<span class="link">festlegen</span>'}</div></div>
-      <div class="stat"><div class="label">7 T</div><div style="margin-top:6px">${delta(ch7, { goodWhen: dir })}</div></div>
-      <div class="stat"><div class="label">30 T</div><div style="margin-top:6px">${delta(ch30, { goodWhen: dir })}</div></div>
+    <div class="card-h"><span class="t">${icon('scale')} Körpergewicht</span><span class="meta">Ø 7 Tage</span></div>
+    <div class="row between top">
+      <div><div class="statline"><span class="big gold">${fmtFixed(cw.trend)}</span><span class="unit">kg</span></div>
+        <div class="muted small" style="margin-top:6px">${goal != null ? (Math.abs(cw.trend - goal) < 0.1 ? 'Ziel erreicht' : `Ziel ${fmtFixed(goal)} kg · noch ${fmtFixed(Math.abs(cw.trend - goal))}`) : '<span class="link">Ziel festlegen</span>'}</div></div>
+      <div class="right"><div class="row" style="justify-content:flex-end"><span class="meta">7 T</span>${delta(ch7, { goodWhen: dir })}</div><div class="row" style="justify-content:flex-end;margin-top:6px"><span class="meta">30 T</span>${delta(ch30, { goodWhen: dir })}</div></div>
     </div>
-    ${ch30 == null ? `<div class="faint tiny mt">${ch7 == null ? '7- und 30-Tage-Veränderung erscheinen, sobald genug Messungen da sind.' : '30-Tage-Veränderung braucht Messungen von vor 30 Tagen.'}</div>` : ''}
+    ${pts.length >= 2 ? `<div class="mt">${sparkline(pts)}</div><div class="row between"><span class="meta">${relDay(pts[0].x)}</span><span class="meta">Heute ${fmtFixed(cw.latest)} kg gemessen</span></div>` : `<div class="faint tiny mt">Verlauf und Veränderung erscheinen, sobald genug Messungen da sind.</div>`}
   </div>`;
 }
 
+// Ernährung: Kalorien außen, Protein innen – die zwei Zahlen, die in der Diät zählen
 function nutritionCard(k) {
   const t = app.S.targets, tot = sumMacros(entries(k));
+  const left = t.kcal - tot.kcal;
   return `<div class="card tap" data-a="go" data-v="food">
-    <div class="card-h"><span class="t">${icon('flame')} Ernährung heute</span><span class="muted small num">${fmt(tot.kcal)} / ${fmt(t.kcal)} kcal</span></div>
-    <div class="ring-wrap">${ring(tot.kcal, t.kcal)}<div class="grow">${mrow('Protein', tot.p, t.p)}${mrow('Kohlenhydrate', tot.c, t.c)}${mrow('Fett', tot.f, t.f)}</div></div>
+    <div class="card-h"><span class="t">${icon('flame')} Ernährung heute</span><span class="meta">${fmt(tot.kcal)} / ${fmt(t.kcal)} kcal</span></div>
+    <div class="ring-wrap">${hudRing({ rings: [{ id: 'kcal', pct: t.kcal ? tot.kcal / t.kcal : 0, cls: tot.kcal > t.kcal * 1.05 ? 'bad' : '' }, { id: 'prot', pct: t.p ? tot.p / t.p : 0, cls: 'dim' }], label: `${fmt(tot.kcal)} von ${fmt(t.kcal)} kcal, ${fmt(tot.p)} von ${fmt(t.p)} g Protein`,
+      center: `<span class="hud-v">${fmt(Math.abs(left))}</span><span class="hud-l">${left < 0 ? 'kcal drüber' : 'kcal übrig'}</span>` })}
+      <div class="grow">
+        <div class="label">Protein</div><div class="statline" style="margin:4px 0 12px"><span class="mid">${fmt(tot.p)}</span><span class="unit">/ ${fmt(t.p)} g</span></div>
+        ${mrow('Kohlenhydrate', tot.c, t.c)}${mrow('Fett', tot.f, t.f)}
+      </div></div>
   </div>`;
-}
-
-function workoutCard(k) {
-  const S = app.S;
-  const done = workoutsOn(k);
-  if (done.length) {
-    return `<div class="card">${done.map((w) => `<div class="row between"><div><div class="label gold">Training erledigt</div><div class="mid" style="margin-top:6px">${esc(w.name)}</div><div class="muted small">${fmtDur(w.end - w.start)} · ${plural(workoutSets(w), 'Satz', 'Sätze')} · ${fmt(workoutVolume(w))} kg</div></div>${icon('check', 'lg gold')}</div>`).join('<hr class="divider">')}</div>`;
-  }
-  if (S.active) return '';
-  const plan = plannedFor(k);
-  if (!plan.length) {
-    return `<div class="card"><div class="row between"><div><div class="label">Training</div><div class="mid" style="margin-top:6px">Ruhetag</div><div class="muted small">Regeneration ist Teil des Plans.</div></div><button type="button" class="btn sm" data-a="go" data-v="train">Trotzdem trainieren</button></div></div>`;
-  }
-  return plan.map((d) => {
-    const last = lastWorkoutOfDay(d.id);
-    return `<div class="card gold-edge">
-      <div class="label gold">Heute geplant</div>
-      <div class="row between" style="margin-top:6px"><div class="mid">${esc(d.name)}</div><span class="pill">${d.ex.length} Übungen</span></div>
-      <div class="muted small" style="margin:6px 0 2px">${esc(d.ex.slice(0, 4).map((e) => exName(e.exId)).join(' · '))}${d.ex.length > 4 ? ' …' : ''}</div>
-      <div class="faint tiny">${last ? `Zuletzt ${relDay(last.date)}: ${fmt(workoutVolume(last))} kg Volumen in ${fmtDur(last.end - last.start)}` : 'Erste Einheit dieses Tages'}</div>
-      <div class="row mt"><button type="button" class="btn grow" data-a="previewDay" data-id="${d.id}">${icon('list', 'sm')} Letzte Leistung</button><button type="button" class="btn primary grow" data-a="startWorkout" data-id="${d.id}">${icon('play', 'sm')} Starten</button></div>
-    </div>`;
-  }).join('');
 }
 
 function weekCard(k) {
   const S = app.S, wk = weekKeys(k);
-  const done = S.workouts.filter((w) => wk.includes(w.date));
-  const target = S.goals.weeklySessions || 0;
-  const days = new Set(done.map((w) => w.date));
-  return `<div class="card">
-    <div class="card-h"><span class="t">${icon('calendar')} Diese Woche</span><span class="small num"><b class="gold">${done.length}</b><span class="muted"> / ${target || '–'} Einheiten</span></span></div>
-    <div class="week">${wk.map((d) => `<div class="d ${days.has(d) ? 'done' : plannedFor(d).length ? 'plan' : ''} ${d === k ? 'today' : ''}">${WD[new Date(d + 'T12:00').getDay()]}<span class="m"></span></div>`).join('')}</div>
-    ${target ? `<div class="mt">${bar(done.length, target, { over: false })}</div>` : ''}
+  const days = new Set(S.workouts.filter((w) => wk.includes(w.date)).map((w) => w.date));
+  const weeks = weeklyTraining(S.workouts, k, 8);
+  const cur = weeks[weeks.length - 1], prev = weeks[weeks.length - 2];
+  const dPct = prev.volume ? ((cur.volume - prev.volume) / prev.volume) * 100 : null;
+  return `<div class="card tap" data-a="go" data-v="train" data-p="analytics">
+    <div class="card-h"><span class="t">${icon('trend')} Trainingsvolumen</span><span class="meta">Diese Woche</span></div>
+    <div class="row between" style="align-items:flex-end">
+      <div><div class="statline"><span class="big">${fmt(cur.volume)}</span><span class="unit">kg</span></div><div class="muted small" style="margin-top:6px">${cur.sets} Sätze${dPct != null ? ` · ${signed(dPct, 0, ' %')} zur Vorwoche` : ''}</div></div>
+      <div style="width:42%">${microBars(weeks.map((w) => w.volume))}<div class="meta right" style="margin-top:4px">8 Wochen</div></div>
+    </div>
+    <div class="week mt">${wk.map((d) => `<div class="d ${days.has(d) ? 'done' : plannedFor(d).length ? 'plan' : ''} ${d === k ? 'today' : ''}">${WD[new Date(d + 'T12:00').getDay()]}<span class="m"></span></div>`).join('')}</div>
   </div>`;
 }
 
@@ -102,15 +128,15 @@ function prCard() {
   const ev = prEvents(app.S.workouts).slice(-3).reverse();
   return `<div class="card">
     <div class="card-h"><span class="t">${icon('trophy')} Letzte Rekorde</span>${ev.length ? '<button type="button" class="link small" data-a="go" data-v="train" data-p="analytics">Alle</button>' : ''}</div>
-    ${ev.length ? ev.map((e) => `<div class="pr"><div class="medal">${icon('trophy', 'sm')}</div><div class="grow"><b>${esc(e.name)}</b><div class="muted small">${fmt(e.w, 1)} kg × ${e.r} · ${relDay(e.date)}</div></div><div class="right"><div class="gold num" style="font-weight:700">${fmt(e.e1rm, 1)}</div><div class="faint tiny">e1RM kg</div></div></div>`).join('')
-      : '<div class="empty">Rekorde zählen, sobald du eine frühere Leistung übertriffst – die erste Einheit einer Übung ist deine Basis.</div>'}
+    ${ev.length ? ev.map((e) => `<div class="pr"><div class="medal">${icon('trophy', 'sm')}</div><div class="grow"><b>${esc(e.name)}</b><div class="muted small">${fmt(e.w, 1)} kg × ${e.r} · ${relDay(e.date)}</div></div><div class="right"><div class="pv">${fmt(e.e1rm, 1)}</div><div class="meta">e1RM kg</div></div></div>`).join('')
+      : '<div class="empty">Ein Rekord zählt, sobald du eine frühere Leistung übertriffst. Die erste Einheit einer Übung ist deine Basis.</div>'}
   </div>`;
 }
 
 function habitsCard(k) {
   const S = app.S, d = getDay(k), p = S.profile;
-  return `<div class="section">Tageswerte</div>
-  <div class="card">
+  return `<div class="card">
+    <div class="card-h"><span class="t">${icon('drop')} Tageswerte</span><span class="meta">${relDay(k)}</span></div>
     <div class="water">
       ${monsterCan(p.waterGoal > 0 ? d.water / p.waterGoal : 0)}
       <div class="grow">

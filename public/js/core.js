@@ -52,10 +52,15 @@ export function back(fallback = 'home') {
   if (prev) { app.ui.view = prev.view; app.ui.params = prev.params; render(); window.scrollTo(0, 0); }
   else go(fallback, {}, { push: false });
 }
+let lastRendered = null;
 export function render() {
   const name = views[app.ui.view] ? app.ui.view : 'home';
   resetCharts();
-  $('#app').innerHTML = views[name](app.ui.params || {});
+  const main = $('#app');
+  main.innerHTML = views[name](app.ui.params || {});
+  // Sanfter Übergang nur beim Bildschirmwechsel, nicht bei jedem Neuzeichnen
+  if (lastRendered !== name) { main.classList.remove('enter'); void main.offsetWidth; main.classList.add('enter'); }
+  lastRendered = name;
   document.querySelectorAll('#tabs button').forEach((b) => b.classList.toggle('on', b.dataset.v === tabOf[name]));
   document.dispatchEvent(new CustomEvent('rendered', { detail: { view: name, root: $('#app') } }));
 }

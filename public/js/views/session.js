@@ -2,7 +2,7 @@
 // Jede Eingabe wird sofort gespeichert – Neuladen oder Schließen verliert nichts.
 import { app, A, I, registerView, commit, save, saveNow, go, openSheet, closeSheet, toast, celebrate } from '../core.js';
 import { dkey, lastPerformance, bestByExercise, prEvents, validate, LIMITS, workoutVolume, workoutSets, compareWithPrevious, num } from '../logic.js';
-import { $, esc, fmt, fmtSec, fmtDur, icon, relDay, plural, signed } from '../ui.js';
+import { $, esc, fmt, fmtSec, fmtDur, icon, relDay, plural, signed, corners } from '../ui.js';
 import { exById, findDay, findOrCreateExercise } from '../domain.js';
 import { uid } from '../store.js';
 import { pickExercise } from './training.js';
@@ -46,16 +46,24 @@ function view() {
   const e = a.exercises[i];
   const doneSets = a.exercises.reduce((s, x) => s + x.sets.filter((y) => y.done).length, 0);
   const allSets = a.exercises.reduce((s, x) => s + x.sets.length, 0);
+  const vol = a.exercises.reduce((n, x) => n + x.sets.filter((y) => y.done).reduce((m, y) => m + (+y.w || 0) * (+y.r || 0), 0), 0);
   return `
-  <div class="topbar"><button type="button" class="back" data-a="go" data-v="train">${icon('left', 'sm')} Training</button>
-    <div class="row"><span class="pill gold num" id="dur">${icon('clock', 'sm')} ${fmtDur(Date.now() - a.start)}</span></div></div>
-  <div class="row between"><h1 style="font-size:22px">${esc(a.name)}</h1><span class="muted small num">${doneSets}/${allSets} Sätze</span></div>
-  <div class="mt mb"><div class="bar"><i style="width:${allSets ? (doneSets / allSets) * 100 : 0}%"></i></div></div>
-  ${a.exercises.length ? `<div class="ex-strip">${a.exercises.map((x, xi) => { const fin = x.sets.length && x.sets.every((s) => s.done); return `<button type="button" class="${xi === i ? 'on' : ''} ${fin ? 'done' : ''}" data-a="goEx" data-i="${xi}">${fin ? '✓ ' : ''}${esc(x.name)}</button>`; }).join('')}</div>` : ''}
+  <div class="topbar"><button type="button" class="back" data-a="go" data-v="train">${icon('left', 'sm')} Training</button><span class="meta">Live-Session</span></div>
+  <section class="hero corners panel-head" aria-label="Session-Status">${corners()}
+    <div class="label gold">Aktives Training</div>
+    <div class="cockpit-title">${esc(a.name)}</div>
+    <div class="telemetry" style="margin-bottom:12px">
+      <div><div class="meta">Dauer</div><div class="v" id="dur">${fmtDur(Date.now() - a.start)}</div></div>
+      <div><div class="meta">Volumen</div><div class="v gold">${fmt(vol)}<span class="unit"> kg</span></div></div>
+      <div><div class="meta">Sätze</div><div class="v">${doneSets}<span class="unit">/${allSets}</span></div></div>
+    </div>
+    <div class="bar"><i style="width:${allSets ? (doneSets / allSets) * 100 : 0}%"></i></div>
+  </section>
+  ${a.exercises.length ? `<div class="ex-strip">${a.exercises.map((x, xi) => { const fin = x.sets.length && x.sets.every((y) => y.done); return `<button type="button" class="${xi === i ? 'on' : ''} ${fin ? 'done' : ''}" data-a="goEx" data-i="${xi}">${fin ? '✓ ' : `${xi + 1} `}${esc(x.name)}</button>`; }).join('')}</div>` : ''}
   ${e ? focusCard(e, i, a.exercises.length) : `<div class="card empty-card">${icon('dumbbell', 'lg')}<div class="empty">Füge deine erste Übung hinzu.</div></div>`}
   <button type="button" class="btn block" data-a="addSessionEx">${icon('plus', 'sm')} Übung hinzufügen</button>
   <div class="card mt"><label class="field" style="margin:0"><span>Notiz zum Training</span><textarea data-i="sessNote" placeholder="Energie, Schlaf, Pump, Schmerzen …">${esc(a.note)}</textarea></label></div>
-  <button type="button" class="btn primary block xl" data-a="finishWorkout">${icon('check')} Training beenden</button>
+  <button type="button" class="btn primary block launch" data-a="finishWorkout">${icon('check')} Training beenden</button>
   <button type="button" class="btn ghost block mt" data-a="cancelWorkout">Training verwerfen</button>`;
 }
 registerView('session', view, 'train');
@@ -68,7 +76,7 @@ function focusCard(e, i, total) {
   const lib = exById(e.exId);
   const curSet = e.sets.findIndex((s) => !s.done);
   const allDone = curSet === -1;
-  return `<div class="card">
+  return `<div class="card panel">
     <div class="row between top"><div class="grow">
       <div class="label">${lib ? `${esc(lib.muscle)} · ${esc(lib.equipment)}` : 'Übung'} · ${i + 1}/${total}</div>
       <div class="focus-name">${esc(e.name)}</div>
@@ -81,7 +89,7 @@ function focusCard(e, i, total) {
     ${e.sets.map((s, si) => {
       const ph = last ? (last.sets[si] || last.sets[last.sets.length - 1]) : null;
       const phW = e.kg != null ? e.kg : ph ? ph.w : null;
-      return `<div class="set ${s.done ? 'done' : ''} ${si === curSet ? 'cur' : ''}"><span class="n">${si + 1}</span>
+      return `<div class="set ${s.done ? 'done' : ''} ${si === curSet ? 'cur' : ''} ${flash === si ? 'flash' : ''}"><span class="n">${si + 1}</span>
         <input type="text" inputmode="decimal" data-i="set" data-s="${si}" data-f="w" value="${esc(s.w)}" placeholder="${phW != null ? fmt(phW, 1) : 'kg'}" aria-label="Gewicht Satz ${si + 1}">
         <input type="text" inputmode="numeric" data-i="set" data-s="${si}" data-f="r" value="${esc(s.r)}" placeholder="${ph ? ph.r : 'Wdh'}" aria-label="Wiederholungen Satz ${si + 1}">
         <button type="button" class="ok" data-a="setDone" data-s="${si}" aria-label="Satz ${si + 1} erledigt">${icon('check')}</button></div>`;
@@ -96,6 +104,7 @@ function focusCard(e, i, total) {
 
 // ---------- Eingaben ----------
 const curEx = () => app.S.active.exercises[curIndex()];
+let flash = null; // Index des gerade abgehakten Satzes → kurzes Gold-Aufblitzen
 I.set = (el) => { curEx().sets[+el.dataset.s][el.dataset.f] = el.value.replace(',', '.').trim(); save(); };
 I.sessNote = (el) => { app.S.active.note = el.value; save(); };
 A.goEx = (el) => { const n = +el.dataset.i; if (n < 0 || n >= app.S.active.exercises.length) return; app.S.active.cur = n; commit(); window.scrollTo({ top: 0 }); };
@@ -112,7 +121,10 @@ A.setDone = (el) => {
   s.w = String(w.value); s.r = String(r.value); s.done = true;
   unlockAudio();
   startRest(e.rest);
+  flash = si;
+  if (navigator.vibrate) navigator.vibrate(18);
   commit();
+  flash = null;
 };
 A.addSet = () => { const e = curEx(); const l = e.sets[e.sets.length - 1]; e.sets.push({ w: l ? l.w : '', r: l ? l.r : '', done: false }); commit(); };
 A.delSet = () => { const e = curEx(); if (e.sets.length > 1) { e.sets.pop(); commit(); } };
@@ -180,9 +192,10 @@ function beep() {
   if (navigator.vibrate) navigator.vibrate([200, 100, 200]);
 }
 function startRest(sec) { if (!sec) return; app.ui.rest = { end: Date.now() + sec * 1000, total: sec, beeped: false }; tick(); }
+const RC = 2 * Math.PI * 19;
 export function tick() {
   const dur = $('#dur');
-  if (dur && app.S.active) dur.innerHTML = `${icon('clock', 'sm')} ${fmtDur(Date.now() - app.S.active.start)}`;
+  if (dur && app.S.active) dur.textContent = fmtDur(Date.now() - app.S.active.start);
   const rb = $('#restbar');
   const r = app.ui.rest;
   document.body.classList.toggle('resting', !!r);
@@ -190,11 +203,12 @@ export function tick() {
   const left = Math.max(0, (r.end - Date.now()) / 1000);
   if (left <= 0 && !r.beeped) { r.beeped = true; beep(); }
   if (left <= 0 && Date.now() - r.end > 20000) { app.ui.rest = null; rb.classList.add('hidden'); document.body.classList.remove('resting'); return; }
-  if (!rb.firstChild) rb.innerHTML = `${icon('timer', 'gold')}<span class="t"></span><div class="bar"><i></i></div><button type="button" class="btn sm" data-a="restAdd">+15 s</button><button type="button" class="icon-btn sm" data-a="restSkip" aria-label="Pause beenden">${icon('x', 'sm')}</button>`;
+  if (!rb.firstChild) rb.innerHTML = `<svg class="rr" viewBox="0 0 46 46" aria-hidden="true"><circle class="rt" cx="23" cy="23" r="19"/><circle class="ra" cx="23" cy="23" r="19" stroke-dasharray="${RC.toFixed(2)}" transform="rotate(-90 23 23)"/></svg><div class="grow"><div class="lbl">Pause</div><span class="t"></span></div><button type="button" class="btn sm" data-a="restAdd">+15 s</button><button type="button" class="icon-btn sm" data-a="restSkip" aria-label="Pause beenden">${icon('x', 'sm')}</button>`;
   rb.classList.remove('hidden');
   rb.classList.toggle('end', left <= 0);
   rb.querySelector('.t').textContent = left > 0 ? fmtSec(Math.ceil(left)) : 'Los!';
-  rb.querySelector('.bar i').style.width = `${(left / r.total) * 100}%`;
+  rb.querySelector('.lbl').textContent = left > 0 ? 'Pause' : 'Nächster Satz';
+  rb.querySelector('.ra').style.strokeDashoffset = (RC * (1 - left / r.total)).toFixed(2);
 }
 A.restAdd = () => { const r = app.ui.rest; if (r) { r.end = Math.max(r.end, Date.now()) + 15000; r.total += 15; r.beeped = false; tick(); } };
 A.restSkip = () => { app.ui.rest = null; tick(); };

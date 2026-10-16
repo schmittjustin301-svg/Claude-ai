@@ -77,15 +77,72 @@ export function bar(v, max, { thick = false, over = true } = {}) {
   return `<div class="bar ${thick ? 'thick' : ''} ${over && max > 0 && v > max * 1.05 ? 'over' : ''}"><i style="width:${pct.toFixed(1)}%"></i></div>`;
 }
 export const mrow = (label, v, max, unit = 'g') => `<div class="mrow"><div class="t"><span>${label}</span><span>${fmt(v)} / ${fmt(max)} ${unit}</span></div>${bar(v, max)}</div>`;
-export function ring(v, max) {
-  const R = 54, C = 2 * Math.PI * R;
-  const pct = max > 0 ? Math.min(1, v / max) : 0;
-  const over = v > max * 1.05;
-  return `<div class="ring" role="img" aria-label="${fmt(v)} von ${fmt(max)} kcal"><svg viewBox="0 0 128 128">
-    <circle cx="64" cy="64" r="${R}" fill="none" stroke="var(--elev)" stroke-width="9"/>
-    <circle cx="64" cy="64" r="${R}" fill="none" stroke="${over ? 'var(--danger)' : 'var(--gold)'}" stroke-width="9" stroke-linecap="round" stroke-dasharray="${C}" stroke-dashoffset="${C * (1 - pct)}"/>
-  </svg><div class="in"><span class="v">${fmt(Math.abs(max - v))}</span><span class="l">${v > max ? 'kcal drüber' : 'kcal übrig'}</span></div></div>`;
+export const corners = () => '<i class="cn tl"></i><i class="cn tr"></i><i class="cn bl"></i><i class="cn br"></i>';
+
+// ---------- HUD-Ringe ----------
+// Fortschritt animiert vom zuletzt gezeigten Wert zum neuen (kein erneutes Hochlaufen bei jedem Neuzeichnen).
+const ringMemory = new Map();
+const R_C = (r) => 2 * Math.PI * r;
+function ticks(n, r1, r2, major = 5) {
+  let out = '';
+  for (let i = 0; i < n; i++) {
+    const a = (i / n) * Math.PI * 2, big = i % major === 0;
+    const ri = big ? r1 - 2 : r1;
+    out += `<line class="${big ? 'tk big' : 'tk'}" x1="${(60 + ri * Math.cos(a)).toFixed(2)}" y1="${(60 + ri * Math.sin(a)).toFixed(2)}" x2="${(60 + r2 * Math.cos(a)).toFixed(2)}" y2="${(60 + r2 * Math.sin(a)).toFixed(2)}"/>`;
+  }
+  return out;
 }
+function arc(id, r, pct, cls, width) {
+  const C = R_C(r), p = Math.max(0, Math.min(1, pct));
+  const from = ringMemory.has(id) ? ringMemory.get(id) : 0;
+  ringMemory.set(id, p);
+  return `<circle class="trk" cx="60" cy="60" r="${r}" stroke-width="${width}"/>
+    <circle class="arc ${cls}" cx="60" cy="60" r="${r}" stroke-width="${width}" stroke-dasharray="${C.toFixed(2)}" stroke-dashoffset="${(C * (1 - from)).toFixed(2)}" data-off="${(C * (1 - p)).toFixed(2)}"/>`;
+}
+/** Segmentierter Ring (z. B. Einheiten pro Woche): filled von total Segmenten. */
+function segments(r, total, filled, width) {
+  if (!total) return `<circle class="trk" cx="60" cy="60" r="${r}" stroke-width="${width}"/>`;
+  const C = R_C(r), gap = total > 1 ? 3.2 : 0, len = C / total - gap;
+  let out = '';
+  for (let i = 0; i < total; i++) out += `<circle class="seg ${i < filled ? 'on' : ''}" cx="60" cy="60" r="${r}" stroke-width="${width}" stroke-dasharray="${len.toFixed(2)} ${(C - len).toFixed(2)}" stroke-dashoffset="${(-(C / total) * i - gap / 2).toFixed(2)}" style="--i:${i}"/>`;
+  return out;
+}
+/**
+ * HUD-Ring. rings: [{id, pct, cls}] von außen nach innen, oder seg: {total, filled}.
+ * center: HTML in der Mitte.
+ */
+export function hudRing({ rings = [], seg = null, center = '', size = 'md', label = '', over = false }) {
+  const radii = [44, 36, 28];
+  let g = `<circle class="hud-frame" cx="60" cy="60" r="58"/>${ticks(72, 53, 56, 6)}`;
+  if (seg) g += segments(47, seg.total, seg.filled, 5);
+  rings.forEach((r, i) => { g += arc(r.id, seg ? radii[i + 1] : radii[i] + 3, r.pct, r.cls || '', i === 0 && !seg ? 6 : 4); });
+  return `<div class="hud ${size} ${over ? 'over' : ''}" role="img" aria-label="${esc(label)}"><svg viewBox="0 0 120 120"><g transform="rotate(-90 60 60)">${g}</g></svg><div class="hud-c">${center}</div></div>`;
+}
+export function ring(v, max) {
+  const pct = max > 0 ? v / max : 0;
+  return hudRing({ rings: [{ id: 'kcal', pct, cls: v > max * 1.05 ? 'bad' : '' }], label: `${fmt(v)} von ${fmt(max)} kcal`,
+    center: `<span class="hud-v">${fmt(Math.abs(max - v))}</span><span class="hud-l">${v > max ? 'kcal drüber' : 'kcal übrig'}</span>` });
+}
+/** Mini-Verlauf ohne Achsen (z. B. Gewicht der letzten 30 Tage). pts: [{x, y}] */
+export function sparkline(pts, { h = 44, w = 140 } = {}) {
+  if (pts.length < 2) return '';
+  const ys = pts.map((p) => p.y), lo = Math.min(...ys), hi = Math.max(...ys), span = hi - lo || 1;
+  const X = (i) => 2 + (i / (pts.length - 1)) * (w - 4), Y = (v) => 4 + (1 - (v - lo) / span) * (h - 8);
+  const d = pts.map((p, i) => `${i ? 'L' : 'M'}${X(i).toFixed(1)},${Y(p.y).toFixed(1)}`).join('');
+  const last = pts[pts.length - 1];
+  return `<svg class="spark" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="spg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#D4AF37" stop-opacity=".28"/><stop offset="1" stop-color="#D4AF37" stop-opacity="0"/></linearGradient></defs>
+    <path d="${d}L${X(pts.length - 1).toFixed(1)},${h}L2,${h}Z" fill="url(#spg)"/><path class="sp-l" d="${d}"/><circle class="sp-d" cx="${X(pts.length - 1).toFixed(1)}" cy="${Y(last.y).toFixed(1)}" r="2.6"/></svg>`;
+}
+/** Mini-Säulen (z. B. Volumen pro Woche). values: Zahlen, letzte = aktuelle Periode. */
+export function microBars(values, { h = 44 } = {}) {
+  const max = Math.max(1, ...values);
+  return `<div class="mbars" style="height:${h}px" aria-hidden="true">${values.map((v, i) => `<i class="${i === values.length - 1 ? 'cur' : ''}" style="height:${Math.max(v ? 8 : 3, (v / max) * 100)}%"></i>`).join('')}</div>`;
+}
+document.addEventListener('rendered', (e) => {
+  const arcs = e.detail.root.querySelectorAll('.arc[data-off]');
+  if (!arcs.length) return;
+  requestAnimationFrame(() => requestAnimationFrame(() => arcs.forEach((a) => { a.style.strokeDashoffset = a.dataset.off; })));
+});
 export const mtxt = (m) => `<span class="mtxt"><b>${fmt(m.kcal)}</b> kcal · P ${fmt(m.p)} · K ${fmt(m.c)} · F ${fmt(m.f)}</span>`;
 export const emptyCard = (ic, title, text, action = '') => `<div class="card empty-card">${icon(ic, 'lg')}<div style="font-weight:600;margin-bottom:4px">${title}</div><div class="empty">${text}</div>${action ? `<div class="mt">${action}</div>` : ''}</div>`;
 export function delta(v, { d = 1, unit = ' kg', goodWhen = 'down' } = {}) {
@@ -149,10 +206,11 @@ export function lineChart(series, { h = 180, goal = null, goalLabel = 'Ziel', yF
     if (s.pts.length < 1) continue;
     if (s.area && s.pts.length > 1) g += `<path class="area" d="${path(s.pts)}L${X(s.pts[s.pts.length - 1].x).toFixed(1)},${Y(y0).toFixed(1)}L${X(s.pts[0].x).toFixed(1)},${Y(y0).toFixed(1)}Z"/>`;
     if (s.pts.length > 1) g += `<path class="${s.cls || 'main'}" d="${path(s.pts)}"/>`;
-    if (s.dots && s.pts.length <= 150) g += s.pts.map((p) => `<circle class="dot" cx="${X(p.x).toFixed(1)}" cy="${Y(p.y).toFixed(1)}" r="3.5"/>`).join('');
+    if (s.dots && s.pts.length <= 150) g += s.pts.map((p) => `<circle class="dot" cx="${X(p.x).toFixed(1)}" cy="${Y(p.y).toFixed(1)}" r="2.4"/>`).join('');
   }
-  g += `<line class="cross hidden" y1="${pt}" y2="${h - pb}"/><circle class="hl hidden" r="5"/>`;
   const main = series.find((s) => s.tip) || series[0];
+  if (main.pts.length) { const lp = main.pts[main.pts.length - 1]; g += `<circle class="endp" cx="${X(lp.x).toFixed(1)}" cy="${Y(lp.y).toFixed(1)}" r="4.5"/><circle class="endc" cx="${X(lp.x).toFixed(1)}" cy="${Y(lp.y).toFixed(1)}" r="9"/>`; }
+  g += `<line class="cross hidden" y1="${pt}" y2="${h - pb}"/><circle class="hl hidden" r="5"/>`;
   charts.set(id, { pts: main.pts.map((p) => ({ cx: X(p.x), cy: Y(p.y), html: tip ? tip(p) : `<b>${yFmt(p.y)}</b> · ${shortDate(p.x)}` })), h, pt, pb });
   return `<div class="chart" data-chart="${id}"><svg viewBox="0 0 ${W} ${h}" role="img">${g}</svg><div class="tip hidden"></div></div>`;
 }
