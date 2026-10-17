@@ -168,7 +168,7 @@ function dayView(params) {
   return `<div class="topbar"><button type="button" class="back" data-a="back">${icon('left', 'sm')} Zurück</button>
     <div class="row"><button type="button" class="icon-btn sm" data-a="dayShift" data-n="-1" data-date="${date}" aria-label="Vortag">${icon('left', 'sm')}</button><b class="num" style="min-width:80px;text-align:center">${relDay(date)}</b><button type="button" class="icon-btn sm" data-a="dayShift" data-n="1" data-date="${date}" aria-label="Folgetag">${icon('right', 'sm')}</button></div></div>
   <h1>Tagesplan</h1><div class="muted small" style="margin:6px 0 16px">${longDate(date)} · ${done} von ${ev.length} erledigt</div>
-  ${ev.length ? `<div class="card tl">${ev.map((e) => eventRow(e, date)).join('')}</div>` : '<div class="card empty-card"><div class="empty">Noch nichts geplant. Lege Mahlzeiten-Zeiten unter Ernährung fest und Supplement-Zeiten unter Supplements.</div></div>'}
+  ${ev.length ? `<div class="card tl" data-tour="timeline">${ev.map((e) => eventRow(e, date)).join('')}</div>` : '<div class="card empty-card" data-tour="timeline"><div class="empty">Noch nichts geplant. Lege Mahlzeiten-Zeiten unter Ernährung fest und Supplement-Zeiten unter Supplements.</div></div>'}
   <div class="grid2"><button type="button" class="btn" data-a="go" data-v="supps">${icon('pill', 'sm')} Supplements</button><button type="button" class="btn" data-a="go" data-v="food">${icon('food', 'sm')} Ernährung</button></div>
   <p class="faint tiny center mt">Erinnerungen sind deine eigenen Einstellungen – keine medizinische Empfehlung.</p>`;
 }

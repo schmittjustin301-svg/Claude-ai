@@ -1,6 +1,7 @@
 // Aktives Training: ablenkungsfreier Fokus-Modus für das Gym.
 // Jede Eingabe wird sofort gespeichert – Neuladen oder Schließen verliert nichts.
 import { app, A, I, registerView, commit, save, saveNow, go, openSheet, closeSheet, toast, celebrate } from '../core.js';
+import { react } from '../coach.js';
 import { dkey, lastPerformance, bestByExercise, prEvents, validate, LIMITS, workoutVolume, workoutSets, compareWithPrevious, num } from '../logic.js';
 import { $, esc, fmt, fmtSec, fmtDur, icon, relDay, plural, signed, corners } from '../ui.js';
 import { exById, findDay, findOrCreateExercise } from '../domain.js';
@@ -161,7 +162,8 @@ A.finishWorkout = () => {
   saveNow();
   go('train', { tab: 'history' }, { push: false });
   openSheet(() => summarySheet(w, newPrs, cmp));
-  if (newPrs.length) celebrate(newPrs.length === 1 ? 'Neuer Rekord' : `${newPrs.length} neue Rekorde`, newPrs.map((p) => `${p.name}: ${fmt(p.w, 1)} kg × ${p.r} (e1RM ${fmt(p.e1rm, 1)} kg)`));
+  if (newPrs.length) celebrate(newPrs.length === 1 ? 'Neuer Rekord!' : `${newPrs.length} neue Rekorde!`, ['Deine Leistung hat sich verbessert.', ...newPrs.map((p) => `${p.name}: ${fmt(p.w, 1)} kg × ${p.r} (e1RM ${fmt(p.e1rm, 1)} kg)`)]);
+  else react('celebrating', 'Stark gemacht! Training erfolgreich abgeschlossen.', { key: 'w:' + w.id, plainOff: false });
   document.dispatchEvent(new CustomEvent('goals-check'));
 };
 function summarySheet(w, prs, cmp) {

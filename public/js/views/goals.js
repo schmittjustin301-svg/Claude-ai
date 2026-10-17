@@ -7,13 +7,14 @@ import { daily, exName, plannedFor } from '../domain.js';
 import { uid } from '../store.js';
 import { pickExercise } from './training.js';
 import { ledger, totalXP, levelInfo, missions, goalProgress, GOAL_TYPES, ACHIEVEMENTS, newAchievements, streaks } from '../gamify.js';
+import { react } from '../coach.js';
 
 function view() {
   const S = app.S, today = dkey();
   const ev = ledger(S, today), xp = totalXP(ev), lv = levelInfo(xp);
   const weekXP = ev.filter((e) => e.date >= addDays(today, -6)).reduce((a, e) => a + e.xp, 0);
   return `<div class="topbar"><h1>Ziele</h1><span class="pill gold">Level ${lv.level}</span></div>
-  <section class="hero corners" aria-label="Level und XP">${corners()}
+  <section class="hero corners" aria-label="Level und XP" data-tour="level">${corners()}
     <div class="cockpit">${hudRing({ rings: [{ id: 'level', pct: lv.pct }], label: `Level ${lv.level}, ${Math.round(lv.pct * 100)} Prozent zum nächsten Level`, center: `<span class="hud-l">Level</span><span class="hud-v">${lv.level}</span>` })}
       <div style="min-width:0"><div class="label gold">Performance-Level</div><div class="cockpit-title">${fmt(xp)} XP</div><div class="muted small">noch ${fmt(lv.need)} XP bis Level ${lv.level + 1}</div></div></div>
     <div class="telemetry"><div><div class="meta">7 Tage</div><div class="v gold">+${fmt(weekXP)}</div></div><div><div class="meta">Erfolge</div><div class="v">${Object.keys(S.achievements).length}<span class="unit">/${ACHIEVEMENTS.length}</span></div></div><div><div class="meta">Ziele aktiv</div><div class="v">${S.goals.custom.filter((g) => g.status === 'active').length}</div></div></div>
@@ -34,9 +35,9 @@ registerView('goals', view, 'goals');
 // ---------- Missionen ----------
 export function missionsCard(today = dkey(), { compact = false } = {}) {
   const ms = missions(app.S, today, Date.now(), plannedFor(today));
-  if (!ms.length) return '<div class="card"><div class="empty">Keine Missionen für heute.</div></div>';
+  if (!ms.length) return '<div class="card" data-tour="missions"><div class="empty">Keine Missionen für heute.</div></div>';
   const done = ms.filter((m) => m.done).length;
-  return `<div class="card missions">
+  return `<div class="card missions" data-tour="missions">
     ${compact ? `<div class="card-h"><span class="t">${icon('target')} Heutige Missionen</span><span class="meta">${done}/${ms.length} erledigt</span></div>` : ''}
     ${ms.map((m) => `<div class="mission ${m.done ? 'done' : ''}">
       ${hudRing({ rings: [{ id: 'mis-' + m.id, pct: m.progress }], size: 'xs', label: `${m.title} ${Math.round(m.progress * 100)} Prozent`, center: m.done ? icon('check', 'sm') : `<span class="hud-xs">${Math.round(m.progress * 100)}</span>` })}
@@ -55,7 +56,7 @@ export function missionsCard(today = dkey(), { compact = false } = {}) {
 // ---------- Eigene Ziele ----------
 function customGoals(today) {
   const gs = app.S.goals.custom.filter((g) => g.status !== 'archived');
-  return `<div class="section">Eigene Ziele<button type="button" class="link act" data-a="newGoal">+ Ziel</button></div>
+  return `<div class="section">Eigene Ziele<button type="button" class="link act" data-a="newGoal" data-tour="new-goal">+ Ziel</button></div>
   ${gs.length ? gs.map((g) => {
     const p = goalProgress(app.S, g, today), T = GOAL_TYPES[g.type] || GOAL_TYPES.manual;
     const unit = g.unit || T.unit;
@@ -195,12 +196,29 @@ function runCheck() {
   const last = S.settings.lastLevel || 0;
   if (last && lv > last) lines.push({ t: `Level ${lv}`, l: 'Neues Level erreicht', ic: 'star' });
   if (lv !== last) { S.settings.lastLevel = lv; changed = true; }
-  if (!changed) return;
+  const nearer = goalMarks(S, today, wp);
+  if (!changed) { if (nearer && S.settings.gamifyInit) react('motivated', 'Du bist deinem Ziel nähergekommen. Bleib dran!', { sub: nearer, plainOff: false }); return; }
   save();
   // Erster Lauf nach dem Update: Erfolge aus dem bisherigen Verlauf still freischalten statt alles auf einmal zu feiern
   if (!S.settings.gamifyInit) { S.settings.gamifyInit = today; save(); if (lines.length) toast(`${lines.length} Erfolge und Ziele aus deinem bisherigen Verlauf freigeschaltet`); render(); return; }
-  if (lines.length && !document.querySelector('.celebrate')) celebrate(lines.length === 1 ? lines[0].t : `${lines.length} Fortschritte`, lines.map((x) => (lines.length === 1 ? x.l : `${x.t}: ${x.l}`)), lines[0].ic);
+  if (lines.length && !document.querySelector('.celebrate')) celebrate(lines.length === 1 ? (lines[0].t === 'Ziel erreicht' ? 'Ziel erreicht! Gute Arbeit.' : lines[0].t) : `${lines.length} Fortschritte`, lines.map((x) => (lines.length === 1 ? x.l : `${x.t}: ${x.l}`)), lines[0].ic);
+  else if (nearer) react('motivated', 'Du bist deinem Ziel nähergekommen. Bleib dran!', { sub: nearer, plainOff: false });
   render();
+}
+/** Zwischenstände 25/50/75 % je aktivem Ziel merken; liefert eine Zeile, wenn eine neue Marke erreicht ist. Erste Messung still. */
+function goalMarks(S, today, wp) {
+  const marks = S.coach.goalMarks, out = [];
+  const check = (key, pct, name) => {
+    if (pct == null || !Number.isFinite(pct)) return;
+    const m = Math.min(0.75, Math.floor(pct * 4) / 4);
+    if (marks[key] === undefined) { marks[key] = m; return; }
+    if (m > marks[key]) { marks[key] = m; out.push(`${name}: ${Math.round(pct * 100)} %`); }
+    else if (m < marks[key]) marks[key] = m;
+  };
+  for (const g of S.goals.custom) if (g.status === 'active') check('g:' + g.id, goalProgress(S, g, today).pct, g.name);
+  if (wp && !wp.done) check('w:' + S.goals.weight, wp.pct, 'Zielgewicht');
+  if (out.length) save();
+  return out[0] || '';
 }
 document.addEventListener('goals-check', checkProgress);
 // Nach Änderungen (gedrosselt) prüfen – Daten können aus jedem Bereich kommen

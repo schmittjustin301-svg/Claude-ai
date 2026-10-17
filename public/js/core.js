@@ -2,6 +2,7 @@
 import { loadState, KEY } from './store.js';
 import { dkey } from './logic.js';
 import { $, esc, icon, resetCharts } from './ui.js';
+import { mascot } from './mascot.js';
 
 const boot = loadState();
 export const app = {
@@ -101,11 +102,12 @@ export function toast(msg, isErr = false) {
   clearTimeout(toast.t);
   toast.t = setTimeout(() => t.classList.add('hidden'), isErr ? 4500 : 2400);
 }
-/** Zurückhaltende Gold-Feier für Rekorde und erreichte Ziele. */
-export function celebrate(title, lines = [], ic = 'trophy') {
+/** Zurückhaltende Gold-Feier für Rekorde und erreichte Ziele – mit dem Löwen, solange Coach-Reaktionen an sind. */
+export function celebrate(title, lines = [], ic = 'trophy', art = 'celebrating') {
   const el = document.createElement('div');
   el.className = 'celebrate';
-  el.innerHTML = `<div class="box"><div class="medal">${icon(ic)}</div><h2>${esc(title)}</h2>${lines.map((l) => `<p class="muted small" style="margin:4px 0">${esc(l)}</p>`).join('')}<button type="button" class="btn primary block mt">Weiter</button></div>`;
+  const withLion = art && app.S.coach?.reactions !== false;
+  el.innerHTML = `<div class="box">${withLion ? `<div class="celebrate-lion">${mascot(art, { size: 'md' })}<span class="medal mini">${icon(ic)}</span></div>` : `<div class="medal">${icon(ic)}</div>`}<h2>${esc(title)}</h2>${lines.map((l) => `<p class="muted small" style="margin:4px 0">${esc(l)}</p>`).join('')}<button type="button" class="btn primary block mt">Weiter</button></div>`;
   const close = () => el.remove();
   el.addEventListener('click', (e) => { if (e.target === el || e.target.closest('button')) close(); });
   document.body.appendChild(el);

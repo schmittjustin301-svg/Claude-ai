@@ -13,6 +13,7 @@ import './scanner.js';
 import './routine.js';
 import './views/supps.js';
 import { startReminderLoop } from './notify.js';
+import { initCoach } from './coach.js';
 
 A.go = (el) => go(el.dataset.v, { id: el.dataset.id, tab: el.dataset.p });
 A.tab = (el) => { app.ui.history = []; if (el.dataset.v === 'food') app.ui.date = app.ui.date || dkey(); go(el.dataset.v, {}, { push: false }); };
@@ -50,6 +51,7 @@ setInterval(() => { const t = dkey(); if (t !== lastDay) { if (app.ui.date === l
 const qv = new URLSearchParams(location.search).get('v');
 if (qv === 'day' || qv === 'supps') { app.ui.view = qv; history.replaceState(null, '', '/'); }
 render();
+initCoach();
 startReminderLoop();
 if (app.migrated) saveNow(); // übernommene FIT-Daten sofort im neuen Format sichern
 if (navigator.storage?.persist) navigator.storage.persist().catch(() => {});

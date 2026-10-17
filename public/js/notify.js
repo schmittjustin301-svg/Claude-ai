@@ -3,6 +3,7 @@
 // zu einer festen Uhrzeit planen, wenn sie geschlossen sind. Für zuverlässige Hintergrund-Erinnerungen gibt es den
 // Kalender-Export (.ics) – dann übernimmt der Kalender des Handys den Alarm.
 import { app, A, C, registerView, commit, save, toast } from './core.js';
+import { react } from './coach.js';
 import { dkey, addDays } from './logic.js';
 import { esc, icon, fmtClock } from './ui.js';
 import { timeline, buildICS } from './schedule.js';
@@ -38,7 +39,10 @@ export function checkReminders(now = Date.now()) {
 async function show(e, date) {
   const title = e.kind === 'supp' ? `Supplement: ${e.title}` : `Mahlzeit: ${e.title}`;
   const body = e.kind === 'supp' ? `${e.time}${e.amount != null ? ` · ${String(e.amount).replace('.', ',')} ${e.unit}` : ''} – dein geplanter Termin` : `${e.time} – geplante Mahlzeit`;
-  if (document.visibilityState === 'visible') toast(`${title} · ${e.time}`);
+  if (document.visibilityState === 'visible') {
+    if (app.S.coach.reactions === false) toast(`${title} · ${e.time}`);
+    else react(e.kind === 'supp' ? 'supplements' : 'nutrition', e.kind === 'supp' ? 'Zeit für deinen geplanten Supplement-Check.' : 'Deine geplante Mahlzeit steht an.', { sub: `${e.title} · ${e.time}` });
+  }
   if (permission() !== 'granted') return;
   try {
     const reg = await navigator.serviceWorker?.getRegistration();

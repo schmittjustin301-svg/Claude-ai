@@ -68,6 +68,15 @@ Private Fitness-App nur für den Eigengebrauch: Training, Ernährung, Körper un
 **Wasser**
 - Animierte Dose in sieben Farben (Weiß, Grün, Blau, Gold, Lila, Rot, Schwarz), füllt sich mit dem Trinkziel, Verlauf der Einträge
 
+**Coach: der IRONCORE-Löwe**
+- Willkommen beim ersten Start, danach eine geführte Tour mit 14 Schritten durch die echten Seiten. Das jeweilige Element wird hervorgehoben, mit „3 von 14“, Weiter, Zurück und Überspringen
+- Die Tour lässt sich unterbrechen und nach dem Neuladen fortsetzen. Sie verändert keine Trainings-, Ernährungs- oder Körperdaten
+- Coach-Karte auf dem Dashboard mit einer Botschaft aus deinen Daten (geplantes Training, nächste Mahlzeit, Wochenziel, Trinkziel, Missionen)
+- Hilfe-Knopf unten rechts (nicht im Training): erklärt die aktuelle Seite, zeigt Tipps zu einzelnen Knöpfen und den passenden Tour-Schritt. Das sind feste Hilfetexte, kein KI-Chat
+- Reaktionen nur auf echte Ereignisse, jede nur einmal: Training abgeschlossen, neuer Rekord, Erfolg und Ziel erreicht, Ziel-Zwischenstand (25/50/75 %), Trinkziel in Reichweite oder erreicht, Einkaufsliste erstellt, fällige Erinnerung
+- Einstellungen → Tutorial & Hilfe: Tour neu starten, einzelne Bereiche ansehen, Reaktionen und Hilfe-Knopf abschalten, Tutorial-Status zurücksetzen (Fitness-Daten bleiben)
+- Die Bilder sind unveränderte Ausschnitte aus dem offiziellen Konzeptbild (`assets/mascot/`, Zuschnitt mit `scripts/mascot-crop.py`). Das Konzeptbild selbst ist nicht Teil der App
+
 Alle Kennzahlen kommen aus echten Einträgen. Reichen die Daten nicht (z. B. 30-Tage-Veränderung nach einer Woche), zeigt die App das an, statt Werte zu erfinden.
 
 ## Daten & Privatsphäre
@@ -98,6 +107,7 @@ Statische Web-App aus HTML, CSS und JavaScript-Modulen (ES Modules), ohne Framew
 ```
 public/
   index.html, manifest.webmanifest, sw.js (Offline-Cache), Icons
+  images/mascot/        Löwen-Motive (WebP, aus dem Konzeptbild geschnitten)
   css/ironcore.css      Black-&-Gold-Design-System
   fonts/                Inter, Space Grotesk (lokal, OFL)
   js/
@@ -106,6 +116,8 @@ public/
     shopping.js         Einkaufsliste: Zusammenfassen, Einheiten, Neuerstellen – getestet
     gamify.js           XP, Level, Erfolge, Serien, Missionen, eigene Ziele – getestet
     routine.js / notify.js  Einnahmen & Mahlzeiten, Tagesplan, Erinnerungen
+    mascot.js / tour.js     Löwen-Motive je Ausdruck, Tour- und Hilfetexte – getestet
+    coach.js            Willkommen, Tour, Tipps, Hilfe-Knopf, Coach-Karte, Reaktionen
     store.js            Datenmodell, Migration aus FIT, Speichern, Foto-Datenbank
     seed.js             Übungsbibliothek, Lebensmittel, Plan-Vorlagen
     core.js             Zustand, Navigation, Sheets, Rückmeldungen

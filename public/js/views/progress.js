@@ -14,7 +14,7 @@ let showAll = false;
 function view(params) {
   const tab = params.tab || 'weight';
   return `<div class="topbar"><h1>Fortschritt</h1>${tab === 'weight' ? `<button type="button" class="btn primary sm" data-a="logWeight">${icon('plus', 'sm')} Gewicht</button>` : tab === 'measure' ? `<button type="button" class="btn primary sm" data-a="addMeasure">${icon('plus', 'sm')} Messen</button>` : `<label class="btn primary sm">${icon('camera', 'sm')} Foto<input type="file" accept="image/*" data-c="photo" hidden></label>`}</div>
-  <div class="seg">${TABS.map(([k, l]) => `<button type="button" class="${tab === k ? 'on' : ''}" data-a="progTab" data-v="${k}">${l}</button>`).join('')}</div>
+  <div class="seg" data-tour="progress">${TABS.map(([k, l]) => `<button type="button" class="${tab === k ? 'on' : ''}" data-a="progTab" data-v="${k}">${l}</button>`).join('')}</div>
   ${tab === 'weight' ? weightTab() : tab === 'measure' ? measureTab() : photosTab()}`;
 }
 registerView('progress', view, 'progress');

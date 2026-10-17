@@ -92,6 +92,8 @@ export function defaults() {
     notify: { enabled: false, supps: true, meals: true, lead: 0 },
     notified: {},
     settings: { onboarded: false, hideInstall: false, lastBackup: 0, celebrated: {}, canColor: 'white' },
+    // Coach/Tutorial: nur Anzeige-Zustand, nie Fitness-Daten
+    coach: { tour: 'new', step: 0, reactions: true, fab: true, shown: {}, goalMarks: {} },
   };
 }
 
@@ -104,6 +106,9 @@ export function normalize(s) {
   s.settings = { ...d.settings, ...s.settings };
   s.xpConfig = { ...DEFAULT_XP, ...s.xpConfig };
   s.notify = { ...d.notify, ...s.notify };
+  s.coach = { ...d.coach, ...s.coach };
+  if (!s.coach.shown || typeof s.coach.shown !== 'object') s.coach.shown = {};
+  if (!s.coach.goalMarks || typeof s.coach.goalMarks !== 'object') s.coach.goalMarks = {};
   if (!Array.isArray(s.goals.custom)) s.goals.custom = [];
   if (!s.mealSlots.length) s.mealSlots = DEFAULT_SLOTS.map((x) => ({ ...x }));
   upgradeToV3(s);

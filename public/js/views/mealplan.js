@@ -1,5 +1,6 @@
 // Wochenplan (was & wann) und automatische Einkaufsliste.
 import { app, A, C, commit, save, openSheet, closeSheet, toast } from '../core.js';
+import { react } from '../coach.js';
 import { dkey, addDays, mondayOf, validate, sumMacros } from '../logic.js';
 import { $, esc, fmt, icon, bar, shortDate, relDay, formVals, markInvalid, WD } from '../ui.js';
 import { slotsFor, planMacros } from '../schedule.js';
@@ -35,7 +36,7 @@ export function planTab() {
   const total = sumMacros(dates.map((d) => sumMacros(slotsFor(app.S, d).map((s) => planMacros(app.S, app.S.mealPlan[d]?.[s.id])))));
   const filled = dates.filter((d) => Object.values(app.S.mealPlan[d] || {}).some((l) => l.length)).length;
   return `${weekNav()}
-  <div class="card"><div class="row between"><div><div class="label">Geplant</div><div class="mid" style="margin-top:6px">${filled}<span class="unit"> / 7 Tage</span></div></div><div class="right"><div class="label">Ø pro Tag</div><div class="mid" style="margin-top:6px">${filled ? fmt(total.kcal / filled) : '–'}<span class="unit"> kcal</span></div></div></div>
+  <div class="card" data-tour="week-plan"><div class="row between"><div><div class="label">Geplant</div><div class="mid" style="margin-top:6px">${filled}<span class="unit"> / 7 Tage</span></div></div><div class="right"><div class="label">Ø pro Tag</div><div class="mid" style="margin-top:6px">${filled ? fmt(total.kcal / filled) : '–'}<span class="unit"> kcal</span></div></div></div>
     <div class="grid2 mt"><button type="button" class="btn sm" data-a="copyWeek">${icon('copy', 'sm')} In nächste Woche kopieren</button><button type="button" class="btn sm primary" data-a="foodTab" data-v="shop">${icon('list', 'sm')} Zur Einkaufsliste</button></div>
     <p class="faint tiny" style="margin-bottom:0">Nährwerte zählen für Zutaten, die mit einem Lebensmittel verknüpft sind (Menge in g, ml oder Stück mit Portion).</p></div>
   ${dates.map((d) => {
@@ -133,11 +134,11 @@ export function shopTab() {
   const st = stats(items);
   const others = Object.keys(app.S.shopping).filter((k) => k !== m).sort().reverse();
   return `${weekNav()}
-  <section class="hero corners" aria-label="Einkaufsliste"><i class="cn tl"></i><i class="cn tr"></i><i class="cn bl"></i><i class="cn br"></i>
+  <section class="hero corners" aria-label="Einkaufsliste" data-tour="shop"><i class="cn tl"></i><i class="cn tr"></i><i class="cn bl"></i><i class="cn br"></i>
     <div class="row between"><div><div class="label gold">Wocheneinkauf</div><div class="cockpit-title">${list ? `${st.bought} / ${st.total} im Korb` : 'Noch keine Liste'}</div><div class="muted small">${list ? `erstellt ${relDay(dkey(new Date(list.generatedAt)))} ${new Date(list.generatedAt).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' })} · ${planned} geplante Zutaten` : planned ? `${planned} geplante Zutaten im Wochenplan` : 'Der Wochenplan ist noch leer.'}</div></div>
       ${list ? `<div class="hud-v gold" style="font-size:30px">${fmt(st.pct * 100)}<span class="unit">%</span></div>` : ''}</div>
     ${list ? `<div class="mt">${bar(st.bought, st.total || 1, { thick: true, over: false })}</div><div class="telemetry" style="margin:12px 0 14px"><div><div class="meta">Gesamt</div><div class="v">${st.total}</div></div><div><div class="meta">Gekauft</div><div class="v gold">${st.bought}</div></div><div><div class="meta">Offen</div><div class="v">${st.remaining}</div></div></div>` : '<div style="height:14px"></div>'}
-    <button type="button" class="btn primary block launch" data-a="genList" ${planned || list ? '' : 'disabled'}>${icon('repeat')} ${list ? 'Liste aktualisieren' : 'Einkaufsliste erstellen'}</button>
+    <button type="button" class="btn primary block launch" data-a="genList" data-tour="gen-list" ${planned || list ? '' : 'disabled'}>${icon('repeat')} ${list ? 'Liste aktualisieren' : 'Einkaufsliste erstellen'}</button>
     ${!planned && !list ? '<button type="button" class="btn ghost block sm" style="margin-top:6px" data-a="foodTab" data-v="plan">Erst Mahlzeiten im Wochenplan anlegen</button>' : ''}
   </section>
   ${list ? `
@@ -166,7 +167,8 @@ A.genList = () => {
   app.S.shopping[m] = { generatedAt: Date.now(), items: mergeList(prev?.items || [], gen, uid) };
   commit();
   const n = app.S.shopping[m].items.filter((x) => x.source === 'auto').length;
-  toast(prev ? `Liste aktualisiert · ${n} Zutaten aus dem Plan` : `Liste erstellt · ${n} Zutaten`);
+  if (prev) toast(`Liste aktualisiert · ${n} Zutaten aus dem Plan`);
+  else react('shopping', 'Deine Einkaufsliste ist bereit.', { sub: `${n} Zutaten aus dem Wochenplan` });
 };
 A.openWeek = (el) => { week = el.dataset.w; commit(); window.scrollTo(0, 0); };
 const itemOf = (id) => listOf(curWeek()).items.find((x) => x.id === id);
