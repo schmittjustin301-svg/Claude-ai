@@ -10,6 +10,9 @@ import './views/progress.js';
 import './views/goals.js';
 import './views/settings.js';
 import './scanner.js';
+import './routine.js';
+import './views/supps.js';
+import { startReminderLoop } from './notify.js';
 
 A.go = (el) => go(el.dataset.v, { id: el.dataset.id, tab: el.dataset.p });
 A.tab = (el) => { app.ui.history = []; if (el.dataset.v === 'food') app.ui.date = app.ui.date || dkey(); go(el.dataset.v, {}, { push: false }); };
@@ -43,7 +46,11 @@ bindCharts();
 let lastDay = dkey();
 setInterval(() => { const t = dkey(); if (t !== lastDay) { if (app.ui.date === lastDay) app.ui.date = t; lastDay = t; render(); } }, 60000);
 
+// Aufruf aus einer Benachrichtigung (?v=day) öffnet direkt die passende Ansicht
+const qv = new URLSearchParams(location.search).get('v');
+if (qv === 'day' || qv === 'supps') { app.ui.view = qv; history.replaceState(null, '', '/'); }
 render();
+startReminderLoop();
 if (app.migrated) saveNow(); // übernommene FIT-Daten sofort im neuen Format sichern
 if (navigator.storage?.persist) navigator.storage.persist().catch(() => {});
 if ('serviceWorker' in navigator) {

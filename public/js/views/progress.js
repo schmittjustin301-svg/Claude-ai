@@ -4,6 +4,7 @@ import { dkey, addDays, rollingAvg, weightChange, weeklyRate, currentWeight, wee
 import { $, esc, fmt, fmtFixed, icon, delta, relDay, shortDate, fmtClock, lineChart, emptyCard, formVals, markInvalid, signed } from '../ui.js';
 import { daily, weightsSorted } from '../domain.js';
 import { uid, photoDB } from '../store.js';
+import { compressImage } from '../photoutil.js';
 
 const TABS = [['weight', 'Gewicht'], ['measure', 'Maße'], ['photos', 'Fotos']];
 const RANGES = [[7, 'Woche'], [30, 'Monat'], [365, 'Jahr'], [0, 'Alles']];
@@ -170,24 +171,13 @@ function photosTab() {
     <div class="photos">${ps.map((p) => `<button type="button" data-a="showPhoto" data-id="${p.id}" aria-label="Foto vom ${shortDate(p.date)}"><img data-photo="${p.id}" alt=""><span class="dt">${shortDate(p.date)}</span></button>`).join('')}</div>
     <div class="mt">${priv}</div>`;
 }
-async function compress(file, max = 1600) {
-  const url = URL.createObjectURL(file);
-  try {
-    const img = await new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error('Bild konnte nicht gelesen werden')); i.src = url; });
-    const sc = Math.min(1, max / Math.max(img.naturalWidth, img.naturalHeight));
-    const c = document.createElement('canvas');
-    c.width = Math.round(img.naturalWidth * sc); c.height = Math.round(img.naturalHeight * sc);
-    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
-    return await new Promise((res, rej) => c.toBlob((b) => (b ? res(b) : rej(new Error('Komprimieren fehlgeschlagen'))), 'image/jpeg', 0.84));
-  } finally { URL.revokeObjectURL(url); }
-}
 C.photo = async (el) => {
   const file = el.files && el.files[0];
   el.value = '';
   if (!file) return;
   try {
     toast('Foto wird gespeichert …');
-    const blob = await compress(file);
+    const blob = await compressImage(file);
     const id = uid();
     await photoDB.set(id, blob);
     app.S.photos.push({ id, date: dkey(), note: '' });

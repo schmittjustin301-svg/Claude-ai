@@ -4,7 +4,11 @@ import { dkey, addDays, sumMacros, weightChange, currentWeight, rollingAvg, prEv
 import { esc, fmt, fmtFixed, icon, mrow, delta, longDate, relDay, fmtDur, WD, formVals, markInvalid, fmtClock, hudRing, sparkline, microBars, corners, signed } from '../ui.js';
 import { entries, plannedFor, workoutsOn, lastWorkoutOfDay, exName, daily, getDay, dayW, weightsSorted } from '../domain.js';
 import { uid } from '../store.js';
-import { monsterCan } from '../can.js';
+import { monsterCan, CAN_COLORS } from '../can.js';
+import { nextCard } from '../routine.js';
+import { missionsCard } from './goals.js';
+import { ledger, totalXP, levelInfo } from '../gamify.js';
+import { suppOccurrences, lowStock, statusOf } from '../schedule.js';
 
 function view() {
   const S = app.S, k = dkey();
@@ -22,19 +26,20 @@ function view() {
   return `
   <div class="topbar">
     <div class="wordmark">IRONCORE</div>
-    <div class="row"><span class="meta">KW ${kw} · ${new Date().toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' })}</span><button type="button" class="icon-btn" data-a="go" data-v="settings" aria-label="Einstellungen">${icon('sliders')}</button></div>
+    <div class="row"><span class="meta">KW ${kw}</span>${levelChip()}<button type="button" class="icon-btn" data-a="go" data-v="settings" aria-label="Einstellungen">${icon('sliders')}</button></div>
   </div>
   <div class="greet"><h1>${greeting()}${S.profile.name ? `, ${esc(S.profile.name)}` : ''}</h1><div class="muted small" style="margin-top:6px">${longDate(k)}</div></div>
   ${notices}
   <div class="dash">
     <div class="span">${cockpit(k)}</div>
+    <div class="span">${nextCard()}</div>
     <div class="span quick">
       <button type="button" data-a="logWeight">${icon('scale')}Gewicht</button>
       <button type="button" data-a="quickFood">${icon('food')}Essen</button>
-      <button type="button" data-a="go" data-v="progress">${icon('trend')}Verlauf</button>
+      <button type="button" data-a="go" data-v="day">${icon('list')}Tagesplan</button>
     </div>
-    <div>${nutritionCard(k)}${weekCard(k)}</div>
-    <div>${weightCard()}${prCard()}</div>
+    <div>${missionsCard(k, { compact: true })}${nutritionCard(k)}${weekCard(k)}</div>
+    <div>${weightCard()}${suppsCard(k)}${prCard()}</div>
     <div class="span">${habitsCard(k)}</div>
   </div>`;
 }
@@ -133,18 +138,36 @@ function prCard() {
   </div>`;
 }
 
+function levelChip() {
+  const lv = levelInfo(totalXP(ledger(app.S)));
+  return `<button type="button" class="lvl-chip" data-a="go" data-v="goals" aria-label="Level ${lv.level}, ${Math.round(lv.pct * 100)} Prozent zum nächsten"><span>LV ${lv.level}</span><i style="width:${(lv.pct * 100).toFixed(0)}%"></i></button>`;
+}
+function suppsCard(k) {
+  const S = app.S, active = S.supps.filter((x) => !x.archived);
+  if (!active.length) return `<div class="card tap" data-a="go" data-v="supps"><div class="card-h"><span class="t">${icon('pill')} Supplements</span>${icon('right', 'sm chev')}</div><div class="empty">Eigene Supplements mit Zeitplan und Erinnerung anlegen.</div></div>`;
+  const occ = suppOccurrences(S, k), taken = occ.filter((o) => S.intakes[k]?.[o.key]?.status === 'taken').length;
+  const low = lowStock(S), now = Date.now();
+  const next = occ.find((o) => ['due', 'upcoming', 'snoozed'].includes(statusOf(S.intakes[k]?.[o.key], k, o.time, now)));
+  return `<div class="card tap" data-a="go" data-v="supps">
+    <div class="card-h"><span class="t">${icon('pill')} Supplements</span><span class="meta">${occ.length ? `${taken}/${occ.length} heute` : 'heute nichts geplant'}</span></div>
+    ${occ.length ? `<div class="row between"><div><div class="statline"><span class="big">${occ.length ? Math.round((taken / occ.length) * 100) : 0}</span><span class="unit">%</span></div><div class="muted small" style="margin-top:6px">${next ? `Nächste: ${esc(next.supp.name)} · ${next.time}` : 'Alles erledigt'}</div></div>
+      <div class="mbars" style="height:40px;width:40%">${occ.map((o) => `<i class="${S.intakes[k]?.[o.key]?.status === 'taken' ? 'cur' : ''}" style="height:100%"></i>`).join('')}</div></div>` : ''}
+    ${low.length ? `<div class="small gold" style="margin-top:10px">${icon('bolt', 'sm')} Vorrat knapp: ${low.map((x) => esc(x.name)).join(', ')}</div>` : ''}
+  </div>`;
+}
 function habitsCard(k) {
   const S = app.S, d = getDay(k), p = S.profile;
   return `<div class="card">
     <div class="card-h"><span class="t">${icon('drop')} Tageswerte</span><span class="meta">${relDay(k)}</span></div>
     <div class="water">
-      ${monsterCan(p.waterGoal > 0 ? d.water / p.waterGoal : 0)}
+      <button type="button" class="can-btn" data-a="pickCan" aria-label="Dosenfarbe wählen">${monsterCan(p.waterGoal > 0 ? d.water / p.waterGoal : 0, { color: S.settings.canColor })}</button>
       <div class="grow">
-        <div class="label">${icon('drop', 'sm')} Wasser</div>
+        <div class="row between"><span class="label">${icon('drop', 'sm')} Wasser</span><span class="meta gold">${p.waterGoal > 0 ? fmt(Math.min(999, (d.water / p.waterGoal) * 100)) : 0} %</span></div>
         <div style="margin-top:8px"><span class="big">${fmtFixed(d.water / 1000, 2)}</span> <span class="unit">/ ${fmtFixed(p.waterGoal / 1000, 1)} l</span></div>
         <div class="small ${d.water >= p.waterGoal ? 'gold' : 'muted'}" style="margin:4px 0 12px">${d.water >= p.waterGoal ? 'Ziel erreicht – stark!' : `noch ${fmt(p.waterGoal - d.water)} ml · ${fmt(Math.ceil((p.waterGoal - d.water) / 500))} ${Math.ceil((p.waterGoal - d.water) / 500) === 1 ? 'Dose' : 'Dosen'} à 0,5 l`}</div>
         <div class="grid2"><button type="button" class="btn sm" data-a="water" data-v="250">+250 ml</button><button type="button" class="btn sm primary" data-a="water" data-v="500">+500 ml</button></div>
         <button type="button" class="btn sm ghost block" style="margin-top:6px" data-a="water" data-v="-250" ${d.water <= 0 ? 'disabled' : ''}>${icon('minus', 'sm')} 250 ml</button>
+        ${(d.waterLog || []).length ? `<div class="water-log">${d.waterLog.slice(-4).reverse().map((w) => `<span>${fmtClock(w.ts)} <b>${w.ml > 0 ? '+' : '−'}${Math.abs(w.ml)}</b></span>`).join('')}</div>` : ''}
       </div>
     </div>
     <hr class="divider">
@@ -152,7 +175,6 @@ function habitsCard(k) {
       <label class="field" style="margin:0"><span>${icon('moon', 'sm')} Schlaf (h)</span><input type="number" inputmode="decimal" step="0.25" min="0" max="24" data-c="dayField" data-f="sleep" value="${d.sleep ?? ''}" placeholder="–"></label>
       <label class="field" style="margin:0"><span>${icon('pulse', 'sm')} Schritte</span><input type="number" inputmode="numeric" min="0" max="100000" data-c="dayField" data-f="steps" value="${d.steps ?? ''}" placeholder="–"></label>
     </div>
-    ${S.supps.length ? `<div class="label" style="margin:16px 0 8px">Supplements</div><div class="chips">${S.supps.map((s) => `<button type="button" class="chip ${d.supps.includes(s.id) ? 'on' : ''}" data-a="supp" data-id="${s.id}">${d.supps.includes(s.id) ? '✓ ' : ''}${esc(s.name)}</button>`).join('')}</div>` : ''}
   </div>`;
 }
 
@@ -206,11 +228,20 @@ A.quickTrain = () => {
 };
 A.water = (el) => {
   const d = dayW(dkey()), goal = app.S.profile.waterGoal, before = d.water;
-  d.water = Math.max(0, d.water + Number(el.dataset.v));
+  const ml = Number(el.dataset.v);
+  d.water = Math.max(0, d.water + ml);
+  const real = d.water - before;
+  if (real) (d.waterLog = d.waterLog || []).push({ ts: Date.now(), ml: real });
+  if ((d.waterLog || []).length > 40) d.waterLog = d.waterLog.slice(-40);
   commit();
   if (before < goal && d.water >= goal) { if (navigator.vibrate) navigator.vibrate([20, 40, 20]); toast('Trinkziel erreicht – Dose voll!'); }
 };
-A.supp = (el) => { const d = dayW(dkey()); const i = d.supps.indexOf(el.dataset.id); if (i >= 0) d.supps.splice(i, 1); else d.supps.push(el.dataset.id); commit(); };
+// Dosenfarbe wählen (nur die Dose ändert sich, Wasserwerte bleiben unberührt)
+A.pickCan = () => openSheet(() => {
+  const cur = app.S.settings.canColor || 'white';
+  return `<h2>Dosenfarbe</h2><div class="can-pick">${Object.entries(CAN_COLORS).map(([id, c]) => `<button type="button" class="${id === cur ? 'on' : ''}" data-a="setCan" data-v="${id}" aria-pressed="${id === cur}">${monsterCan(0.6, { color: id, preview: true })}<span>${c.name}</span></button>`).join('')}</div>`;
+});
+A.setCan = (el) => { app.S.settings.canColor = el.dataset.v; closeSheet(); commit(); toast(`Dose: ${CAN_COLORS[el.dataset.v].name}`); };
 C.dayField = (el) => {
   const f = el.dataset.f;
   const r = validate(el.value, f === 'sleep' ? { min: 0, max: 24, required: false, label: 'Schlaf' } : { min: 0, max: 100000, required: false, label: 'Schritte' });
