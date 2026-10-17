@@ -18,10 +18,10 @@ function view() {
   const nextSupp = (() => { const t = occ.map((o) => ({ o, st: statusOf(intakeRecord(S, k, o.key), k, o.time, now) })).filter((x) => x.st === 'due' || x.st === 'upcoming' || x.st === 'snoozed'); return t[0]; })();
   const low = lowStock(S);
   const uns = unscheduledSupps(S);
-  return `<div class="topbar"><button type="button" class="back" data-a="back">${icon('left', 'sm')} Zurück</button><button type="button" class="btn primary sm" data-a="newSupp">${icon('plus', 'sm')} Supplement</button></div>
+  return `<div class="topbar"><button type="button" class="back" data-a="back">${icon('left', 'sm')} Zurück</button><button type="button" class="btn primary sm" data-a="newSupp" data-tour="add-supp">${icon('plus', 'sm')} Supplement</button></div>
   <h1>Meine Supplements</h1><div class="muted small" style="margin:6px 0 16px">Dein Plan, deine Mengen. IRONCORE erinnert nur – es empfiehlt nichts.</div>
   ${active.length ? `
-  <section class="hero corners" aria-label="Supplements heute"><i class="cn tl"></i><i class="cn tr"></i><i class="cn bl"></i><i class="cn br"></i>
+  <section class="hero corners" aria-label="Supplements heute" data-tour="supps"><i class="cn tl"></i><i class="cn tr"></i><i class="cn bl"></i><i class="cn br"></i>
     <div class="cockpit">${hudRing({ rings: [{ id: 'supp-day', pct: occ.length ? doneToday / occ.length : 0 }], label: `${doneToday} von ${occ.length} Einnahmen heute`, center: `<span class="hud-v">${doneToday}<span class="unit" style="font-size:15px">/${occ.length}</span></span><span class="hud-l">Heute</span>` })}
       <div style="min-width:0"><div class="label gold">Als Nächstes</div>
         ${nextSupp ? `<div class="cockpit-title">${esc(nextSupp.o.supp.name)}</div><div class="muted small">${nextSupp.o.time}${nextSupp.o.amount != null ? ` · ${fmt(Number(nextSupp.o.amount), 2)} ${esc(nextSupp.o.supp.unit)}` : ''}${nextSupp.st === 'due' ? ' · fällig' : ''}</div>` : `<div class="cockpit-title">${occ.length ? 'Alles erledigt' : 'Heute nichts geplant'}</div>`}
@@ -41,7 +41,7 @@ function view() {
   <div class="section">Verlauf · 14 Tage</div>
   <div class="card"><div class="list">${adherenceRange(S, addDays(k, -13), k, now).days.reverse().map((d) => `<div class="kv"><span class="muted">${relDay(d.date)}</span><span>${d.scheduled ? `${d.taken}/${d.scheduled}${d.skipped ? ` · ${d.skipped} übersprungen` : ''}` : '<span class="faint">–</span>'}</span></div>`).join('')}</div></div>
   <div class="grid2"><button type="button" class="btn" data-a="go" data-v="day">${icon('list', 'sm')} Tagesplan</button><button type="button" class="btn" data-a="go" data-v="reminders">${icon('clock', 'sm')} Erinnerungen</button></div>`
-  : `<div class="card empty-card">${icon('pill', 'lg')}<div style="font-weight:600;margin-bottom:4px">Noch keine Supplements</div><div class="empty">Leg jedes Produkt an, das du nimmst – mit deiner eigenen Menge, Uhrzeit und deinen Wochentagen.</div><div class="mt"><button type="button" class="btn primary" data-a="newSupp">${icon('plus', 'sm')} Erstes Supplement</button></div></div>
+  : `<div class="card empty-card" data-tour="supps">${icon('pill', 'lg')}<div style="font-weight:600;margin-bottom:4px">Noch keine Supplements</div><div class="empty">Leg jedes Produkt an, das du nimmst – mit deiner eigenen Menge, Uhrzeit und deinen Wochentagen.</div><div class="mt"><button type="button" class="btn primary" data-a="newSupp">${icon('plus', 'sm')} Erstes Supplement</button></div></div>
   ${archived.length ? `<div class="card"><div class="list">${archived.map(suppItem).join('')}</div></div>` : ''}`}`;
 }
 registerView('supps', view, 'home');

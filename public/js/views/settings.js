@@ -5,6 +5,7 @@ import { $, esc, fmt, fmtFixed, icon } from '../ui.js';
 import { daily, entries } from '../domain.js';
 import { photoDB, defaults, normalize, migrateFromFit, KEY, LEGACY_KEY } from '../store.js';
 import { forgetPhotoURLs } from './progress.js';
+import { mascot } from '../mascot.js';
 
 // ---------- Einstellungen ----------
 function view() {
@@ -32,6 +33,10 @@ function view() {
     <button type="button" class="item" data-a="go" data-v="reminders"><div><b>Erinnerungen &amp; Kalender</b><div class="muted small">${S.notify.enabled ? 'aktiv' : 'aus'} · Kalender-Export</div></div>${icon('right', 'chev')}</button>
     <button type="button" class="item" data-a="manageSlots"><div><b>Mahlzeiten &amp; Uhrzeiten</b><div class="muted small">${S.mealSlots.slice().sort((a, b) => a.time.localeCompare(b.time)).map((m) => `${esc(m.name)} ${m.time}`).join(' · ')}</div></div>${icon('right', 'chev')}</button>
   </div></div>
+
+  <div class="section">Tutorial &amp; Hilfe</div>
+  <div class="card coach-set" data-tour="help"><div class="row top">${mascot('explaining', { size: 'sm', decorative: true })}<div class="grow"><b>Dein Coach</b><div class="muted small" style="margin:4px 0 12px">Geführte Tour durch alle Bereiche, Tipps zu einzelnen Knöpfen und Hilfe zu jeder Seite.</div>
+    <div class="row wrap"><button type="button" class="btn primary sm" data-a="tourStart">${app.S.coach.tour === 'done' || app.S.coach.tour === 'skipped' ? 'Tour neu starten' : app.S.coach.tour === 'active' ? 'Tour von vorn' : 'Tour starten'}</button><button type="button" class="btn sm" data-a="go" data-v="help">Tutorial &amp; Hilfe</button></div></div></div></div>
 
   <div class="section">Daten &amp; Privatsphäre</div>
   <div class="card">

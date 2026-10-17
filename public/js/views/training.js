@@ -22,17 +22,17 @@ function planTab() {
   const S = app.S, plan = activePlan(), k = dkey();
   const today = plannedFor(k).map((d) => d.id);
   return `
-  <div class="card">
+  <div class="card" data-tour="train-plan">
     <div class="row between"><div><div class="label">Aktiver Plan</div><div class="mid" style="margin-top:6px">${esc(plan.name)}</div></div>
       <button type="button" class="btn outline sm" data-a="go" data-v="plan" data-id="${plan.id}">${icon('edit', 'sm')} Bearbeiten</button></div>
     ${S.plans.length > 1 ? `<div class="chips mt">${S.plans.map((p) => `<button type="button" class="chip ${p.id === plan.id ? 'on' : ''}" data-a="activatePlan" data-id="${p.id}">${esc(p.name)}</button>`).join('')}</div>` : ''}
     <div class="row mt"><button type="button" class="btn sm grow" data-a="dupPlan" data-id="${plan.id}">${icon('copy', 'sm')} Duplizieren</button><button type="button" class="btn sm grow" data-a="newPlan">${icon('plus', 'sm')} Neuer Plan</button></div>
   </div>
-  ${plan.days.length ? plan.days.map((d) => `<div class="card ${today.includes(d.id) ? 'gold-edge' : ''}">
+  ${plan.days.length ? plan.days.map((d, di) => `<div class="card ${today.includes(d.id) ? 'gold-edge' : ''}">
       <div class="row between top"><div class="grow"><div class="row"><b style="font-size:16px">${esc(d.name)}</b>${today.includes(d.id) ? '<span class="pill gold">Heute</span>' : ''}</div>
         <div class="muted small" style="margin-top:3px">${d.wd.length ? WD_ORDER.filter((w) => d.wd.includes(w)).map((w) => WD[w]).join(' · ') : 'kein fester Tag'} · ${plural(d.ex.length, 'Übung', 'Übungen')}</div>
         <div class="faint tiny" style="margin-top:4px">${esc(d.ex.map((e) => exName(e.exId)).join(' · '))}</div></div></div>
-      <div class="row mt"><button type="button" class="btn sm grow" data-a="previewDay" data-id="${d.id}">${icon('list', 'sm')} Letzte Leistung</button><button type="button" class="btn primary sm grow" data-a="startWorkout" data-id="${d.id}">${icon('play', 'sm')} Starten</button></div>
+      <div class="row mt"><button type="button" class="btn sm grow" data-a="previewDay" data-id="${d.id}">${icon('list', 'sm')} Letzte Leistung</button><button type="button" class="btn primary sm grow" data-a="startWorkout" data-id="${d.id}"${di === 0 ? ' data-tour="start-workout"' : ''}>${icon('play', 'sm')} Starten</button></div>
     </div>`).join('') : emptyCard('dumbbell', 'Noch keine Trainingstage', 'Leg im Plan-Editor deine Trainingstage an.', `<button type="button" class="btn primary sm" data-a="go" data-v="plan" data-id="${plan.id}">Plan bearbeiten</button>`)}
   <button type="button" class="btn block" data-a="startWorkout" data-id="">${icon('plus', 'sm')} Freies Training starten</button>`;
 }

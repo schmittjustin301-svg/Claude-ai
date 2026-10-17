@@ -8,6 +8,7 @@ import { monsterCan, CAN_COLORS } from '../can.js';
 import { nextCard } from '../routine.js';
 import { missionsCard } from './goals.js';
 import { ledger, totalXP, levelInfo } from '../gamify.js';
+import { coachCard, react } from '../coach.js';
 import { suppOccurrences, lowStock, statusOf } from '../schedule.js';
 
 function view() {
@@ -32,8 +33,9 @@ function view() {
   ${notices}
   <div class="dash">
     <div class="span">${cockpit(k)}</div>
+    <div class="span">${coachCard()}</div>
     <div class="span">${nextCard()}</div>
-    <div class="span quick">
+    <div class="span quick" data-tour="quick">
       <button type="button" data-a="logWeight">${icon('scale')}Gewicht</button>
       <button type="button" data-a="quickFood">${icon('food')}Essen</button>
       <button type="button" data-a="go" data-v="day">${icon('list')}Tagesplan</button>
@@ -68,13 +70,13 @@ function cockpit(k) {
       const d = plan[0], last = lastWorkoutOfDay(d.id);
       body = { eyebrow: 'Heute geplant', title: esc(d.name), sub: esc(d.ex.slice(0, 3).map((e) => exName(e.exId)).join(', ')) + (d.ex.length > 3 ? ` +${d.ex.length - 3}` : ''),
         tele: [['Übungen', d.ex.length], ['Sätze', d.ex.reduce((n, e) => n + e.sets, 0)], ['Zuletzt', last ? fmt(workoutVolume(last)) + ' kg' : '–']],
-        cta: `<button type="button" class="btn primary block launch" data-a="startWorkout" data-id="${d.id}">${icon('play')} Start workout</button><button type="button" class="btn ghost block sm" style="margin-top:6px" data-a="previewDay" data-id="${d.id}">Letzte Leistung ansehen</button>` };
+        cta: `<button type="button" class="btn primary block launch" data-a="startWorkout" data-id="${d.id}" data-tour="start-workout">${icon('play')} Start workout</button><button type="button" class="btn ghost block sm" style="margin-top:6px" data-a="previewDay" data-id="${d.id}">Letzte Leistung ansehen</button>` };
     } else {
       body = { eyebrow: 'Ruhetag', title: 'Regeneration', sub: 'Kein Training geplant. Muskeln wachsen in der Pause.', tele: null,
         cta: `<button type="button" class="btn outline block" data-a="startWorkout" data-id="">${icon('plus', 'sm')} Freies Training starten</button>` };
     }
   }
-  return `<section class="hero corners" aria-label="Training heute">${corners()}
+  return `<section class="hero corners" aria-label="Training heute" data-tour="cockpit">${corners()}
     <div class="cockpit">${ringHtml}<div style="min-width:0"><div class="label gold">${body.eyebrow}</div><div class="cockpit-title">${body.title}</div>${body.sub ? `<div class="muted small">${body.sub}</div>` : ''}</div></div>
     ${body.tele ? `<div class="telemetry">${body.tele.map(([l, v], i) => `<div><div class="meta">${l}</div><div class="v ${i === 2 ? 'gold' : ''}">${v}</div></div>`).join('')}</div>` : '<div style="height:16px"></div>'}
     ${body.cta}
@@ -159,13 +161,13 @@ function habitsCard(k) {
   const S = app.S, d = getDay(k), p = S.profile;
   return `<div class="card">
     <div class="card-h"><span class="t">${icon('drop')} Tageswerte</span><span class="meta">${relDay(k)}</span></div>
-    <div class="water">
-      <button type="button" class="can-btn" data-a="pickCan" aria-label="Dosenfarbe wählen">${monsterCan(p.waterGoal > 0 ? d.water / p.waterGoal : 0, { color: S.settings.canColor })}</button>
+    <div class="water" data-tour="water">
+      <button type="button" class="can-btn" data-a="pickCan" data-tour="can-color" aria-label="Dosenfarbe wählen">${monsterCan(p.waterGoal > 0 ? d.water / p.waterGoal : 0, { color: S.settings.canColor })}</button>
       <div class="grow">
         <div class="row between"><span class="label">${icon('drop', 'sm')} Wasser</span><span class="meta gold">${p.waterGoal > 0 ? fmt(Math.min(999, (d.water / p.waterGoal) * 100)) : 0} %</span></div>
         <div style="margin-top:8px"><span class="big">${fmtFixed(d.water / 1000, 2)}</span> <span class="unit">/ ${fmtFixed(p.waterGoal / 1000, 1)} l</span></div>
         <div class="small ${d.water >= p.waterGoal ? 'gold' : 'muted'}" style="margin:4px 0 12px">${d.water >= p.waterGoal ? 'Ziel erreicht – stark!' : `noch ${fmt(p.waterGoal - d.water)} ml · ${fmt(Math.ceil((p.waterGoal - d.water) / 500))} ${Math.ceil((p.waterGoal - d.water) / 500) === 1 ? 'Dose' : 'Dosen'} à 0,5 l`}</div>
-        <div class="grid2"><button type="button" class="btn sm" data-a="water" data-v="250">+250 ml</button><button type="button" class="btn sm primary" data-a="water" data-v="500">+500 ml</button></div>
+        <div class="grid2"><button type="button" class="btn sm" data-a="water" data-v="250">+250 ml</button><button type="button" class="btn sm primary" data-a="water" data-v="500" data-tour="log-water">+500 ml</button></div>
         <button type="button" class="btn sm ghost block" style="margin-top:6px" data-a="water" data-v="-250" ${d.water <= 0 ? 'disabled' : ''}>${icon('minus', 'sm')} 250 ml</button>
         ${(d.waterLog || []).length ? `<div class="water-log">${d.waterLog.slice(-4).reverse().map((w) => `<span>${fmtClock(w.ts)} <b>${w.ml > 0 ? '+' : '−'}${Math.abs(w.ml)}</b></span>`).join('')}</div>` : ''}
       </div>
@@ -234,7 +236,8 @@ A.water = (el) => {
   if (real) (d.waterLog = d.waterLog || []).push({ ts: Date.now(), ml: real });
   if ((d.waterLog || []).length > 40) d.waterLog = d.waterLog.slice(-40);
   commit();
-  if (before < goal && d.water >= goal) { if (navigator.vibrate) navigator.vibrate([20, 40, 20]); toast('Trinkziel erreicht – Dose voll!'); }
+  if (before < goal && d.water >= goal) { if (navigator.vibrate) navigator.vibrate([20, 40, 20]); react('celebrating', 'Trinkziel erreicht – Dose voll!', { key: 'water100:' + dkey() }); }
+  else if (goal > 0 && before < goal * 0.75 && d.water >= goal * 0.75) react('water', 'Dein Wasserziel ist in Reichweite!', { key: 'water75:' + dkey(), sub: `noch ${fmt(goal - d.water)} ml`, plainOff: false });
 };
 // Dosenfarbe wählen (nur die Dose ändert sich, Wasserwerte bleiben unberührt)
 A.pickCan = () => openSheet(() => {

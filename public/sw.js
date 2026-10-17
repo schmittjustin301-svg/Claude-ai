@@ -2,7 +2,7 @@
 // Strategie: sofort aus dem Cache antworten, im Hintergrund aktualisieren – der nächste Start zeigt die neue Version.
 // Liegt unter /sw.js wie die Vorgänger (GRIND EMPIRE, FIT) und ersetzt sie; alte Caches werden gelöscht.
 // Bei jeder Änderung an App-Dateien VERSION erhöhen (Test prüft, dass ASSETS vollständig ist).
-const VERSION = 'ironcore-4';
+const VERSION = 'ironcore-5';
 const ASSETS = [
   '/',
   '/index.html',
@@ -39,6 +39,27 @@ const ASSETS = [
   '/js/views/supps.js',
   '/js/views/mealplan.js',
   '/vendor/html5-qrcode.min.js',
+  '/js/mascot.js',
+  '/js/tour.js',
+  '/js/coach.js',
+  '/images/mascot/celebrating.webp',
+  '/images/mascot/determined.webp',
+  '/images/mascot/explaining.webp',
+  '/images/mascot/focused.webp',
+  '/images/mascot/friendly.webp',
+  '/images/mascot/goals.webp',
+  '/images/mascot/happy.webp',
+  '/images/mascot/motivated.webp',
+  '/images/mascot/neutral.webp',
+  '/images/mascot/nutrition.webp',
+  '/images/mascot/portrait.webp',
+  '/images/mascot/shopping.webp',
+  '/images/mascot/supplements.webp',
+  '/images/mascot/supportive.webp',
+  '/images/mascot/thinking.webp',
+  '/images/mascot/water.webp',
+  '/images/mascot/welcome.webp',
+  '/images/mascot/workout.webp',
 ];
 
 self.addEventListener('install', (e) => {

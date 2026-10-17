@@ -29,14 +29,14 @@ function todayTab() {
   const planned = sumMacros(slots.map((s) => planMacros(app.S, planDay[s.id])));
   const hasPlan = slots.some((s) => (planDay[s.id] || []).length);
   const ev = timeline(app.S, k).filter((e) => e.kind === 'meal');
-  return `<div class="card">
+  return `<div class="card" data-tour="food-summary">
     <div class="row between"><div><div class="label">Gegessen</div><div style="margin-top:6px"><span class="big">${fmt(tot.kcal)}</span> <span class="unit">/ ${fmt(t.kcal)} kcal</span></div></div>
       <div class="right"><div class="label">${tot.kcal > t.kcal ? 'Drüber' : 'Übrig'}</div><div class="mid ${tot.kcal > t.kcal ? 'danger-t' : 'gold'}" style="margin-top:6px">${fmt(Math.abs(t.kcal - tot.kcal))}</div></div></div>
     <div class="mt">${bar(tot.kcal, t.kcal, { thick: true })}</div>
     <div class="grid3 mt">${[['Protein', 'p'], ['Kohlenh.', 'c'], ['Fett', 'f']].map(([l, m]) => `<div><div class="label" style="margin-bottom:5px">${l}</div><div class="num small"><b>${fmt(tot[m])}</b><span class="muted"> / ${fmt(t[m])} g</span></div><div style="margin-top:6px">${bar(tot[m], t[m])}</div><div class="faint tiny" style="margin-top:4px">${tot[m] < t[m] ? `noch ${fmt(t[m] - tot[m])} g` : 'erreicht'}</div></div>`).join('')}</div>
     ${hasPlan ? `<hr class="divider"><div class="plan-cmp"><span class="meta">Geplant</span><span><b>${fmt(planned.kcal)}</b> kcal</span><span>P <b>${fmt(planned.p)}</b></span><span>K <b>${fmt(planned.c)}</b></span><span>F <b>${fmt(planned.f)}</b></span></div>` : ''}
   </div>
-  ${slots.map((slot) => {
+  ${slots.map((slot, si) => {
     const items = list.filter((e) => e.slot === slot.id);
     const ys = yday.filter((e) => e.slot === slot.id);
     const plan = planDay[slot.id] || [];
@@ -45,13 +45,13 @@ function todayTab() {
     const st = sumMacros(items);
     const open = e && (e.status === 'due' || e.status === 'upcoming' || e.status === 'snoozed' || e.status === 'open');
     return `<div class="card meal-card ${e?.status === 'done' ? 'is-done' : ''} ${isFlash('meal:' + slot.id) ? 'flash' : ''}">
-      <div class="card-h"><div class="row"><button type="button" class="time-chip ${slot.override ? 'ovr' : ''}" data-a="mealTime" data-slot="${slot.id}" data-date="${k}" aria-label="Uhrzeit ändern">${slot.time}</button><b>${esc(slot.name)}</b>${e ? statusPill(e.status) : ''}</div>
+      <div class="card-h"><div class="row"><button type="button" class="time-chip ${slot.override ? 'ovr' : ''}" data-a="mealTime" data-slot="${slot.id}" data-date="${k}" aria-label="Uhrzeit ändern"${si === 0 ? ' data-tour="meal-time"' : ''}>${slot.time}</button><b>${esc(slot.name)}</b>${e ? statusPill(e.status) : ''}</div>
         <div class="row">${items.length ? `<span class="muted small num">${fmt(st.kcal)} kcal</span>` : ''}<button type="button" class="icon-btn sm plain" data-a="slotMenu" data-slot="${slot.id}" aria-label="Optionen">${icon('more', 'sm')}</button></div></div>
       ${plan.length ? `<div class="planned"><div class="row between"><span class="meta">Geplant${pm.known ? ` · ${fmt(pm.kcal)} kcal · P ${fmt(pm.p)}` : ''}</span>${pm.known < pm.total ? `<span class="faint tiny">${pm.total - pm.known} ohne Nährwerte</span>` : ''}</div><div class="small" style="margin-top:4px">${plan.map((it) => `${esc(it.name)} <span class="muted">${fmt(Number(it.qty), 2)} ${esc(it.unit)}</span>`).join(' · ')}</div></div>` : ''}
       ${items.length ? `<div class="list">${items.map((x) => `<button type="button" class="item" data-a="editEntry" data-id="${x.id}"><div class="grow"><b>${esc(x.name)}</b>${x.fromPlan ? ' <span class="pill">Plan</span>' : ''}<div>${mtxt(x)}</div></div><div class="r muted small">${x.amount ? fmt(x.amount) + ' g' : ''}</div></button>`).join('')}</div>` : ''}
       <div class="row wrap" style="margin-top:10px">
         ${open ? `<button type="button" class="btn sm ${plan.length && !items.length ? 'primary' : 'outline'}" data-a="mealDone" data-slot="${slot.id}" data-date="${k}">${icon('check', 'sm')} ${plan.length && !items.length ? 'Wie geplant gegessen' : 'Gegessen'}</button>` : e?.status === 'done' ? `<button type="button" class="btn sm ghost" data-a="mealUndo" data-slot="${slot.id}" data-date="${k}">${icon('repeat', 'sm')} Nicht gegessen</button>` : e?.status === 'skipped' ? `<button type="button" class="btn sm ghost" data-a="mealUndo" data-slot="${slot.id}" data-date="${k}">Doch nicht übersprungen</button>` : ''}
-        <button type="button" class="btn sm" data-a="addFood" data-slot="${slot.id}">${icon('plus', 'sm')} Hinzufügen</button>
+        <button type="button" class="btn sm" data-a="addFood" data-slot="${slot.id}"${si === 0 ? ' data-tour="add-food"' : ''}>${icon('plus', 'sm')} Hinzufügen</button>
         ${!items.length && ys.length ? `<button type="button" class="btn sm ghost" data-a="copySlot" data-slot="${slot.id}">${icon('repeat', 'sm')} Wie gestern · ${fmt(sumMacros(ys).kcal)} kcal</button>` : ''}
         ${open && !items.length ? `<button type="button" class="btn sm ghost" data-a="mealSkip" data-slot="${slot.id}" data-date="${k}">Überspringen</button>` : ''}</div>
     </div>`;
