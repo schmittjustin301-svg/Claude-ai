@@ -29,13 +29,13 @@ export const workoutsOn = (k) => app.S.workouts.filter((w) => w.date === k);
 export const lastWorkoutOfDay = (dayId) => app.S.workouts.filter((w) => w.dayId === dayId).sort((a, b) => b.start - a.start)[0] || null;
 
 // Tageswerte (Wasser, Schlaf, Schritte, Cardio, Supplements)
-const blankDay = () => ({ water: 0, sleep: null, steps: null, cardio: [], supps: [] });
+const blankDay = () => ({ water: 0, sleep: null, steps: null, cardio: [], waterLog: [] });
 export const getDay = (k) => app.S.days[k] || blankDay();
 export function dayW(k) { if (!app.S.days[k]) app.S.days[k] = blankDay(); return app.S.days[k]; }
 
 // Ernährung
 export const entries = (k) => app.S.meals[k] || [];
-export const SLOTS = ['Frühstück', 'Mittagessen', 'Abendessen', 'Snacks'];
+export const slotName = (id) => app.S.mealSlots.find((x) => x.id === id)?.name || 'Mahlzeit';
 
 // Gewicht
 export const weightsSorted = () => app.S.weights.slice().sort((a, b) => a.ts - b.ts);

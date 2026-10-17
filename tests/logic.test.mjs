@@ -152,5 +152,5 @@ test('loadState: neuer Schlüssel vor Altdaten, sonst Migration, sonst Standard'
   const r = loadState(mem({ [KEY]: JSON.stringify(own), [LEGACY_KEY]: '{}' }));
   assert.equal(r.migrated, false);
   assert.equal(r.state.goals.weight, 77);
-  assert.equal(loadState(mem({ [KEY]: '{kaputt' })).state.v, 2, 'kaputte Daten → Standard statt Absturz');
+  assert.equal(loadState(mem({ [KEY]: '{kaputt' })).state.v, 3, 'kaputte Daten → Standard statt Absturz');
 });

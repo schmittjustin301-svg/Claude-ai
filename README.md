@@ -36,11 +36,37 @@ Private Fitness-App nur für den Eigengebrauch: Training, Ernährung, Körper un
 - Maße (Brust, Taille, Hüfte, Arme, Oberschenkel und eigene Felder) mit Verlauf
 - Private Fortschrittsfotos mit Vorher/Nachher-Vergleich
 
+**Tagesroutine & Supplements**
+- Eigene Supplements: Name, Marke, Kategorie, Portion, Einheit, Notizen, Produktfoto, Vorrat mit Mindestbestand, archivieren/löschen
+- Eigener Zeitplan pro Supplement: mehrere Uhrzeiten, Wochentage, Menge je Einnahme, optional an eine Mahlzeit gekoppelt
+- Status pro Einnahme: geplant, jetzt fällig, erledigt (mit Uhrzeit), geschlummert, übersprungen – jede Einnahme zählt genau einmal
+- Einnahmetreue heute und über 7 bzw. 14 Tage, Reichweite des Vorrats
+- IRONCORE empfiehlt keine Dosierungen – alle Mengen und Zeiten legst du selbst fest
+- Mahlzeiten mit eigener Standard-Uhrzeit, Verschieben für einzelne Tage, gegessen (mit Uhrzeit), übersprungen
+- Tagesplan: Mahlzeiten und Supplements chronologisch, „Als Nächstes“ auf dem Dashboard
+
+**Wochenplan & Einkaufsliste**
+- Mahlzeiten für alle 7 Tage mit Zutaten (Menge, Einheit, Kategorie, Notiz), Tage und Wochen kopieren, gespeicherte Mahlzeiten einplanen
+- „Wie geplant gegessen“ übernimmt die geplanten Zutaten genau einmal ins Tagebuch
+- Einkaufsliste per Knopfdruck: gleiche Zutaten werden addiert (g/kg, ml/l), verschiedene Produkte oder Einheiten bleiben getrennt
+- Gekauft, schon da, eigene Artikel, eigene Mengen – bleibt beim Aktualisieren erhalten; Planänderungen ziehen die Liste automatisch mit
+- Frühere Wochenlisten bleiben gespeichert, Liste als Text teilen
+
+**Erinnerungen**
+- Benachrichtigungen für Supplements und Mahlzeiten, Vorlauf einstellbar, ohne Doppel-Alarm
+- **Grenze:** Ohne Push-Server kann eine Web-App bei geschlossener App keine Benachrichtigung zu fester Uhrzeit auslösen. Dafür gibt es den **Kalender-Export (.ics)**: wiederkehrende Termine mit Alarm im Kalender des Handys
+
 **Ziele**
 - Zielgewicht, Trainings pro Woche, Ernährungsziele mit Zielerreichung der letzten 7 Tage
 - Kraftziele (z. B. 100 kg × 5), Fortschritt automatisch aus den Trainings
 - Eigene Meilensteine
-- Rekorde und erreichte Ziele werden mit einer dezenten Gold-Animation gefeiert
+- Eigene Ziele (Gewicht, Anzahl Trainings, Tage mit Protein-/Kalorien-/Trinkziel, Supplement-Treue, Wochenroutine, Kraftziel, Gewohnheit, eigener Wert) mit Prozent, Start, Ziel und Zieldatum
+- XP & Level: das XP-Konto wird aus deinen Daten berechnet – keine Doppelbelohnung, bearbeitete oder gelöschte Einträge bleiben konsistent; belohnt wird Beständigkeit, nicht Menge
+- Tagesmissionen, Gewohnheiten, Serien (ein offener Tag beendet keine Serie) und 18 Erfolge
+- Rekorde, Erfolge und erreichte Ziele werden mit einer dezenten Gold-Animation gefeiert
+
+**Wasser**
+- Animierte Dose in sieben Farben (Weiß, Grün, Blau, Gold, Lila, Rot, Schwarz), füllt sich mit dem Trinkziel, Verlauf der Einträge
 
 Alle Kennzahlen kommen aus echten Einträgen. Reichen die Daten nicht (z. B. 30-Tage-Veränderung nach einer Woche), zeigt die App das an, statt Werte zu erfinden.
 
@@ -76,13 +102,17 @@ public/
   fonts/                Inter, Space Grotesk (lokal, OFL)
   js/
     logic.js            reine Rechenlogik (Trends, Rekorde, Ziele, Validierung) – getestet
+    schedule.js         Zeitpläne, Tagesplan, Einnahmetreue, Vorrat, Kalender-Export – getestet
+    shopping.js         Einkaufsliste: Zusammenfassen, Einheiten, Neuerstellen – getestet
+    gamify.js           XP, Level, Erfolge, Serien, Missionen, eigene Ziele – getestet
+    routine.js / notify.js  Einnahmen & Mahlzeiten, Tagesplan, Erinnerungen
     store.js            Datenmodell, Migration aus FIT, Speichern, Foto-Datenbank
     seed.js             Übungsbibliothek, Lebensmittel, Plan-Vorlagen
     core.js             Zustand, Navigation, Sheets, Rückmeldungen
     domain.js           Abfragen auf dem Zustand
     ui.js               Formatierung, Icons, Diagramme
     scanner.js          Barcode-Scanner
-    views/              home, training, session, nutrition, progress, goals, settings
+    views/              home, training, session, nutrition, mealplan, supps, progress, goals, settings
   vendor/               html5-qrcode (Apache-2.0)
 tests/                  node:test – Logik, Migration, Offline-Cache, keine Fremd-Requests
 ```

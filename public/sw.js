@@ -2,7 +2,7 @@
 // Strategie: sofort aus dem Cache antworten, im Hintergrund aktualisieren – der nächste Start zeigt die neue Version.
 // Liegt unter /sw.js wie die Vorgänger (GRIND EMPIRE, FIT) und ersetzt sie; alte Caches werden gelöscht.
 // Bei jeder Änderung an App-Dateien VERSION erhöhen (Test prüft, dass ASSETS vollständig ist).
-const VERSION = 'ironcore-3';
+const VERSION = 'ironcore-4';
 const ASSETS = [
   '/',
   '/index.html',
@@ -23,6 +23,12 @@ const ASSETS = [
   '/js/ui.js',
   '/js/scanner.js',
   '/js/can.js',
+  '/js/schedule.js',
+  '/js/shopping.js',
+  '/js/gamify.js',
+  '/js/routine.js',
+  '/js/notify.js',
+  '/js/photoutil.js',
   '/js/views/home.js',
   '/js/views/training.js',
   '/js/views/session.js',
@@ -30,6 +36,8 @@ const ASSETS = [
   '/js/views/progress.js',
   '/js/views/goals.js',
   '/js/views/settings.js',
+  '/js/views/supps.js',
+  '/js/views/mealplan.js',
   '/vendor/html5-qrcode.min.js',
 ];
 
@@ -60,4 +68,14 @@ self.addEventListener('fetch', (e) => {
       return fresh;
     }),
   );
+});
+
+// Antippen einer Erinnerung: offene App nach vorn holen oder den Tagesplan öffnen
+self.addEventListener('notificationclick', (e) => {
+  e.notification.close();
+  const url = (e.notification.data && e.notification.data.url) || '/';
+  e.waitUntil(self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((list) => {
+    for (const c of list) if ('focus' in c) { c.navigate(url).catch(() => {}); return c.focus(); }
+    return self.clients.openWindow(url);
+  }));
 });

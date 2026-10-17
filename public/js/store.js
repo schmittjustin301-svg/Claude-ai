@@ -5,10 +5,42 @@ import { calcMacros, dkey, pkey } from './logic.js';
 
 export const KEY = 'ironcore-v2';
 export const LEGACY_KEY = 'fit-state-v1';
-export const VERSION = 2;
+export const VERSION = 3;
 
 export const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
 const norm = (s) => String(s || '').trim().toLowerCase();
+
+export const DEFAULT_SLOTS = [
+  { id: 'breakfast', name: 'Frühstück', time: '08:00' },
+  { id: 'lunch', name: 'Mittagessen', time: '12:30' },
+  { id: 'snacks', name: 'Snacks', time: '16:00' },
+  { id: 'dinner', name: 'Abendessen', time: '19:00' },
+];
+// XP pro Aktion – in den Einstellungen änderbar
+export const DEFAULT_XP = { workout: 50, pr: 25, protein: 15, kcal: 15, water: 10, supps: 10, habit: 5, weekGoal: 75, goal: 100, achievement: 20 };
+
+const UNIT_WORDS = { kapsel: 'Kapseln', kapseln: 'Kapseln', caps: 'Kapseln', tablette: 'Tabletten', tabletten: 'Tabletten', tabs: 'Tabletten', g: 'g', mg: 'mg', 'µg': 'µg', mcg: 'µg', ie: 'IE', iu: 'IE', ml: 'ml', scoop: 'Messlöffel', messlöffel: 'Messlöffel', tropfen: 'Tropfen' };
+function guessSuppCategory(name) {
+  const n = norm(name);
+  if (/kreatin|creatin/.test(n)) return 'Kreatin';
+  if (/whey|protein|casein|eiweiß/.test(n)) return 'Protein';
+  if (/vitamin|d3|b12|k2|multi/.test(n)) return 'Vitamine';
+  if (/magnes|zink|zinc|eisen|calcium|kalium|selen/.test(n)) return 'Mineralstoffe';
+  if (/elektrolyt|electrolyt|salz/.test(n)) return 'Elektrolyte';
+  if (/pre.?workout|booster|koffein|caffein/.test(n)) return 'Pre-Workout';
+  return 'Sonstiges';
+}
+/** Altes Supplement {id, name, dose} → neues Modell. Die Dosis wird nur übernommen, nie erfunden. */
+export function upgradeSupp(x) {
+  if (x && Array.isArray(x.schedule)) return { brand: '', category: 'Sonstiges', unit: 'Portion', serving: null, notes: '', image: null, stock: null, minStock: null, archived: false, ...x };
+  const m = String(x.dose || '').trim().match(/^(\d+(?:[.,]\d+)?)\s*([a-zA-Zµäöü]+)?/);
+  const unit = m && m[2] ? UNIT_WORDS[m[2].toLowerCase()] : null;
+  return {
+    id: x.id || uid(), name: x.name || 'Supplement', brand: '', category: guessSuppCategory(x.name),
+    unit: unit || 'Portion', serving: m && unit ? Number(m[1].replace(',', '.')) : null,
+    notes: m && unit ? '' : String(x.dose || ''), image: null, stock: null, minStock: null, archived: false, schedule: [],
+  };
+}
 
 export function planFromTemplate(kind, exercises) {
   const t = PLAN_TEMPLATES[kind];
@@ -32,7 +64,7 @@ export function defaults() {
     v: VERSION,
     profile,
     targets: { kcal: m.kcal, p: m.p, c: m.c, f: m.f },
-    goals: { weight: null, weeklySessions: 4, strength: [], milestones: [] },
+    goals: { weight: null, weeklySessions: 4, strength: [], milestones: [], custom: [] },
     exercises,
     plans: [plan],
     activePlanId: plan.id,
@@ -46,12 +78,20 @@ export function defaults() {
     measures: [],
     photos: [],
     days: {},
-    supps: [
-      { id: uid(), name: 'Kreatin', dose: '5 g' },
-      { id: uid(), name: 'Vitamin D3', dose: '2000 IE' },
-      { id: uid(), name: 'Omega-3', dose: '2 Kapseln' },
-    ],
-    settings: { onboarded: false, hideInstall: false, lastBackup: 0, celebrated: {} },
+    // Supplements: bewusst leer – Mengen und Zeiten legt nur der Nutzer selbst fest
+    supps: [],
+    intakes: {},
+    mealSlots: DEFAULT_SLOTS.map((x) => ({ ...x })),
+    mealDays: {},
+    mealPlan: {},
+    shopping: {},
+    habits: [],
+    habitLog: {},
+    achievements: {},
+    xpConfig: { ...DEFAULT_XP },
+    notify: { enabled: false, supps: true, meals: true, lead: 0 },
+    notified: {},
+    settings: { onboarded: false, hideInstall: false, lastBackup: 0, celebrated: {}, canColor: 'white' },
   };
 }
 
@@ -62,10 +102,45 @@ export function normalize(s) {
   s.profile = { ...d.profile, ...s.profile };
   s.goals = { ...d.goals, ...s.goals };
   s.settings = { ...d.settings, ...s.settings };
+  s.xpConfig = { ...DEFAULT_XP, ...s.xpConfig };
+  s.notify = { ...d.notify, ...s.notify };
+  if (!Array.isArray(s.goals.custom)) s.goals.custom = [];
+  if (!s.mealSlots.length) s.mealSlots = DEFAULT_SLOTS.map((x) => ({ ...x }));
+  upgradeToV3(s);
   if (!s.plans.length) { const p = planFromTemplate('ppl', s.exercises); s.plans.push(p); }
   if (!s.plans.some((p) => p.id === s.activePlanId)) s.activePlanId = s.plans[0].id;
   s.v = VERSION;
   return s;
+}
+
+/** Upgrade auf Version 3: Supplements mit Zeitplan, Mahlzeiten mit eigener Uhrzeit, Ziele vereinheitlicht. Idempotent. */
+function upgradeToV3(s) {
+  s.supps = (s.supps || []).map(upgradeSupp);
+  // Alte Tages-Häkchen → Einnahme-Einträge (ohne feste Uhrzeit)
+  for (const [k, day] of Object.entries(s.days || {})) {
+    if (Array.isArray(day.supps)) {
+      for (const id of day.supps) {
+        if (!s.supps.some((x) => x.id === id)) continue;
+        const t = pkey(k); t.setHours(12, 0, 0, 0);
+        ((s.intakes[k] = s.intakes[k] || {}))[`${id}:_`] = { status: 'taken', at: t.getTime(), amount: null };
+      }
+      delete day.supps;
+    }
+  }
+  // Mahlzeiten-Einträge: Namen → Slot-IDs
+  const byName = new Map(s.mealSlots.map((x) => [norm(x.name), x.id]));
+  const ids = new Set(s.mealSlots.map((x) => x.id));
+  for (const list of Object.values(s.meals || {})) for (const e of list) {
+    if (ids.has(e.slot)) continue;
+    let id = byName.get(norm(e.slot));
+    if (!id) { id = 'slot_' + uid(); s.mealSlots.push({ id, name: String(e.slot || 'Mahlzeit'), time: '12:00' }); byName.set(norm(e.slot), id); ids.add(id); }
+    e.slot = id;
+  }
+  // Alte Kraftziele → allgemeine Ziele vom Typ „Rekord“
+  if (Array.isArray(s.goals.strength) && s.goals.strength.length) {
+    for (const g of s.goals.strength) s.goals.custom.push({ id: g.id || uid(), type: 'pr', name: `${g.name || 'Übung'} ${g.kg} kg × ${g.reps}`, description: '', category: 'Kraft', startDate: dkey(new Date(g.created || Date.now())), targetDate: null, startValue: 0, targetValue: g.kg, unit: 'kg', params: { key: g.key, reps: g.reps }, status: 'active' });
+    s.goals.strength = [];
+  }
 }
 
 /**

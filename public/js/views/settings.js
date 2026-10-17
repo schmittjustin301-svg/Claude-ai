@@ -1,9 +1,9 @@
 // Einstellungen: Makro-Rechner & Ziele, Tageswerte, Supplements, Daten (Backup, CSV, Import, Löschen).
-import { app, A, C, registerView, commit, save, saveNow, go, render, toast } from '../core.js';
+import { app, A, C, registerView, commit, saveNow, go, render, toast } from '../core.js';
 import { calcMacros, dkey, validate, LIMITS, currentWeight, sumMacros, workoutVolume, r1 } from '../logic.js';
 import { $, esc, fmt, fmtFixed, icon } from '../ui.js';
 import { daily, entries } from '../domain.js';
-import { uid, photoDB, defaults, normalize, migrateFromFit, KEY, LEGACY_KEY } from '../store.js';
+import { photoDB, defaults, normalize, migrateFromFit, KEY, LEGACY_KEY } from '../store.js';
 import { forgetPhotoURLs } from './progress.js';
 
 // ---------- Einstellungen ----------
@@ -26,11 +26,12 @@ function view() {
     <label class="field"><span>Schritte</span><input type="number" inputmode="numeric" step="500" data-c="prof" data-f="stepGoal" value="${p.stepGoal}"></label>
   </div></div>
 
-  <div class="section">Supplements</div>
-  <div class="card">
-    ${S.supps.map((s, i) => `<div class="row mb"><input class="grow" data-c="supp" data-i="${i}" data-f="name" value="${esc(s.name)}" aria-label="Name"><input style="width:110px" data-c="supp" data-i="${i}" data-f="dose" value="${esc(s.dose)}" placeholder="Dosis" aria-label="Dosis"><button type="button" class="icon-btn sm" data-a="delSupp" data-i="${i}" aria-label="Entfernen">${icon('x', 'sm')}</button></div>`).join('')}
-    <button type="button" class="btn sm" data-a="addSupp">${icon('plus', 'sm')} Supplement</button>
-  </div>
+  <div class="section">Routine</div>
+  <div class="card"><div class="list">
+    <button type="button" class="item" data-a="go" data-v="supps"><div><b>Meine Supplements</b><div class="muted small">${S.supps.filter((x) => !x.archived).length} aktiv · eigener Zeitplan, Vorrat</div></div>${icon('right', 'chev')}</button>
+    <button type="button" class="item" data-a="go" data-v="reminders"><div><b>Erinnerungen &amp; Kalender</b><div class="muted small">${S.notify.enabled ? 'aktiv' : 'aus'} · Kalender-Export</div></div>${icon('right', 'chev')}</button>
+    <button type="button" class="item" data-a="manageSlots"><div><b>Mahlzeiten &amp; Uhrzeiten</b><div class="muted small">${S.mealSlots.slice().sort((a, b) => a.time.localeCompare(b.time)).map((m) => `${esc(m.name)} ${m.time}`).join(' · ')}</div></div>${icon('right', 'chev')}</button>
+  </div></div>
 
   <div class="section">Daten &amp; Privatsphäre</div>
   <div class="card">
@@ -66,9 +67,6 @@ C.prof = (el) => {
   commit();
 };
 C.profName = (el) => { app.S.profile.name = el.value.trim().slice(0, 30); commit(); };
-C.supp = (el) => { app.S.supps[+el.dataset.i][el.dataset.f] = el.value.trim(); save(); };
-A.addSupp = () => { app.S.supps.push({ id: uid(), name: 'Neues Supplement', dose: '' }); commit(); };
-A.delSupp = (el) => { app.S.supps.splice(+el.dataset.i, 1); commit(); };
 
 // ---------- Makro-Rechner ----------
 function calcView() {
