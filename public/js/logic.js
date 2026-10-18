@@ -261,3 +261,14 @@ export function weeksToGoal(cur, target, ratePerWeek) {
   if (Math.sign(left) !== Math.sign(ratePerWeek) || Math.abs(ratePerWeek) < 0.05) return null;
   return left / ratePerWeek;
 }
+
+// Suche ohne Rücksicht auf Groß-/Kleinschreibung und Umlaute; alle Wörter müssen vorkommen („hahnchen roh“)
+const fold = (s) => String(s).toLowerCase().replace(/ß/g, 'ss').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+export function searchFoods(foods, query) {
+  const q = fold(query).trim(), words = q.split(/\s+/).filter(Boolean);
+  const byUse = (a, b) => (b.fav ? 1 : 0) - (a.fav ? 1 : 0) || (b.used || 0) - (a.used || 0);
+  if (!words.length) return foods.slice().sort((a, b) => byUse(a, b) || a.name.localeCompare(b.name, 'de'));
+  return foods.map((f) => ({ f, n: fold(f.name) })).filter((x) => words.every((w) => x.n.includes(w)))
+    .sort((a, b) => (b.n.startsWith(q) ? 1 : 0) - (a.n.startsWith(q) ? 1 : 0) || byUse(a.f, b.f) || a.n.length - b.n.length)
+    .map((x) => x.f);
+}

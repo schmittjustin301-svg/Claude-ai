@@ -23,6 +23,7 @@ Private Fitness-App nur für den Eigengebrauch: Training, Ernährung, Körper un
 
 **Ernährung**
 - Tagesziele, Mahlzeiten (Frühstück, Mittag, Abend, Snacks)
+- Über 230 Lebensmittel mit Nährwerten (Richtwerte je 100 g), Suche auch ohne Umlaute
 - Favoriten und zuletzt genutzte Lebensmittel oben
 - Gespeicherte Mahlzeiten, „Wie gestern“ pro Mahlzeit oder ganzer Tag
 - Schnelleintrag nur mit Makros

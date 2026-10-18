@@ -1,6 +1,6 @@
 // Ernährung: Tagesübersicht, schnelles Eintragen, gespeicherte Mahlzeiten, Lebensmittel, Verlauf.
 import { app, A, I, registerView, commit, save, openSheet, closeSheet, toast } from '../core.js';
-import { dkey, addDays, sumMacros, macrosFor, kcalFromMacros, validate, LIMITS, num, r0, r1 } from '../logic.js';
+import { dkey, addDays, sumMacros, macrosFor, kcalFromMacros, validate, LIMITS, num, r0, r1, searchFoods } from '../logic.js';
 import { $, esc, fmt, icon, bar, mtxt, relDay, formVals, markInvalid, plural } from '../ui.js';
 import { entries, slotName } from '../domain.js';
 import { slotsFor, planMacros, timeline, validTime } from '../schedule.js';
@@ -122,18 +122,17 @@ function pickerSheet() {
   if (pick.mode === 'quick') return quickSheet();
   if (pick.food) return amountSheet();
   const meals = app.S.savedMeals;
-  return `<h2>${esc(slotName(pick.slot))}</h2>
-    <input id="pickQ" data-i="pickQ" placeholder="Lebensmittel suchen …" value="${esc(pick.q)}" autocomplete="off">
-    <div class="grid3" style="margin:10px 0 4px"><button type="button" class="btn sm" data-a="scan">${icon('barcode', 'sm')} Scannen</button><button type="button" class="btn sm" data-a="quickMode">${icon('bolt', 'sm')} Makros</button><button type="button" class="btn sm" data-a="newFood">${icon('plus', 'sm')} Neu</button></div>
+  return `<div class="pick-head" data-tall><h2>${esc(slotName(pick.slot))}</h2>
+    <input id="pickQ" type="search" data-i="pickQ" placeholder="${app.S.foods.length} Lebensmittel durchsuchen …" value="${esc(pick.q)}" autocomplete="off" enterkeyhint="search">
+    <div class="grid3" style="margin:10px 0 4px"><button type="button" class="btn sm" data-a="scan">${icon('barcode', 'sm')} Scannen</button><button type="button" class="btn sm" data-a="quickMode">${icon('bolt', 'sm')} Makros</button><button type="button" class="btn sm" data-a="newFood">${icon('plus', 'sm')} Neu</button></div></div>
     ${meals.length ? `<div class="label" style="margin:14px 0 4px">Gespeicherte Mahlzeiten</div><div class="list">${meals.map((m) => `<button type="button" class="item" data-a="addSavedMeal" data-id="${m.id}"><div class="grow"><b>${esc(m.name)}</b><div>${mtxt(sumMacros(m.items))}</div></div><span class="muted tiny">${m.items.length} Teile</span>${icon('plus', 'chev')}</button>`).join('')}</div>` : ''}
-    <div class="label" style="margin:14px 0 4px">Favoriten &amp; zuletzt genutzt</div>
+    <div class="label" id="pickLbl" style="margin:14px 0 4px">${pick.q.trim() ? 'Suchergebnisse' : 'Favoriten &amp; zuletzt genutzt'}</div>
     <div class="list" id="pickList">${pickList()}</div>`;
 }
 function pickList() {
-  const q = pick.q.trim().toLowerCase();
-  const list = app.S.foods.filter((f) => !q || f.name.toLowerCase().includes(q))
-    .sort((a, b) => (b.fav ? 1 : 0) - (a.fav ? 1 : 0) || (b.used || 0) - (a.used || 0) || a.name.localeCompare(b.name, 'de'));
-  if (!list.length) return `<div class="empty">Nichts gefunden. <button type="button" class="link" data-a="newFood">„${esc(pick.q)}“ anlegen</button></div>`;
+  const list = searchFoods(app.S.foods, pick.q);
+  if (!list.length) return `<div class="empty-pick"><div class="muted small">Nichts gefunden für „${esc(pick.q.trim())}“.</div>
+    <div class="grid2" style="margin-top:10px"><button type="button" class="btn sm primary" data-a="newFood">${icon('plus', 'sm')} Anlegen</button><button type="button" class="btn sm" data-a="quickMode">${icon('bolt', 'sm')} Nur Makros</button></div></div>`;
   return list.slice(0, 60).map((f) => `<button type="button" class="item" data-a="pickFood" data-id="${f.id}"><div class="grow"><b>${f.fav ? '<span class="gold">★</span> ' : ''}${esc(f.name)}</b><div>${mtxt(f)} <span class="faint tiny">/100 g</span></div></div>${icon('right', 'chev')}</button>`).join('');
 }
 function amountSheet() {
@@ -158,7 +157,7 @@ function quickSheet() {
 export function openPicker(slot) { pick = { slot, q: '', food: null, amount: '', mode: 'list' }; openSheet(pickerSheet); }
 export function showPickerWithFood(foodId) { if (!pick) return false; const f = app.S.foods.find((x) => x.id === foodId); pick.food = foodId; pick.mode = 'list'; pick.amount = String(f?.portion || 100); openSheet(pickerSheet); return true; }
 A.addFood = (el) => openPicker(el.dataset.slot);
-I.pickQ = (el) => { pick.q = el.value; $('#pickList').innerHTML = pickList(); };
+I.pickQ = (el) => { pick.q = el.value; $('#pickList').innerHTML = pickList(); $('#pickLbl').innerHTML = pick.q.trim() ? 'Suchergebnisse' : 'Favoriten &amp; zuletzt genutzt'; };
 A.pickFood = (el) => { const f = app.S.foods.find((x) => x.id === el.dataset.id); pick.food = f.id; pick.amount = String(f.portion || 100); openSheet(pickerSheet); };
 A.pickAmount = (el) => { pick.amount = el.dataset.v; openSheet(pickerSheet); };
 I.pickAmt = (el) => { pick.amount = el.value; const f = app.S.foods.find((x) => x.id === pick.food); $('#pickPrev').innerHTML = mtxt(macrosFor(f, num(el.value))); };
@@ -259,13 +258,17 @@ A.saveMeal = (el) => {
 A.clearSlot = (el) => { if (!confirm(`Alle Einträge in ${slotName(el.dataset.slot)} löschen?`)) return; app.S.meals[app.ui.date] = entries(app.ui.date).filter((e) => e.slot !== el.dataset.slot); closeSheet(); commit(); };
 
 // ---------- Lebensmittel & Mahlzeiten verwalten ----------
+let foodsQ = '';
+const foodItems = (list) => list.map((f) => `<button type="button" class="item" data-a="editFood" data-id="${f.id}"><div class="grow"><b>${f.fav ? '<span class="gold">★</span> ' : ''}${esc(f.name)}</b><div>${mtxt(f)} <span class="faint tiny">/100 g</span></div></div>${icon('right', 'chev')}</button>`).join('') || '<div class="empty">Nichts gefunden.</div>';
+I.foodsQ = (el) => { foodsQ = el.value; $('#foodsList').innerHTML = foodItems(searchFoods(app.S.foods, foodsQ)); };
 function foodsView() {
-  const foods = app.S.foods.slice().sort((a, b) => (b.fav ? 1 : 0) - (a.fav ? 1 : 0) || a.name.localeCompare(b.name, 'de'));
+  const foods = searchFoods(app.S.foods, foodsQ);
   return `<div class="topbar"><button type="button" class="back" data-a="back">${icon('left', 'sm')} Ernährung</button><div class="row"><button type="button" class="btn sm" data-a="scan">${icon('barcode', 'sm')} Scannen</button><button type="button" class="btn primary sm" data-a="newFood">${icon('plus', 'sm')} Neu</button></div></div>
   <h1 class="mb">Lebensmittel</h1>
   ${app.S.savedMeals.length ? `<div class="section">Gespeicherte Mahlzeiten</div><div class="card"><div class="list">${app.S.savedMeals.map((m) => `<div class="item"><div class="grow"><b>${esc(m.name)}</b><div>${mtxt(sumMacros(m.items))}</div><div class="faint tiny">${esc(m.items.map((i) => i.name).join(', '))}</div></div><button type="button" class="icon-btn sm" data-a="delMeal" data-id="${m.id}" aria-label="Löschen">${icon('trash', 'sm')}</button></div>`).join('')}</div></div>` : ''}
-  <div class="section">Meine Lebensmittel · ${foods.length}</div>
-  <div class="card"><div class="list">${foods.map((f) => `<button type="button" class="item" data-a="editFood" data-id="${f.id}"><div class="grow"><b>${f.fav ? '<span class="gold">★</span> ' : ''}${esc(f.name)}</b><div>${mtxt(f)} <span class="faint tiny">/100 g</span></div></div>${icon('right', 'chev')}</button>`).join('') || '<div class="empty">Leer.</div>'}</div></div>
+  <div class="section">Meine Lebensmittel · ${app.S.foods.length}</div>
+  <input type="search" data-i="foodsQ" value="${esc(foodsQ)}" placeholder="Suchen …" autocomplete="off" style="margin-bottom:12px">
+  <div class="card"><div class="list" id="foodsList">${foodItems(foods)}</div></div>
   <p class="faint tiny center">Werte je 100 g. Mit ★ markierte stehen beim Eintragen oben. Richtwerte bitte mit der Verpackung abgleichen.</p>`;
 }
 registerView('foods', foodsView, 'food');
