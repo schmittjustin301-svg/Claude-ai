@@ -266,9 +266,20 @@ export function weeksToGoal(cur, target, ratePerWeek) {
 const fold = (s) => String(s).toLowerCase().replace(/ß/g, 'ss').normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 export function searchFoods(foods, query) {
   const q = fold(query).trim(), words = q.split(/\s+/).filter(Boolean);
+  // Erstes Wort passt genau („Reis, roh“ vor „Reisdrink“) > Name beginnt mit der Suche > Treffer irgendwo
+  const rank = (n) => (n.split(/[\s,(]+/)[0] === words[0] ? 2 : n.startsWith(q) ? 1 : 0);
   const byUse = (a, b) => (b.fav ? 1 : 0) - (a.fav ? 1 : 0) || (b.used || 0) - (a.used || 0);
   if (!words.length) return foods.slice().sort((a, b) => byUse(a, b) || a.name.localeCompare(b.name, 'de'));
-  return foods.map((f) => ({ f, n: fold(f.name) })).filter((x) => words.every((w) => x.n.includes(w)))
-    .sort((a, b) => (b.n.startsWith(q) ? 1 : 0) - (a.n.startsWith(q) ? 1 : 0) || byUse(a.f, b.f) || a.n.length - b.n.length)
+  // Gleichstand: Reihenfolge der Liste (Grund-Lebensmittel sind nach Gebräuchlichkeit sortiert)
+  return foods.map((f, i) => ({ f, i, n: fold(f.name) })).filter((x) => words.every((w) => x.n.includes(w)))
+    .sort((a, b) => rank(b.n) - rank(a.n) || byUse(a.f, b.f) || a.i - b.i)
     .map((x) => x.f);
+}
+
+/** Eintrag (z. B. aus einer gespeicherten Mahlzeit) auf k Portionen skalieren – aus den gespeicherten Werten je 100 g, wo vorhanden. */
+export function scaleEntry(e, k) {
+  const out = { ...e };
+  if (e.per && e.amount) { out.amount = Math.round(e.amount * k * 10) / 10; Object.assign(out, macrosFor(e.per, out.amount)); }
+  else for (const m of ['kcal', 'p', 'c', 'f']) if (e[m] != null) out[m] = e[m] * k;
+  return out;
 }

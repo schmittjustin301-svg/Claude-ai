@@ -23,7 +23,10 @@ Private Fitness-App nur für den Eigengebrauch: Training, Ernährung, Körper un
 
 **Ernährung**
 - Tagesziele, Mahlzeiten (Frühstück, Mittag, Abend, Snacks)
-- Über 230 Lebensmittel mit Nährwerten (Richtwerte je 100 g), Suche auch ohne Umlaute
+- 520 Lebensmittel: 472 mit geprüften Werten aus der USDA-Nährwertdatenbank SR28 (gemeinfrei), 48 deutsche Produkte als markierte Richtwerte (z. B. Skyr, Magerquark)
+- Roh und gegart als getrennte Einträge (z. B. Reis weiß, roh 365 kcal / gekocht 130 kcal), je 100 g auch Ballaststoffe, Zucker, gesättigte Fettsäuren, Salz und kJ, sofern die Quelle sie angibt
+- Herkunft je Lebensmittel sichtbar; geänderte Werte gelten als eigene Angabe. Suche auch ohne Umlaute
+- Gespeicherte Mahlzeiten mit Portionsfaktor (× 0,5 bis × 2) eintragen
 - Favoriten und zuletzt genutzte Lebensmittel oben
 - Gespeicherte Mahlzeiten, „Wie gestern“ pro Mahlzeit oder ganzer Tag
 - Schnelleintrag nur mit Makros
@@ -120,7 +123,7 @@ public/
     mascot.js / tour.js     Löwen-Motive je Ausdruck, Tour- und Hilfetexte – getestet
     coach.js            Willkommen, Tour, Tipps, Hilfe-Knopf, Coach-Karte, Reaktionen
     store.js            Datenmodell, Migration aus FIT, Speichern, Foto-Datenbank
-    seed.js             Übungsbibliothek, Lebensmittel, Plan-Vorlagen
+    seed.js / fooddb.js Übungsbibliothek, Lebensmittel (USDA SR28 + Richtwerte), Plan-Vorlagen
     core.js             Zustand, Navigation, Sheets, Rückmeldungen
     domain.js           Abfragen auf dem Zustand
     ui.js               Formatierung, Icons, Diagramme
@@ -128,6 +131,7 @@ public/
     views/              home, training, session, nutrition, mealplan, supps, progress, goals, settings
   vendor/               html5-qrcode (Apache-2.0)
 tests/                  node:test – Logik, Migration, Offline-Cache, keine Fremd-Requests
+assets/foods/           Auswahl aus USDA SR28 (usda-selection.tsv); public/js/fooddb.js wird mit scripts/build-foods.py daraus erzeugt
 ```
 
 ```bash

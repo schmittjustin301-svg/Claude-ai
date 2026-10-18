@@ -2,7 +2,7 @@
 // Strategie: sofort aus dem Cache antworten, im Hintergrund aktualisieren – der nächste Start zeigt die neue Version.
 // Liegt unter /sw.js wie die Vorgänger (GRIND EMPIRE, FIT) und ersetzt sie; alte Caches werden gelöscht.
 // Bei jeder Änderung an App-Dateien VERSION erhöhen (Test prüft, dass ASSETS vollständig ist).
-const VERSION = 'ironcore-6';
+const VERSION = 'ironcore-7';
 const ASSETS = [
   '/',
   '/index.html',
@@ -42,6 +42,7 @@ const ASSETS = [
   '/js/mascot.js',
   '/js/tour.js',
   '/js/coach.js',
+  '/js/fooddb.js',
   '/images/mascot/celebrating.webp',
   '/images/mascot/determined.webp',
   '/images/mascot/explaining.webp',

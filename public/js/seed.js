@@ -1,5 +1,6 @@
 // Startdaten: Übungsbibliothek, Lebensmittel, Plan-Vorlagen.
 // Alles ist in der App frei änderbar – das hier ist nur der Ausgangspunkt.
+import { USDA_FOODS } from './fooddb.js';
 
 export const MUSCLES = ['Brust', 'Rücken', 'Schultern', 'Bizeps', 'Trizeps', 'Quadrizeps', 'Beinbeuger', 'Gesäß', 'Waden', 'Bauch', 'Unterarme', 'Sonstiges'];
 export const EQUIPMENT = ['Langhantel', 'Kurzhantel', 'Kabel', 'Maschine', 'Körpergewicht', 'SZ-Stange', 'Sonstiges'];
@@ -56,8 +57,9 @@ const EX = [
 
 export const SEED_EXERCISES = EX.map(([name, muscle, equipment, instructions]) => ({ name, muscle, equipment, instructions, notes: '' }));
 
-// Nährwerte je 100 g (Richtwerte – bitte mit der Verpackung abgleichen). portion = Standardmenge in g.
-export const SEED_FOODS = [
+// Frühere Grund-Lebensmittel (Version 1 und 2): Richtwerte ohne geprüfte Quelle.
+// Bleiben als Referenz, um unveränderte Einträge bestehender Nutzer zu erkennen.
+const LEGACY = [
   ['Haferflocken', 370, 13.5, 58.7, 7, 60],
   ['Magerquark', 67, 12, 4, 0.3, 250],
   ['Skyr natur', 63, 11, 4, 0.2, 150],
@@ -303,9 +305,27 @@ export const SEED_FOODS = [
   ['Tomatensauce (Fertig)', 55, 1.5, 7.5, 2, 125],
   ['BBQ-Sauce', 170, 1, 40, 0.5, 20],
   ['Balsamico-Essig', 88, 0.5, 17, 0, 10],
-].map(([name, kcal, p, c, f, portion]) => ({ name, kcal, p, c, f, portion }));
+];
+export const LEGACY_FOODS = LEGACY.map(([name, kcal, p, c, f, portion], i) => ({ name, kcal, p, c, f, portion, since: i < 27 ? 1 : 2 }));
+
 /** Erhöhen, wenn neue Grund-Lebensmittel dazukommen – bestehende Listen werden einmalig ergänzt. */
-export const FOOD_SEED_VERSION = 2;
+export const FOOD_SEED_VERSION = 3;
+
+// Grund-Lebensmittel ab Version 3: geprüfte Werte aus USDA SR28 (siehe fooddb.js) plus die
+// übrigen früheren Richtwerte (deutsche Produkte, die es in SR28 nicht gibt) – als „nicht geprüft“ markiert.
+const slug = (n) => n.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/ß/g, 'ss').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+const kj = (kcal) => Math.round(kcal * 4.184);
+const legacySince = new Map(LEGACY_FOODS.map((l) => [l.name, l.since]));
+const usda = USDA_FOODS.map(([ref, name, state, category, portion, kcal, p, c, f, fiber, sugar, satFat, salt, legacy]) => ({
+  ref, name, state: state || null, category, portion, kcal, kj: kj(kcal), p, c, f, fiber, sugar, satFat, salt,
+  src: 'USDA SR28', verified: true, legacy: legacy || null, since: legacy ? legacySince.get(legacy) : 3,
+}));
+const mapped = new Set(usda.map((x) => x.legacy).filter(Boolean));
+const rest = LEGACY_FOODS.filter((l) => !mapped.has(l.name)).map((l) => ({
+  ref: 'ic:' + slug(l.name), name: l.name, state: null, category: null, portion: l.portion, kcal: l.kcal, kj: kj(l.kcal), p: l.p, c: l.c, f: l.f,
+  fiber: null, sugar: null, satFat: null, salt: null, src: 'Richtwert', verified: false, legacy: l.name, since: l.since,
+}));
+export const SEED_FOODS = [...usda, ...rest];
 
 // Plan-Vorlagen: Tage mit [Übungsname, Sätze, Wdh., Pause s]
 export const PLAN_TEMPLATES = {

@@ -1,6 +1,6 @@
 // Ernährung: Tagesübersicht, schnelles Eintragen, gespeicherte Mahlzeiten, Lebensmittel, Verlauf.
 import { app, A, I, registerView, commit, save, openSheet, closeSheet, toast } from '../core.js';
-import { dkey, addDays, sumMacros, macrosFor, kcalFromMacros, validate, LIMITS, num, r0, r1, searchFoods } from '../logic.js';
+import { dkey, addDays, sumMacros, macrosFor, kcalFromMacros, validate, LIMITS, num, r0, r1, searchFoods, scaleEntry } from '../logic.js';
 import { $, esc, fmt, icon, bar, mtxt, relDay, formVals, markInvalid, plural } from '../ui.js';
 import { entries, slotName } from '../domain.js';
 import { slotsFor, planMacros, timeline, validTime } from '../schedule.js';
@@ -120,9 +120,10 @@ document.addEventListener('sheet-closed', () => { pick = null; });
 
 function pickerSheet() {
   if (pick.mode === 'quick') return quickSheet();
+  if (pick.meal) return savedMealSheet();
   if (pick.food) return amountSheet();
   const meals = app.S.savedMeals;
-  return `<div class="pick-head" data-tall><h2>${esc(slotName(pick.slot))}</h2>
+  return `<div class="pick-head" data-tall><div class="row between"><h2 style="margin:0">${esc(slotName(pick.slot))}</h2><button type="button" class="btn ghost sm" data-a="closeSheet">${icon('left', 'sm')} Zurück</button></div>
     <input id="pickQ" type="search" data-i="pickQ" placeholder="${app.S.foods.length} Lebensmittel durchsuchen …" value="${esc(pick.q)}" autocomplete="off" enterkeyhint="search">
     <div class="grid3" style="margin:10px 0 4px"><button type="button" class="btn sm" data-a="scan">${icon('barcode', 'sm')} Scannen</button><button type="button" class="btn sm" data-a="quickMode">${icon('bolt', 'sm')} Makros</button><button type="button" class="btn sm" data-a="newFood">${icon('plus', 'sm')} Neu</button></div></div>
     ${meals.length ? `<div class="label" style="margin:14px 0 4px">Gespeicherte Mahlzeiten</div><div class="list">${meals.map((m) => `<button type="button" class="item" data-a="addSavedMeal" data-id="${m.id}"><div class="grow"><b>${esc(m.name)}</b><div>${mtxt(sumMacros(m.items))}</div></div><span class="muted tiny">${m.items.length} Teile</span>${icon('plus', 'chev')}</button>`).join('')}</div>` : ''}
@@ -144,8 +145,17 @@ function amountSheet() {
     <label class="field"><span>Menge in Gramm</span><input id="pickAmt" type="text" inputmode="decimal" data-i="pickAmt" value="${esc(pick.amount)}" autocomplete="off"></label>
     <div class="chips mb">${amounts.map((a) => `<button type="button" class="chip ${num(pick.amount) === a ? 'on' : ''}" data-a="pickAmount" data-v="${a}">${a} g${a === f.portion ? ' · Portion' : ''}</button>`).join('')}</div>
     <div class="card elev" id="pickPrev">${mtxt(m)}</div>
+    ${foodFacts(f)}
     <button type="button" class="btn primary block xl" data-a="pickAdd">Zu ${esc(slotName(pick.slot))} hinzufügen</button>
     <button type="button" class="btn ghost block mt" data-a="pickBack">${icon('left', 'sm')} Zurück</button>`;
+}
+// Zusatzwerte je 100 g und Herkunft der Daten. Unbekannte Werte erscheinen als „–“, nie als 0.
+const EXTRA = [['fiber', 'Ballaststoffe', 'g'], ['sugar', 'Zucker', 'g'], ['satFat', 'ges. Fettsäuren', 'g'], ['salt', 'Salz', 'g']];
+export function foodFacts(f) {
+  const has = EXTRA.some(([k]) => f[k] != null);
+  const src = f.src ? `<span class="pill ${f.verified ? 'gold' : ''}">${f.verified ? '✓ ' : ''}${esc(f.src)}</span>${f.verified ? '' : ' <span class="faint tiny">nicht geprüft – mit der Packung abgleichen</span>'}` : '';
+  return `<div class="facts">${has ? `<div class="facts-grid">${EXTRA.map(([k, l, u]) => `<div><span class="meta">${l}</span><b>${f[k] != null ? `${fmt(f[k], k === 'salt' ? 2 : 1)} ${u}` : '–'}</b></div>`).join('')}</div>` : ''}
+    <div class="row wrap" style="gap:6px;margin-top:${has ? 8 : 0}px">${f.state ? `<span class="pill">${esc(f.state)}</span>` : ''}${src}<span class="faint tiny">je 100 g${f.kj ? ` · ${fmt(f.kj)} kJ` : ''}</span></div></div>`;
 }
 function quickSheet() {
   return `<h2>Schnell eintragen · ${esc(slotName(pick.slot))}</h2><div id="quickForm">
@@ -161,7 +171,7 @@ I.pickQ = (el) => { pick.q = el.value; $('#pickList').innerHTML = pickList(); $(
 A.pickFood = (el) => { const f = app.S.foods.find((x) => x.id === el.dataset.id); pick.food = f.id; pick.amount = String(f.portion || 100); openSheet(pickerSheet); };
 A.pickAmount = (el) => { pick.amount = el.dataset.v; openSheet(pickerSheet); };
 I.pickAmt = (el) => { pick.amount = el.value; const f = app.S.foods.find((x) => x.id === pick.food); $('#pickPrev').innerHTML = mtxt(macrosFor(f, num(el.value))); };
-A.pickBack = () => { if (!pick) return closeSheet(); pick.food = null; pick.mode = 'list'; openSheet(pickerSheet); };
+A.pickBack = () => { if (!pick) return closeSheet(); pick.food = null; pick.meal = null; pick.mode = 'list'; openSheet(pickerSheet); };
 A.quickMode = () => { pick.mode = 'quick'; openSheet(pickerSheet); };
 A.pickAdd = () => {
   const f = app.S.foods.find((x) => x.id === pick.food);
@@ -185,13 +195,26 @@ A.quickAdd = () => {
   addEntry(pick.slot, { name: v.name.trim() || 'Schnelleintrag', amount: null, per: null, kcal, ...vals });
   closeSheet(); commit();
 };
-A.addSavedMeal = (el) => {
-  const m = app.S.savedMeals.find((x) => x.id === el.dataset.id);
-  m.items.forEach((it) => addEntry(pick.slot, structuredClone({ ...it, id: undefined })));
+// Gespeicherte Mahlzeit mit wählbarer Portionsgröße eintragen
+A.addSavedMeal = (el) => { pick.meal = el.dataset.id; pick.factor = 1; openSheet(pickerSheet); };
+function savedMealSheet() {
+  const m = app.S.savedMeals.find((x) => x.id === pick.meal);
+  const items = m.items.map((it) => scaleEntry(it, pick.factor));
+  return `<h2>${esc(m.name)}</h2><p class="muted small" style="margin-top:-6px">${m.items.length} Teile · Portionen anpassen</p>
+    <div class="chips mb">${[0.5, 0.75, 1, 1.5, 2].map((k) => `<button type="button" class="chip ${pick.factor === k ? 'on' : ''}" data-a="mealFactor" data-v="${k}">× ${fmt(k, 2)}</button>`).join('')}</div>
+    <div class="list">${items.map((it) => `<div class="item"><div class="grow"><b>${esc(it.name)}</b><div>${mtxt(it)}</div></div><span class="muted small">${it.amount ? fmt(it.amount) + ' g' : ''}</span></div>`).join('')}</div>
+    <div class="card elev mt">${mtxt(sumMacros(items))}</div>
+    <button type="button" class="btn primary block xl" data-a="addMealNow">Zu ${esc(slotName(pick.slot))} hinzufügen</button>
+    <button type="button" class="btn ghost block mt" data-a="pickBack">${icon('left', 'sm')} Zurück</button>`;
+}
+A.mealFactor = (el) => { pick.factor = +el.dataset.v; openSheet(pickerSheet); };
+A.addMealNow = () => {
+  const m = app.S.savedMeals.find((x) => x.id === pick.meal);
+  m.items.forEach((it) => addEntry(pick.slot, structuredClone({ ...scaleEntry(it, pick.factor), id: undefined })));
   m.used = Date.now();
-  const slot = pick.slot;
+  const slot = pick.slot, k = pick.factor;
   closeSheet(); commit();
-  toast(`${m.name} → ${slotName(slot)}`);
+  toast(`${m.name}${k !== 1 ? ` × ${fmt(k, 2)}` : ''} → ${slotName(slot)}`);
 };
 
 // Einträge bearbeiten
@@ -279,9 +302,12 @@ export function foodEditSheet(id, preset = {}, note = '') {
     const f = app.S.foods.find((x) => x.id === id) || { name: '', kcal: '', p: '', c: '', f: '', portion: 100, fav: false, barcode: '', ...preset };
     return `<h2>${id ? 'Lebensmittel bearbeiten' : 'Neues Lebensmittel'}</h2>
       ${note ? `<div class="card elev small">${note}</div>` : ''}<div id="foodForm">
-      <label class="field"><span>Name</span><input name="name" value="${esc(f.name)}" autocomplete="off"></label>
+      <label class="field"><span>Name</span><input name="name" value="${esc(f.name)}" autocomplete="off"></label>${!id && f.src ? `<input type="hidden" name="src" value="${esc(f.src)}">` : ''}
       <div class="label" style="margin-bottom:8px">Nährwerte je 100 g</div>
       <div class="grid2"><label class="field"><span>Kalorien</span><input name="kcal" inputmode="decimal" value="${f.kcal}" placeholder="leer = aus Makros"></label><label class="field"><span>Protein g</span><input name="p" inputmode="decimal" value="${f.p}"></label><label class="field"><span>Kohlenhydrate g</span><input name="c" inputmode="decimal" value="${f.c}"></label><label class="field"><span>Fett g</span><input name="f" inputmode="decimal" value="${f.f}"></label></div>
+      <details class="field"${EXTRA.some(([k]) => f[k] != null) ? ' open' : ''}><summary class="small muted">Weitere Nährwerte (optional)</summary>
+        <div class="grid2" style="margin-top:8px">${EXTRA.map(([k, l, u]) => `<label class="field"><span>${l} ${u}</span><input name="${k}" inputmode="decimal" value="${f[k] ?? ''}" placeholder="unbekannt"></label>`).join('')}</div></details>
+      ${f.src ? `<p class="faint tiny">Quelle: ${esc(f.src)}${f.verified ? ' (geprüft)' : ''}. Änderst du Werte, gilt der Eintrag als eigene Angabe.</p>` : ''}
       <div class="grid2"><label class="field"><span>Portion (g)</span><input name="portion" inputmode="decimal" value="${f.portion}"></label><label class="field"><span>Barcode</span><input name="barcode" inputmode="numeric" value="${esc(f.barcode || '')}" placeholder="optional"></label></div>
       <label class="check field"><input type="checkbox" name="fav" ${f.fav ? 'checked' : ''}> <span class="gold">★</span> Favorit</label></div>
       <button type="button" class="btn primary block xl" data-a="saveFood" data-id="${id || ''}">Speichern</button>
@@ -301,9 +327,16 @@ A.saveFood = (el) => {
   if (!kr.ok) return markInvalid(root, 'kcal', kr.error);
   const pr = validate(v.portion, { min: 1, max: 5000, required: false, label: 'Portion' });
   if (!pr.ok) return markInvalid(root, 'portion', pr.error);
+  for (const [k, l] of EXTRA) { const r = validate(v[k], { min: 0, max: 100, required: false, label: l }); if (!r.ok) return markInvalid(root, k, r.error + ' (je 100 g)'); d[k] = r.value ?? null; }
   const data = { name: v.name.trim(), ...d, kcal: kr.value ?? r0(kcalFromMacros(d.p, d.c, d.f)), portion: pr.value || 100, fav: v.fav, barcode: (v.barcode || '').replace(/\D/g, '') };
+  data.kj = Math.round(data.kcal * 4.184);
   let f = app.S.foods.find((x) => x.id === el.dataset.id);
-  if (f) Object.assign(f, data); else { f = { id: uid(), used: 0, ...data }; app.S.foods.push(f); }
+  const NUTR = ['kcal', 'p', 'c', 'f', ...EXTRA.map(([k]) => k)];
+  if (f) {
+    // Geänderte Nährwerte sind eine eigene Angabe – die Quelle passt dann nicht mehr
+    if (f.src && NUTR.some((k) => (f[k] ?? null) !== (data[k] ?? null))) Object.assign(data, { src: 'Eigene Angabe', verified: false });
+    Object.assign(f, data);
+  } else { f = { id: uid(), used: 0, src: v.src || 'Eigene Angabe', verified: false, ...data }; app.S.foods.push(f); }
   save();
   if (pick) { showPickerWithFood(f.id); render(); return; }
   closeSheet(); commit(); toast('Gespeichert');
