@@ -1,6 +1,6 @@
 // Datenhaltung: Zustand, Standardwerte, Migration aus FIT, Speichern, Fotos.
 // Alles bleibt auf dem Gerät: Zustand in localStorage, Fotos (Blobs) in IndexedDB.
-import { SEED_EXERCISES, SEED_FOODS, FOOD_SEED_VERSION, PLAN_TEMPLATES, DEFAULT_MEASURE_FIELDS } from './seed.js';
+import { SEED_EXERCISES, SEED_FOODS, LEGACY_FOODS, FOOD_SEED_VERSION, PLAN_TEMPLATES, DEFAULT_MEASURE_FIELDS } from './seed.js';
 import { calcMacros, dkey, pkey } from './logic.js';
 
 export const KEY = 'ironcore-v2';
@@ -70,7 +70,7 @@ export function defaults() {
     activePlanId: plan.id,
     workouts: [],
     active: null,
-    foods: SEED_FOODS.map((f) => ({ id: uid(), ...f, fav: false, used: 0, barcode: '' })),
+    foods: SEED_FOODS.map(foodRecord),
     meals: {},
     savedMeals: [],
     weights: [],
@@ -120,16 +120,42 @@ export function normalize(s) {
   return s;
 }
 
+// Nährwert-Felder eines Lebensmittels (je 100 g). Unbekannte Werte bleiben null.
+const FOOD_FIELDS = ['name', 'state', 'category', 'portion', 'kcal', 'kj', 'p', 'c', 'f', 'fiber', 'sugar', 'satFat', 'salt', 'src', 'verified', 'ref'];
+const pickFood = (x) => Object.fromEntries(FOOD_FIELDS.map((k) => [k, x[k] ?? null]));
+export function foodRecord(x) { return { id: uid(), ...pickFood(x), fav: false, used: 0, barcode: '' }; }
+const foodKey = (n) => String(n).toLowerCase().replace(/\s+/g, ' ').trim();
+
 /**
- * Neue Grund-Lebensmittel einmalig ergänzen. Vorhandene (auch eigene, gleichnamige) bleiben unverändert,
- * gelöschte kommen nicht bei jedem Start zurück.
+ * Grund-Lebensmittel einmalig auf den neuesten Stand bringen. Wiederholbar und ohne Datenverlust:
+ * - Eigene und geänderte Lebensmittel bleiben unangetastet (auch bei gleichem Namen).
+ * - Unveränderte frühere Grund-Lebensmittel (exakt alte Werte, kein Barcode) bekommen geprüfte Werte;
+ *   ID, Favorit und Nutzung bleiben, Mahlzeiten-Einträge behalten ihre gespeicherten Werte.
+ * - Neue Einträge kommen nur dazu, wenn sie neuer sind als der Stand des Nutzers – Gelöschtes kommt nicht zurück.
  */
 export function addSeedFoods(s) {
-  if ((s.settings.foodSeed || 1) >= FOOD_SEED_VERSION) return;
-  const key = (n) => String(n).toLowerCase().replace(/\s+/g, ' ').trim();
-  const have = new Set(s.foods.map((f) => key(f.name)));
-  for (const f of SEED_FOODS) if (!have.has(key(f.name))) s.foods.push({ id: uid(), ...f, fav: false, used: 0, barcode: '' });
+  const report = { upgraded: 0, added: 0, skipped: 0 };
+  const from = s.settings.foodSeed || 1;
+  if (from >= FOOD_SEED_VERSION) return report;
+  const legacy = new Map(LEGACY_FOODS.map((l) => [l.name, l]));
+  const byLegacy = new Map(SEED_FOODS.filter((x) => x.legacy).map((x) => [x.legacy, x]));
+  for (const f of s.foods) {
+    if (f.ref) continue;
+    const l = legacy.get(f.name), up = byLegacy.get(f.name);
+    if (!l || !up || f.barcode || !['kcal', 'p', 'c', 'f'].every((k) => f[k] === l[k])) continue;
+    const taken = up.name !== f.name && s.foods.some((o) => o !== f && foodKey(o.name) === foodKey(up.name));
+    Object.assign(f, pickFood(up), taken ? { name: f.name } : {});
+    report.upgraded++;
+  }
+  const refs = new Set(s.foods.map((f) => f.ref).filter(Boolean));
+  const names = new Set(s.foods.map((f) => foodKey(f.name)));
+  for (const x of SEED_FOODS) {
+    if (x.since <= from || refs.has(x.ref)) continue;
+    if (names.has(foodKey(x.name))) { report.skipped++; continue; }
+    s.foods.push(foodRecord(x)); names.add(foodKey(x.name)); report.added++;
+  }
   s.settings.foodSeed = FOOD_SEED_VERSION;
+  return report;
 }
 
 /** Upgrade auf Version 3: Supplements mit Zeitplan, Mahlzeiten mit eigener Uhrzeit, Ziele vereinheitlicht. Idempotent. */

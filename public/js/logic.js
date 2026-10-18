@@ -272,3 +272,11 @@ export function searchFoods(foods, query) {
     .sort((a, b) => (b.n.startsWith(q) ? 1 : 0) - (a.n.startsWith(q) ? 1 : 0) || byUse(a.f, b.f) || a.n.length - b.n.length)
     .map((x) => x.f);
 }
+
+/** Eintrag (z. B. aus einer gespeicherten Mahlzeit) auf k Portionen skalieren – aus den gespeicherten Werten je 100 g, wo vorhanden. */
+export function scaleEntry(e, k) {
+  const out = { ...e };
+  if (e.per && e.amount) { out.amount = Math.round(e.amount * k * 10) / 10; Object.assign(out, macrosFor(e.per, out.amount)); }
+  else for (const m of ['kcal', 'p', 'c', 'f']) if (e[m] != null) out[m] = e[m] * k;
+  return out;
+}

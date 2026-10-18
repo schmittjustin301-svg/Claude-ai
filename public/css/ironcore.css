@@ -590,3 +590,11 @@ body.touring main { padding-bottom: 75vh; }
 }
 input[type=search] { -webkit-appearance: none; appearance: none; }
 input[type=search]::-webkit-search-decoration { -webkit-appearance: none; }
+.pick-head #pickQ { margin-top: 12px; }
+
+/* Zusatz-Nährwerte und Quelle eines Lebensmittels */
+.facts { margin: -2px 0 14px; }
+.facts-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+.facts-grid > div { background: var(--bg); border: 1px solid var(--line-soft); border-radius: var(--r-chip); padding: 6px 8px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.facts-grid .meta { font-size: 9px; letter-spacing: .08em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.facts-grid b { font-size: 13px; font-variant-numeric: tabular-nums; }

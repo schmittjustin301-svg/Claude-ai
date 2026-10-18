@@ -113,7 +113,9 @@ async function lookup(code) {
     const base = (p.product_name_de || p.product_name || '').trim();
     const name = base ? (brand && !base.toLowerCase().includes(brand.toLowerCase()) ? `${base} (${brand})` : base) : `Produkt ${code}`;
     const serving = num(p.serving_quantity);
-    return { name, kcal: kcal != null ? r0(kcal) : '', p: val('proteins_100g') != null ? r1(val('proteins_100g')) : '', c: val('carbohydrates_100g') != null ? r1(val('carbohydrates_100g')) : '', f: val('fat_100g') != null ? r1(val('fat_100g')) : '', portion: serving > 0 && serving < 2000 ? r0(serving) : 100 };
+    const opt = (k) => (val(k) != null ? r1(val(k)) : null);
+    return { src: 'Open Food Facts', fiber: opt('fiber_100g'), sugar: opt('sugars_100g'), satFat: opt('saturated-fat_100g'), salt: val('salt_100g') != null ? Math.round(val('salt_100g') * 100) / 100 : null,
+      name, kcal: kcal != null ? r0(kcal) : '', p: val('proteins_100g') != null ? r1(val('proteins_100g')) : '', c: val('carbohydrates_100g') != null ? r1(val('carbohydrates_100g')) : '', f: val('fat_100g') != null ? r1(val('fat_100g')) : '', portion: serving > 0 && serving < 2000 ? r0(serving) : 100 };
   } finally { clearTimeout(timer); }
 }
 
