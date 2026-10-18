@@ -1,6 +1,6 @@
 // Datenhaltung: Zustand, Standardwerte, Migration aus FIT, Speichern, Fotos.
 // Alles bleibt auf dem Gerät: Zustand in localStorage, Fotos (Blobs) in IndexedDB.
-import { SEED_EXERCISES, SEED_FOODS, PLAN_TEMPLATES, DEFAULT_MEASURE_FIELDS } from './seed.js';
+import { SEED_EXERCISES, SEED_FOODS, FOOD_SEED_VERSION, PLAN_TEMPLATES, DEFAULT_MEASURE_FIELDS } from './seed.js';
 import { calcMacros, dkey, pkey } from './logic.js';
 
 export const KEY = 'ironcore-v2';
@@ -91,7 +91,7 @@ export function defaults() {
     xpConfig: { ...DEFAULT_XP },
     notify: { enabled: false, supps: true, meals: true, lead: 0 },
     notified: {},
-    settings: { onboarded: false, hideInstall: false, lastBackup: 0, celebrated: {}, canColor: 'white' },
+    settings: { onboarded: false, hideInstall: false, lastBackup: 0, celebrated: {}, canColor: 'white', foodSeed: FOOD_SEED_VERSION },
     // Coach/Tutorial: nur Anzeige-Zustand, nie Fitness-Daten
     coach: { tour: 'new', step: 0, reactions: true, fab: true, shown: {}, goalMarks: {} },
   };
@@ -103,7 +103,8 @@ export function normalize(s) {
   for (const k of Object.keys(d)) if (s[k] === undefined || s[k] === null && k !== 'active') s[k] = d[k];
   s.profile = { ...d.profile, ...s.profile };
   s.goals = { ...d.goals, ...s.goals };
-  s.settings = { ...d.settings, ...s.settings };
+  const foodSeed = s.settings?.foodSeed || 1; // ältere Stände kennen das Feld nicht → Version 1
+  s.settings = { ...d.settings, ...s.settings, foodSeed };
   s.xpConfig = { ...DEFAULT_XP, ...s.xpConfig };
   s.notify = { ...d.notify, ...s.notify };
   s.coach = { ...d.coach, ...s.coach };
@@ -112,10 +113,23 @@ export function normalize(s) {
   if (!Array.isArray(s.goals.custom)) s.goals.custom = [];
   if (!s.mealSlots.length) s.mealSlots = DEFAULT_SLOTS.map((x) => ({ ...x }));
   upgradeToV3(s);
+  addSeedFoods(s);
   if (!s.plans.length) { const p = planFromTemplate('ppl', s.exercises); s.plans.push(p); }
   if (!s.plans.some((p) => p.id === s.activePlanId)) s.activePlanId = s.plans[0].id;
   s.v = VERSION;
   return s;
+}
+
+/**
+ * Neue Grund-Lebensmittel einmalig ergänzen. Vorhandene (auch eigene, gleichnamige) bleiben unverändert,
+ * gelöschte kommen nicht bei jedem Start zurück.
+ */
+export function addSeedFoods(s) {
+  if ((s.settings.foodSeed || 1) >= FOOD_SEED_VERSION) return;
+  const key = (n) => String(n).toLowerCase().replace(/\s+/g, ' ').trim();
+  const have = new Set(s.foods.map((f) => key(f.name)));
+  for (const f of SEED_FOODS) if (!have.has(key(f.name))) s.foods.push({ id: uid(), ...f, fav: false, used: 0, barcode: '' });
+  s.settings.foodSeed = FOOD_SEED_VERSION;
 }
 
 /** Upgrade auf Version 3: Supplements mit Zeitplan, Mahlzeiten mit eigener Uhrzeit, Ziele vereinheitlicht. Idempotent. */
@@ -192,7 +206,7 @@ export function migrateFromFit(old) {
       exercises: (a.exercises || []).map((e) => ({ exId: exIdFor(e.name), name: e.name, target: e.target || '', kg: null, rest: e.rest || 90, note: '', sets: (e.sets || []).map((x) => ({ w: x.w ?? '', r: x.r ?? '', done: !!x.done })) })),
     };
   }
-  if (Array.isArray(old.foods) && old.foods.length) s.foods = old.foods.map((f) => ({ barcode: '', fav: false, used: 0, ...f }));
+  if (Array.isArray(old.foods) && old.foods.length) { s.foods = old.foods.map((f) => ({ barcode: '', fav: false, used: 0, ...f })); s.settings.foodSeed = 1; }
   if (old.meals) s.meals = old.meals;
   // Gewicht stand in FIT pro Tag – als Messung um 08:00 übernehmen
   s.weights = [];

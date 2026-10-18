@@ -90,6 +90,8 @@ export function renderSheet(force = false) {
   if (fn.keepAlive && !force) return;
   const body = $('#sheetBody');
   body.innerHTML = fn();
+  // Sheets mit Suchliste behalten ihre Höhe, damit Suchfeld und Knöpfe nicht nach unten wegrutschen
+  $('.sheet-panel').classList.toggle('tall', !!body.querySelector('[data-tall]'));
   document.dispatchEvent(new CustomEvent('rendered', { detail: { view: 'sheet', root: body } }));
 }
 

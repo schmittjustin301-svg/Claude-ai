@@ -244,3 +244,32 @@ test('Tagesmissionen spiegeln echte Werte', () => {
   assert.equal(sup.label, '1 / 2');
   assert.ok(!m.some((x) => x.id === 'workout'), 'ohne geplantes Training keine Trainingsmission');
 });
+
+test('Lebensmittel: Suche ignoriert Umlaute und Groß-/Kleinschreibung, alle Wörter müssen passen', async () => {
+  const { searchFoods } = await import('../public/js/logic.js');
+  const foods = [{ name: 'Hähnchenbrust (roh)' }, { name: 'Hähnchenbrust (gegart)', fav: true }, { name: 'Rinderhack 5 % (roh)' }, { name: 'Weißbrot' }];
+  assert.deepEqual(searchFoods(foods, 'hahnchen roh').map((f) => f.name), ['Hähnchenbrust (roh)']);
+  assert.equal(searchFoods(foods, 'HÄHNCHEN').length, 2);
+  assert.equal(searchFoods(foods, 'weiss')[0].name, 'Weißbrot');
+  assert.equal(searchFoods(foods, 'xyz').length, 0);
+  assert.equal(searchFoods(foods, '').length, 4);
+});
+
+test('Lebensmittel: neue Grund-Lebensmittel werden einmalig ergänzt, eigene bleiben unverändert', async () => {
+  const { normalize, defaults } = await import('../public/js/store.js');
+  const { SEED_FOODS } = await import('../public/js/seed.js');
+  assert.ok(SEED_FOODS.length >= 200);
+  const fresh = defaults();
+  assert.equal(fresh.foods.length, SEED_FOODS.length);
+  // älterer Stand ohne foodSeed, mit eigener Variante eines Grund-Lebensmittels
+  const old = defaults();
+  old.foods = [{ id: 'x', name: 'Banane', kcal: 999, p: 0, c: 0, f: 0, portion: 1, fav: true, used: 7, barcode: '' }];
+  delete old.settings.foodSeed;
+  const s = normalize(old);
+  assert.equal(s.foods.filter((f) => f.name === 'Banane').length, 1);
+  assert.equal(s.foods.find((f) => f.name === 'Banane').kcal, 999);
+  assert.equal(s.foods.length, SEED_FOODS.length);
+  // gelöschte kommen nicht zurück
+  s.foods = s.foods.filter((f) => f.name !== 'Kokosöl');
+  assert.ok(!normalize(s).foods.some((f) => f.name === 'Kokosöl'));
+});
