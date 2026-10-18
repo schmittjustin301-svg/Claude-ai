@@ -1,0 +1,473 @@
+ndb	name	state	category	portion	legacy	usda_desc
+05062	Hähnchenbrust, roh	roh	Fleisch & Geflügel	150	Hähnchenbrust (roh)	CHICKEN,BROILER OR FRYERS,BRST,SKINLESS,BNLESS,MEAT ONLY,RAW
+05063	Hähnchenbrust, gebraten	gebraten	Fleisch & Geflügel	130		CHICKEN,BROILERS OR FRYERS,BREAST,MEAT ONLY,CKD,FRIED
+05747	Hähnchenbrust, gegrillt	gegrillt	Fleisch & Geflügel	130		CHCKN,BROLR OR FRYRS,BRST,SKNLSS,BNLESS,MEAT ONLY,CKD,GRILLD
+05064	Hähnchenbrust, gegart (Ofen)	gebacken	Fleisch & Geflügel	130	Hähnchenbrust (gegart)	CHICKEN,BROILERS OR FRYERS,BREAST,MEAT ONLY,CKD,RSTD
+05096	Hähnchenschenkel ohne Haut, roh	roh	Fleisch & Geflügel	150	Hähnchenschenkel ohne Haut (roh)	CHICKEN,BROILERS OR FRYERS,DK MEAT,THIGH,MEAT ONLY,RAW
+05098	Hähnchenschenkel ohne Haut, gegart (Ofen)	gebacken	Fleisch & Geflügel	120		CHICKEN,BROILERS OR FRYERS,THIGH,MEAT ONLY,CKD,RSTD
+05091	Hähnchenschenkel mit Haut, roh	roh	Fleisch & Geflügel	150		CHICKEN,BROILERS OR FRYERS,THIGH,MEAT&SKN,RAW
+05071	Hähnchenunterschenkel ohne Haut, roh	roh	Fleisch & Geflügel	100		CHICKEN,BROILERS OR FRYERS,DK MEAT,DRUMSTK,MEAT ONLY,RAW
+05100	Hähnchenflügel, roh	roh	Fleisch & Geflügel	100		CHICKEN,BROILERS OR FRYERS,WING,MEAT&SKN,RAW
+05103	Hähnchenflügel, gegart (Ofen)	gebacken	Fleisch & Geflügel	100		CHICKEN,BROILERS OR FRYERS,WING,MEAT&SKN,CKD,RSTD
+05332	Hähnchenhack, roh	roh	Fleisch & Geflügel	125		CHICKEN,GROUND,RAW
+05333	Hähnchenhack, gebraten	gebraten	Fleisch & Geflügel	100		CHICKEN,GROUND,CRUMBLES,CKD,PAN-BROWNED
+05027	Hähnchenleber, roh	roh	Fleisch & Geflügel	100		CHICKEN,LIVER,ALL CLASSES,RAW
+05661	Hähnchenleber, gebraten	gebraten	Fleisch & Geflügel	100		CHICKEN,LIVER,ALL CLASSES,CKD,PAN-FRIED
+05710	Putenbrust, roh	roh	Fleisch & Geflügel	150	Putenbrust (roh)	TURKEY,RTL PARTS,BREAST,MEAT ONLY,RAW
+05711	Putenbrust, gegart (Ofen)	gebacken	Fleisch & Geflügel	130		TURKEY,RTL PARTS,BREAST,MEAT ONLY,CKD,RSTD
+05665	Putenhack 7 % Fett, roh	roh	Fleisch & Geflügel	125		GROUND TURKEY,93% LN,7% FAT,RAW
+05666	Putenhack 7 % Fett, gebraten	gebraten	Fleisch & Geflügel	100		GROUND TURKEY,93% LN,7% FAT,PAN-BROILED CRUMBLES
+05141	Entenfleisch ohne Haut, roh	roh	Fleisch & Geflügel	150		DUCK,DOMESTICATED,MEAT ONLY,RAW
+05316	Entenbrust ohne Haut, gegrillt	gegrillt	Fleisch & Geflügel	150		DUCK,YNG DUCKL,DOM,WH PEKIN,BRST,MEAT,BNLESS,CKD WO/SKN,BRLD
+23557	Rinderhack 5 % Fett, roh	roh	Fleisch & Geflügel	125	Rinderhack 5 % (roh)	BEEF,GROUND,95% LN MEAT / 5% FAT,RAW
+23560	Rinderhack 5 % Fett, gebraten	gebraten	Fleisch & Geflügel	100		BEEF,GROUND,95% LN MEAT / 5% FAT,CRUMBLES,CKD,PAN-BROWNED
+23567	Rinderhack 15 % Fett, roh	roh	Fleisch & Geflügel	125		BEEF,GROUND,85% LN MEAT / 15% FAT,RAW
+23570	Rinderhack 15 % Fett, gebraten	gebraten	Fleisch & Geflügel	100		BEEF,GROUND,85% LN MEAT / 15% FAT,CRUMBLES,CKD,PAN-BROWNED
+23572	Rinderhack 20 % Fett, roh	roh	Fleisch & Geflügel	125	Rinderhack 20 % (roh)	BEEF,GROUND,80% LN MEAT / 20% FAT,RAW
+23575	Rinderhack 20 % Fett, gebraten	gebraten	Fleisch & Geflügel	100		BEEF,GROUND,80% LN MEAT / 20% FAT,CRUMBLES,CKD,PAN-BROWNED
+23611	Rindersteak Hüfte, roh	roh	Fleisch & Geflügel	200	Rindersteak Hüfte (roh)	"BEEF,TOP SIRLOIN,STEAK,LN,1/8"" FAT,ALL GRDS,RAW"
+23610	Rindersteak Hüfte, gegrillt	gegrillt	Fleisch & Geflügel	170		"BEEF,TOP SIRLOIN,STEAK,LN,1/8"" FAT,ALL GRDS,CKD,BRLD"
+23372	Rinderfilet, roh	roh	Fleisch & Geflügel	180	Rinderfilet (roh)	"BEEF,LOIN,TENDERLOIN STEAK,BNLESS,LN,0"" FAT,ALL GRDS,RAW"
+23600	Rinderfilet, gegrillt	gegrillt	Fleisch & Geflügel	150		"BEEF,TENDERLOIN,STEAK,LN,1/8"" FAT,ALL GRDS,CKD,BRLD"
+23175	Ribeye-Steak, roh	roh	Fleisch & Geflügel	250		"BEEF,RIB EYE STEAK,BNLESS,LIP OFF,LN,0"" FAT,ALL GRDS,RAW"
+23174	Ribeye-Steak, gegrillt	gegrillt	Fleisch & Geflügel	200		"BEEF,RIB EYE STEAK,BNLESS,LIP OFF,LN,0"" FAT,ALL GRDS,CKD,GRI"
+23354	Rinderoberschale (Rinderschnitzel), roh	roh	Fleisch & Geflügel	150		"BEEF,RND,TOP RND STEAK,BNLESS,LN,0"" FAT,ALL GRDS,RAW"
+13491	Rinderoberschale (Rinderschnitzel), gegrillt	gegrillt	Fleisch & Geflügel	130		"BEEF,RND,TOP RND STEAK,BNLESS,LN,0"" FAT,ALL GRDS,CKD,GRILLED"
+23603	Rindergulasch (Schulter), roh	roh	Fleisch & Geflügel	150		"BEEF,CHUCK,ARM POT RST,LN,1/8"" FAT,ALL GRDS,RAW"
+23602	Rindergulasch (Schulter), geschmort	gekocht	Fleisch & Geflügel	130		"BEEF,CHUCK,ARM POT RST,LN,1/8"" FAT,ALL GRDS,CKD,BRSD"
+13325	Rinderleber, roh	roh	Fleisch & Geflügel	100		BEEF,VAR MEATS&BY-PRODUCTS,LIVER,RAW
+19002	Beef Jerky (gepresst, US-Art)	getrocknet	Fleisch & Geflügel	30		BEEF JERKY,CHOPD&FORMED
+10060	Schweinefilet, roh	roh	Fleisch & Geflügel	150	Schweinefilet (roh)	PORK  FRSH  LOIN  TENDERLOIN   LN ONLY  RAW
+10061	Schweinefilet, gegart (Ofen)	gebacken	Fleisch & Geflügel	130		PORK,FRSH,LOIN,TENDERLOIN,LN,CKD,RSTD
+10014	Schweineschnitzel, roh	roh	Fleisch & Geflügel	150	Schweineschnitzel (roh)	PORK,FRSH,LEG (HAM),RUMP HALF,LN,RAW
+10040	Schweinekotelett, mager, roh	roh	Fleisch & Geflügel	150		PORK,FRSH,LOIN,CNTR LOIN (CHOPS),BONE-IN,LN,RAW
+10176	Schweinekotelett, mager, gebraten	gebraten	Fleisch & Geflügel	130		PORK,FRSH,LOIN,CNTR LOIN (CHOPS),BONE-IN,LN,CKD,PAN-FRIED
+10080	Schweinenacken, roh	roh	Fleisch & Geflügel	150	Schweinenacken (roh)	PORK,FRSH,SHLDR,(BOSTON BUTT),BLADE (STEAKS),LN & FAT,RAW
+10082	Schweinenackensteak, gegrillt	gegrillt	Fleisch & Geflügel	130		PORK,FRSH,SHLDR,BLADE,BOSTON (STEAKS),LN&FAT,CKD,BRLD
+10005	Schweinebauch, roh	roh	Fleisch & Geflügel	100		PORK,FRSH,BELLY,RAW
+10219	Schweinehack, roh	roh	Fleisch & Geflügel	125		PORK,FRESH,GROUND,RAW
+10220	Schweinehack, gebraten	gebraten	Fleisch & Geflügel	100		PORK,FRESH,GROUND,COOKED
+10110	Schweineleber, roh	roh	Fleisch & Geflügel	100		PORK,FRSH,VAR MEATS&BY-PRODUCTS,LIVER,RAW
+17099	Kalbsschnitzel, roh	roh	Fleisch & Geflügel	150		VEAL,LEG (TOP RND),LN,RAW
+17102	Kalbsschnitzel, gebraten (unpaniert)	gebraten	Fleisch & Geflügel	130		VEAL,LEG (TOP RND),LN,CKD,PAN-FRIED,NOT BREADED
+17202	Kalbsleber, roh	roh	Fleisch & Geflügel	100		VEAL,VAR MEATS&BY-PRODUCTS,LIVER,RAW
+17013	Lammkeule, roh	roh	Fleisch & Geflügel	150	Lammkeule (roh)	"LAMB,DOM,LEG,WHL (SHK&SIRL),LN,1/4""FAT,CHOIC,RAW"
+17014	Lammkeule, gegart (Ofen)	gebacken	Fleisch & Geflügel	130		"LAMB,DOM,LEG,WHL (SHK&SIRL),LN,1/4""FAT,CHOIC,CKD,RSTD"
+17026	Lammlachs (Lammrücken), roh	roh	Fleisch & Geflügel	150		"LAMB,DOM,LOIN,LN,1/4""FAT,CHOIC,RAW"
+17027	Lammlachs (Lammrücken), gegrillt	gegrillt	Fleisch & Geflügel	130		"LAMB,DOM,LOIN,LN,1/4""FAT,CHOIC,CKD,BRLD"
+17164	Hirschfleisch, roh	roh	Fleisch & Geflügel	150		GAME MEAT,DEER,RAW
+07028	Kochschinken		Wurst & Aufschnitt	30	Kochschinken	HAM,SLICED,PACKAGED (96% FAT FREE,H2O ADDED)
+10130	Lachsschinken		Wurst & Aufschnitt	30	Lachsschinken	CANADIAN BACON,UNPREP
+07081	Putenbrust-Aufschnitt		Wurst & Aufschnitt	30	Putenbrust-Aufschnitt	TURKEY BREAST,SLICED,PREPACKAGED
+07961	Hähnchenbrust-Aufschnitt		Wurst & Aufschnitt	30	Hähnchenbrust-Aufschnitt	CHICKEN BREAST,DELI,ROTISSERIE SEASONED,SLICED,PREPACKAGED
+13350	Trockenfleisch vom Rind (Bündnerfleisch)	getrocknet	Wurst & Aufschnitt	30		BEEF,CURED,DRIED
+07072	Salami		Wurst & Aufschnitt	30	Salami	SALAMI,DRY OR HARD,PORK,BF
+07057	Peperoni-Salami (Pepperoni)		Wurst & Aufschnitt	30		PEPPERONI,BF & PORK,SLICED
+10123	Frühstücksspeck (Bacon), roh	roh	Wurst & Aufschnitt	30	Bacon / Frühstücksspeck	PORK,CURED,BACON,UNPREP
+10862	Frühstücksspeck (Bacon), gebraten	gebraten	Wurst & Aufschnitt	20		PORK,CURED,BACON,PRE-SLICED,CKD,PAN-FRIED
+07950	Wiener Würstchen		Wurst & Aufschnitt	100	Wiener Würstchen	FRANKFURTER  MEAT
+07024	Geflügelwürstchen		Wurst & Aufschnitt	100		FRANKFURTER,CHICKEN
+07038	Knackwurst		Wurst & Aufschnitt	100		KNACKWURST  KNOCKWURST  PORK  BF
+07013	Bratwurst, gebraten	gebraten	Wurst & Aufschnitt	100		BRATWURST,PORK,CKD
+07008	Fleischwurst / Lyoner		Wurst & Aufschnitt	50		BOLOGNA,BF & PORK
+07041	Leberwurst		Wurst & Aufschnitt	30		LIVER SAUSAGE,LIVERWURST,PORK
+15236	Lachs, roh	roh	Fisch & Meeresfrüchte	125	Lachs (roh)	SALMON,ATLANTIC,FARMED,RAW
+15237	Lachs, gegart	gebacken	Fisch & Meeresfrüchte	110		SALMON,ATLANTIC,FARMED,CKD,DRY HEAT
+15076	Wildlachs, roh	roh	Fisch & Meeresfrüchte	125		SALMON,ATLANTIC,WILD,RAW
+15209	Wildlachs, gegart	gebacken	Fisch & Meeresfrüchte	110		SALMON,ATLANTIC,WILD,CKD,DRY HEAT
+15077	Räucherlachs	geräuchert	Fisch & Meeresfrüchte	50	Lachs geräuchert	SALMON,CHINOOK,SMOKED
+15260	Lachs (Dose), abgetropft	Konserve	Fisch & Meeresfrüchte	100		FISH,SALMON,PINK,CND,DRND SOL
+15121	Thunfisch in Wasser, abgetropft	Konserve	Fisch & Meeresfrüchte	130	Thunfisch (Dose, Wasser)	FISH,TUNA,LT,CND IN H2O,DRND SOL
+15119	Thunfisch in Öl, abgetropft	Konserve	Fisch & Meeresfrüchte	130	Thunfisch (Dose, Öl, abgetropft)	TUNA,LT,CND IN OIL,DRND SOL
+15127	Thunfischsteak (Gelbflosse), roh	roh	Fisch & Meeresfrüchte	150		TUNA,FRESH,YELLOWFIN,RAW
+15015	Kabeljau, roh	roh	Fisch & Meeresfrüchte	150	Kabeljau (roh)	COD,ATLANTIC,RAW
+15016	Kabeljau, gegart	gebacken	Fisch & Meeresfrüchte	130		COD,ATLANTIC,CKD,DRY HEAT
+15065	Seelachs, roh	roh	Fisch & Meeresfrüchte	150	Seelachs (roh)	POLLOCK,ATLANTIC,RAW
+15205	Seelachs, gegart	gebacken	Fisch & Meeresfrüchte	130		POLLOCK,ATLANTIC,CKD,DRY HEAT
+15066	Alaska-Seelachs (TK), roh	roh	Fisch & Meeresfrüchte	150		FISH,POLLOCK,ALASKA,RAW (MAY HAVE BEEN PREVIOUSLY FROZEN)
+15067	Alaska-Seelachs (TK), gegart	gebacken	Fisch & Meeresfrüchte	130		FISH,POLLOCK,ALASKA,CKD,DRY HEAT (MAYBE PREVIOUSLY FROZEN)
+15261	Tilapia, roh	roh	Fisch & Meeresfrüchte	150	Tilapia (roh)	FISH,TILAPIA,RAW
+15262	Tilapia, gegart	gebacken	Fisch & Meeresfrüchte	130		FISH,TILAPIA,CKD,DRY HEAT
+15240	Forelle, roh	roh	Fisch & Meeresfrüchte	150	Forelle (roh)	TROUT,RAINBOW,FARMED,RAW
+15241	Forelle, gegart	gebacken	Fisch & Meeresfrüchte	130		TROUT,RAINBOW,FARMED,CKD,DRY HEAT
+15046	Makrele, roh	roh	Fisch & Meeresfrüchte	150	Makrele (roh)	MACKEREL,ATLANTIC,RAW
+15047	Makrele, gegart	gebacken	Fisch & Meeresfrüchte	130		MACKEREL,ATLANTIC,CKD,DRY HEAT
+15039	Hering, roh	roh	Fisch & Meeresfrüchte	150		HERRING,ATLANTIC,RAW
+15041	Hering, eingelegt (Bismarckhering)	Konserve	Fisch & Meeresfrüchte	80		HERRING,ATLANTIC,PICKLED
+15042	Bückling (Räucherhering)	geräuchert	Fisch & Meeresfrüchte	100		HERRING,ATLANTIC,KIPPERED
+15088	Sardinen in Öl, abgetropft	Konserve	Fisch & Meeresfrüchte	90	Sardinen in Öl (abgetropft)	SARDINE,ATLANTIC,CND IN OIL,DRND SOL W/BONE
+15033	Schellfisch, roh	roh	Fisch & Meeresfrüchte	150		HADDOCK,RAW
+15036	Heilbutt, roh	roh	Fisch & Meeresfrüchte	150		HALIBUT,ATLANTIC&PACIFIC,RAW
+15028	Scholle, roh	roh	Fisch & Meeresfrüchte	150		FLATFISH (FLOUNDER&SOLE SP),RAW
+15057	Rotbarsch, roh	roh	Fisch & Meeresfrüchte	150		OCEAN PERCH,ATLANTIC,RAW
+15058	Rotbarsch, gegart	gebacken	Fisch & Meeresfrüchte	130		OCEAN PERCH,ATLANTIC,CKD,DRY HEAT
+15270	Garnelen, roh	roh	Fisch & Meeresfrüchte	100	Garnelen (roh)	CRUSTACEANS,SHRIMP,RAW (NOT PREVIOUSLY FROZEN)
+15271	Garnelen, gekocht	gekocht	Fisch & Meeresfrüchte	100		CRUSTACEANS,SHRIMP,CKD (NOT PREVIOUSLY FROZEN)
+15164	Miesmuscheln, roh	roh	Fisch & Meeresfrüchte	150		MUSSEL,BLUE,RAW
+15165	Miesmuscheln, gekocht	gekocht	Fisch & Meeresfrüchte	100		MUSSEL,BLUE,CKD,MOIST HEAT
+15175	Tintenfisch (Kalmar), roh	roh	Fisch & Meeresfrüchte	150		SQUID,MIXED SPECIES,RAW
+15027	Fischstäbchen, gebacken	gebacken	Fisch & Meeresfrüchte	120		FISH,FISH STKS,FRZ,PREP
+15138	Surimi-Sticks		Fisch & Meeresfrüchte	60		CRAB,ALASKA KING,IMITN,MADE FROM SURIMI
+01123	Ei, roh	roh	Eier	60	Ei (Größe M ≈ 60 g)	EGG,WHL,RAW,FRSH
+01129	Ei, hart gekocht	gekocht	Eier	60		EGG,WHL,CKD,HARD-BOILED
+01128	Spiegelei	gebraten	Eier	60		EGG,WHL,CKD,FRIED
+01132	Rührei	zubereitet	Eier	120		EGG,WHL,CKD,SCRMBLD
+01130	Omelett	zubereitet	Eier	120		EGG,WHOLE,COOKED,OMELET
+01124	Eiklar, roh	roh	Eier	100	Eiklar	EGG,WHITE,RAW,FRESH
+01125	Eigelb, roh	roh	Eier	17		EGG,YOLK,RAW,FRSH
+01173	Eiklarpulver	getrocknet	Eier	30		EGG,WHITE,DRIED
+01140	Wachtelei, roh	roh	Eier	10		EGG,QUAIL,WHOLE,FRESH,RAW
+01078	Vollmilch 3,7 %		Milchprodukte & Käse	250	Milch 3,5 %	MILK,PRODUCER,FLUID,3.7% MILKFAT
+01079	Milch 2 %		Milchprodukte & Käse	250		MILK,RED FAT,FLUID,2% MILKFAT,W/ ADDED VIT A & VITAMIN D
+01082	Milch 1 %		Milchprodukte & Käse	250		MILK,LOWFAT,FLUID,1% MILKFAT,W/ ADDED VIT A & VITAMIN D
+01085	Magermilch 0,1 %		Milchprodukte & Käse	250		MILK,NONFAT,FLUID,W/ ADDED VIT A & VIT D (FAT FREE OR SKIM)
+01088	Buttermilch		Milchprodukte & Käse	250	Buttermilch	MILK,BTTRMLK,FLUID,CULTURED,LOWFAT
+01289	Kefir, fettarm 1 %		Milchprodukte & Käse	250		KEFIR,LOWFAT,PLN,LIFEWAY
+01116	Naturjoghurt 3,5 %		Milchprodukte & Käse	150	Joghurt 3,5 %	YOGURT,PLN,WHL MILK,8 GRAMS PROT PER 8 OZ
+01117	Naturjoghurt 1,5 %		Milchprodukte & Käse	150	Joghurt 1,5 %	YOGURT,PLN,LOFAT,12 GRAMS PROT PER 8 OZ
+01118	Magerjoghurt 0,1 %		Milchprodukte & Käse	150		YOGURT,PLN,SKIM MILK,13 GRAMS PROT PER 8 OZ
+01256	Griechischer Joghurt 0 %		Milchprodukte & Käse	150		YOGURT,GREEK,PLN,NONFAT
+01287	Griechischer Joghurt 2 %		Milchprodukte & Käse	150		YOGURT,GREEK,PLN,LOWFAT
+01293	Griechischer Joghurt 5 %		Milchprodukte & Käse	150		YOGURT,GREEK,PLN,WHL MILK
+01012	Körniger Frischkäse		Milchprodukte & Käse	200	Körniger Frischkäse	CHEESE,COTTAGE,CRMD,LRG OR SML CURD
+01016	Körniger Frischkäse 1 %		Milchprodukte & Käse	200		CHEESE,COTTAGE,LOWFAT,1% MILKFAT
+01036	Ricotta		Milchprodukte & Käse	60		CHEESE,RICOTTA,WHOLE MILK
+01017	Frischkäse Doppelrahmstufe		Milchprodukte & Käse	30	Frischkäse Doppelrahm	CHEESE,CREAM
+43274	Frischkäse light		Milchprodukte & Käse	30	Frischkäse light	CHEESE,CREAM,LOW FAT
+01179	Saure Sahne 10 %		Milchprodukte & Käse	30	Saure Sahne 10 %	SOUR CREAM,LIGHT
+01056	Schmand 20 %		Milchprodukte & Käse	30		CREAM,SOUR,CULTURED
+01049	Kaffeesahne 10 %		Milchprodukte & Käse	15		CREAM,FLUID,HALF AND HALF
+01052	Schlagsahne 30 %		Milchprodukte & Käse	30	Sahne 30 %	CREAM,FLUID,LT WHIPPING
+01145	Butter		Milchprodukte & Käse	10	Butter	BUTTER,WITHOUT SALT
+01022	Gouda		Milchprodukte & Käse	30	Gouda	CHEESE,GOUDA
+01040	Emmentaler		Milchprodukte & Käse	30	Emmentaler	CHEESE,SWISS
+01026	Mozzarella		Milchprodukte & Käse	125	Mozzarella	CHEESE,MOZZARELLA,WHL MILK
+01028	Mozzarella, teilentrahmt		Milchprodukte & Käse	125		CHEESE,MOZZARELLA,PART SKIM MILK
+01019	Feta		Milchprodukte & Käse	50	Feta	CHEESE,FETA
+01033	Parmesan		Milchprodukte & Käse	15	Parmesan	CHEESE,PARMESAN,HARD
+01009	Cheddar		Milchprodukte & Käse	30		CHEESE,CHEDDAR
+01007	Camembert		Milchprodukte & Käse	30		CHEESE,CAMEMBERT
+01006	Brie		Milchprodukte & Käse	30		CHEESE,BRIE
+01018	Edamer		Milchprodukte & Käse	30		CHEESE,EDAM
+01041	Tilsiter		Milchprodukte & Käse	30		CHEESE,TILSIT
+01159	Ziegenfrischkäse		Milchprodukte & Käse	30		CHEESE,GOAT,SOFT TYPE
+16222	Sojadrink ungesüßt		Pflanzendrinks	250	Sojadrink ungesüßt	SOYMILK (ALL FLAVORS),UNSWTND,W/ ADDED CA,VITAMINS A & D
+16139	Sojadrink Original		Pflanzendrinks	250		SOYMILK,ORIGINAL & VANILLA,W/ ADDED CA,VITAMINS A & D
+14091	Mandeldrink ungesüßt		Pflanzendrinks	250	Mandeldrink ungesüßt	BEVERAGES,ALMOND MILK,UNSWTND,SHELF STABLE
+14639	Reisdrink		Pflanzendrinks	250		BEVERAGES,RICE MILK,UNSWTND
+04053	Olivenöl		Öle & Fette	10	Olivenöl	OIL,OLIVE,SALAD OR COOKING
+04582	Rapsöl		Öle & Fette	10	Rapsöl	OIL,CANOLA
+04506	Sonnenblumenöl		Öle & Fette	10		OIL,SUNFLOWER,LINOLEIC,(APPROX. 65%)
+04047	Kokosöl		Öle & Fette	10	Kokosöl	OIL,COCNT
+42231	Leinöl		Öle & Fette	10	Leinöl	OIL,FLAXSEED,COLD PRESSED
+04058	Sesamöl		Öle & Fette	10		OIL,SESAME,SALAD OR COOKING
+04611	Margarine		Öle & Fette	10		MARGARINE,REG,80% FAT,COMP,TUB,W/ SALT
+04630	Halbfettmargarine		Öle & Fette	10		MARGARINE SPRD,APPROX 48% FAT,TUB
+01003	Butterschmalz (Ghee)		Öle & Fette	10		BUTTER OIL,ANHYDROUS
+04002	Schweineschmalz		Öle & Fette	10		LARD
+12118	Kokosmilch	Konserve	Öle & Fette	100	Kokosmilch	COCONUT MILK,CND (LIQ EXPRESSED FROM GRATED MEAT&H2O)
+12061	Mandeln	roh	Nüsse & Samen	30	Mandeln	ALMONDS
+12063	Mandeln, geröstet	geröstet	Nüsse & Samen	30		ALMONDS,DRY RSTD,WO/SALT
+12155	Walnüsse	roh	Nüsse & Samen	30	Walnüsse	WALNUTS,ENGLISH
+12087	Cashewkerne	roh	Nüsse & Samen	30	Cashewkerne	NUTS,CASHEW NUTS,RAW
+12120	Haselnüsse	roh	Nüsse & Samen	30	Haselnüsse	HAZELNUTS OR FILBERTS
+16390	Erdnüsse, geröstet	geröstet	Nüsse & Samen	30	Erdnüsse geröstet	PEANUTS,ALL TYPES,DRY-ROASTED,WO/SALT
+16089	Erdnüsse, geröstet & gesalzen	geröstet	Nüsse & Samen	30		PEANUTS,ALL TYPES,OIL-ROASTED,W/SALT
+12152	Pistazien, geröstet	geröstet	Nüsse & Samen	30	Pistazien	PISTACHIO NUTS,DRY RSTD,WO/SALT
+12131	Macadamianüsse	roh	Nüsse & Samen	30		MACADAMIA NUTS,RAW
+12078	Paranüsse	roh	Nüsse & Samen	30		BRAZILNUTS,DRIED,UNBLANCHED
+12142	Pekannüsse	roh	Nüsse & Samen	30		PECANS
+12108	Kokosraspeln	getrocknet	Nüsse & Samen	15		COCONUT MEAT,DRIED (DESICCATED),NOT SWTND
+19821	Studentenfutter		Nüsse & Samen	40		TRAIL MIX,REG,UNSALTED
+12006	Chiasamen	getrocknet	Nüsse & Samen	15	Chiasamen	CHIA SEEDS,DRIED
+12220	Leinsamen		Nüsse & Samen	15	Leinsamen	SEEDS,FLAXSEED
+12036	Sonnenblumenkerne	getrocknet	Nüsse & Samen	30	Sonnenblumenkerne	SUNFLOWER SD KRNLS,DRIED
+12014	Kürbiskerne	getrocknet	Nüsse & Samen	30	Kürbiskerne	PUMPKIN&SQUASH SD KRNLS,DRIED
+12023	Sesam	getrocknet	Nüsse & Samen	10		SESAME SEEDS,WHOLE,DRIED
+12012	Hanfsamen, geschält		Nüsse & Samen	30		SEEDS,HEMP SD,HULLED
+16098	Erdnussbutter		Nüsse & Samen	20	Erdnussbutter	PEANUT BUTTER,SMOOTH STYLE,W/ SALT
+12195	Mandelmus		Nüsse & Samen	20	Mandelmus	ALMOND BUTTER,PLN,WO/SALT
+12166	Tahini (Sesammus)		Nüsse & Samen	15		SESAME BUTTER,TAHINI,FROM RSTD&TSTD KRNLS (MOST COMMON TYPE)
+16099	Erdnussmehl, entölt		Nüsse & Samen	30		PEANUT FLOUR,DEFATTED
+11935	Ketchup		Saucen & Würzen	20	Ketchup	Catsup
+02046	Senf, gelb		Saucen & Würzen	10		MUSTARD,PREPARED,YELLOW
+04025	Mayonnaise		Saucen & Würzen	15	Mayonnaise	SALAD DRSNG,MAYO,REG
+04641	Mayonnaise light		Saucen & Würzen	15		SALAD DRSNG,MAYO,LT
+16123	Sojasauce		Saucen & Würzen	15	Sojasauce	SOY SAU MADE FROM SOY&WHEAT (SHOYU)
+02069	Balsamico-Essig		Saucen & Würzen	15	Balsamico-Essig	VINEGAR,BALSAMIC
+02048	Apfelessig		Saucen & Würzen	15		VINEGAR,CIDER
+06627	Pesto Basilikum		Saucen & Würzen	20	Pesto Basilikum	SAUCE,PESTO,RTS,SHELF STABLE
+06931	Tomatensauce (Fertig)		Saucen & Würzen	125	Tomatensauce (Fertig)	SAUCE,PASTA,SPAGHETTI/MARINARA,RTS
+06150	BBQ-Sauce		Saucen & Würzen	20	BBQ-Sauce	SAUCE,BARBECUE
+19296	Honig		Saucen & Würzen	20	Honig	HONEY
+19353	Ahornsirup		Saucen & Würzen	20	Ahornsirup	SYRUPS,MAPLE
+19297	Konfitüre		Saucen & Würzen	20	Konfitüre	JAMS AND PRESERVES
+43344	Fruchtaufstrich, zuckerreduziert		Saucen & Würzen	20		JAMS,PRESERVES,MARMALADE,RED SUGAR
+19335	Zucker		Saucen & Würzen	10	Zucker	SUGARS,GRANULATED
+19165	Kakaopulver, ungesüßt		Saucen & Würzen	10		COCOA,DRY PDR,UNSWTND
+19904	Zartbitterschokolade 70 %		Süßes & Snacks	25	Zartbitterschokolade 70 %	CHOCOLATE,DK,70-85% CACAO SOL
+19902	Halbbitterschokolade 50 %		Süßes & Snacks	25		CHOCOLATE,DK,45- 59% CACAO SOL
+19120	Vollmilchschokolade		Süßes & Snacks	25	Vollmilchschokolade	CANDIES,MILK CHOC
+19125	Nuss-Nougat-Creme		Süßes & Snacks	20	Nuss-Nougat-Creme	CHOCOLATE-FLAVORED HAZELNUT SPRD
+19155	Snickers		Süßes & Snacks	50		CANDIES,MARS SNACKFOOD US,SNICKERS BAR
+18155	Butterkekse		Süßes & Snacks	25	Butterkekse	COOKIES,BUTTER,COMMLY PREP,ENR
+18159	Schoko-Cookies		Süßes & Snacks	30		COOKIES,CHOC CHIP,COMMLY PREP,REG,HIGHER FAT,ENR
+19411	Kartoffelchips		Süßes & Snacks	30	Kartoffelchips	POTATO CHIPS,PLAIN,SALTED
+19056	Tortilla-Chips		Süßes & Snacks	30		TORTILLA CHIPS,PLAIN
+19047	Salzstangen	gebacken	Süßes & Snacks	30	Salzstangen	PRETZELS,HARD,PLN,SALTED
+19806	Popcorn (ohne Zucker)	zubereitet	Süßes & Snacks	30	Popcorn (ohne Zucker)	SNACKS,POPCORN,AIR-POPPED (UNSALTED)
+19095	Vanilleeis		Süßes & Snacks	100	Vanilleeis	ICE CREAMS,VANILLA
+19270	Schokoladeneis		Süßes & Snacks	100		ICE CREAMS,CHOC
+19201	Vanillepudding		Süßes & Snacks	125		PUDDINGS,VANILLA,RTE
+18147	Käsekuchen (Cheesecake)	gebacken	Süßes & Snacks	100		CHEESECAKE COMMLY PREP
+09209	Orangensaft		Getränke	250	Orangensaft	ORANGE JUC,CHILLED,INCL FROM CONC
+09016	Apfelsaft		Getränke	250	Apfelsaft	APPLE JUC,CND OR BTLD,UNSWTND,WO/ ADDED VIT C
+11886	Tomatensaft		Getränke	250		TOMATO JUC,CND,WO/ SALT ADDED
+14148	Cola		Getränke	330	Cola	BEVERAGES,CARB,COLA,REG
+14416	Cola Zero		Getränke	330	Cola Zero	BEVERAGES,CARB,LO CAL,COLA OR PEPPER-TYPE,W/ ASPRT, CAFFEINE
+14144	Zitronenlimonade		Getränke	330		BEVERAGES,CARB,LEMON-LIME SODA,NO CAFFEINE
+14199	Eistee Zitrone		Getränke	330		BEVERAGES,TEA,BLACK,RTD,LEMON,SWTND
+14555	Wasser		Getränke	500		WATER,BTLD,GENERIC
+14090	Kokoswasser		Getränke	330		BEVERAGES,COCNT H2O,RTD,UNSWTND
+14154	Red Bull		Getränke	250	Red Bull	BEVERAGES,ENERGY DRK,RED BULL
+14156	Red Bull Sugarfree		Getränke	250		BEVERAGES,ENERGY DRK,RED BULL,SUGAR FREE,W/ ADDED CAFFEINE,
+14627	Monster Energy (Original)		Getränke	500	Monster Energy (Original)	BEVERAGES,ENERGY DRK,MONSTER,FORT W/ VITAMINS C,B2,B3,B6,B12
+14061	Energydrink, zuckerfrei		Getränke	250		BEVERAGES,ENERGY DRK,SUGAR FREE
+14461	Sportgetränk (isotonisch)		Getränke	500		BEVERAGES,COCA-COLA,POWERADE,LEMON-LIME FLAV,RTD
+14003	Bier (Pils)		Getränke	500	Bier (Pils)	ALCOHOLIC BEV,BEER,REG,ALL
+14006	Leichtbier		Getränke	500		ALCOHOLIC BEV,BEER,LT
+14305	Alkoholfreies Bier		Getränke	500	Alkoholfreies Bier	MALT BEV,INCL NON-ALCOHOLIC BEER
+14096	Rotwein		Getränke	200	Rotwein	ALCOHOLIC BEV,WINE,TABLE,RED
+14106	Weißwein		Getränke	200		ALCOHOLIC BEV,WINE,TABLE,WHITE
+14209	Kaffee schwarz	zubereitet	Getränke	250	Kaffee schwarz	BEVERAGES,COFFEE,BREWED,PREP W/ TAP H2O
+14355	Schwarzer Tee	zubereitet	Getränke	250		BEVERAGES,TEA,BLACK,BREWED,PREP W/ TAP H2O
+14278	Grüner Tee	zubereitet	Getränke	250		BEVERAGES,TEA,GRN,BREWED,REG
+14066	Whey Protein		Proteinpulver	30	Whey Protein	BEVERAGES,PROT PDR WHEY BSD
+20444	Reis weiß, roh	roh	Getreide & Beilagen	75	Reis (roh)	RICE,WHITE,LONG-GRAIN,REG,RAW,UNENR
+20445	Reis weiß, gekocht	gekocht	Getreide & Beilagen	200	Reis (gekocht)	RICE,WHITE,LONG-GRAIN,REG,UNENR,CKD WO/ SALT
+20446	Parboiled Reis, roh	roh	Getreide & Beilagen	75		RICE,WHITE,LONG-GRAIN,PARBLD,UNENR,DRY
+20447	Parboiled Reis, gekocht	gekocht	Getreide & Beilagen	200		RICE,WHITE,LONG-GRAIN,PARBLD,UNENR,CKD
+20452	Rundkornreis, roh	roh	Getreide & Beilagen	75		RICE,WHITE,SHORT-GRAIN,RAW,UNENR
+20453	Rundkornreis, gekocht	gekocht	Getreide & Beilagen	200		RICE,WHITE,SHORT-GRAIN,CKD,UNENR
+20036	Vollkornreis, roh	roh	Getreide & Beilagen	75	Vollkornreis (roh)	RICE,BROWN,LONG-GRAIN,RAW
+20037	Vollkornreis, gekocht	gekocht	Getreide & Beilagen	200		RICE,BROWN,LONG-GRAIN,CKD
+20420	Nudeln, roh	roh	Getreide & Beilagen	100	Nudeln (roh)	PASTA,DRY,UNENR
+20421	Nudeln, gekocht	gekocht	Getreide & Beilagen	250	Nudeln (gekocht)	PASTA,CKD,UNENR,WO/ ADDED SALT
+20124	Vollkornnudeln, roh	roh	Getreide & Beilagen	100	Vollkornnudeln (roh)	PASTA,WHOLE-WHEAT,DRY
+20125	Vollkornnudeln, gekocht	gekocht	Getreide & Beilagen	250		PASTA,WHOLE-WHEAT,CKD
+20409	Eiernudeln, roh	roh	Getreide & Beilagen	100		NOODLES,EGG,DRY,UNENR
+20410	Eiernudeln, gekocht	gekocht	Getreide & Beilagen	250		NOODLES,EGG,UNENR,CKD,WO/ ADDED SALT
+20133	Reisnudeln, roh	roh	Getreide & Beilagen	75		RICE NOODLES,DRY
+20134	Reisnudeln, gekocht	gekocht	Getreide & Beilagen	200		RICE NOODLES,CKD
+16082	Glasnudeln, roh	roh	Getreide & Beilagen	50		NOODLES,CHINESE,CELLOPHANE OR LONG RICE (MUNG BNS),DEHYD
+20028	Couscous, roh	roh	Getreide & Beilagen	75	Couscous (roh)	COUSCOUS,DRY
+20029	Couscous, gekocht	gekocht	Getreide & Beilagen	200		COUSCOUS,COOKED
+20012	Bulgur, roh	roh	Getreide & Beilagen	75	Bulgur (roh)	BULGUR,DRY
+20013	Bulgur, gekocht	gekocht	Getreide & Beilagen	200		BULGUR,COOKED
+20035	Quinoa, roh	roh	Getreide & Beilagen	75	Quinoa (roh)	QUINOA,UNCKD
+20137	Quinoa, gekocht	gekocht	Getreide & Beilagen	185		QUINOA,CKD
+20031	Hirse, roh	roh	Getreide & Beilagen	75	Hirse (roh)	MILLET,RAW
+20032	Hirse, gekocht	gekocht	Getreide & Beilagen	175		MILLET,COOKED
+20008	Buchweizen, roh	roh	Getreide & Beilagen	75		BUCKWHEAT
+20010	Buchweizen, gekocht	gekocht	Getreide & Beilagen	170		BUCKWHEAT GROATS,RSTD,CKD
+20005	Perlgraupen, roh	roh	Getreide & Beilagen	75		BARLEY,PEARLED,RAW
+20006	Perlgraupen, gekocht	gekocht	Getreide & Beilagen	170		BARLEY,PEARLED,COOKED
+20422	Polenta / Maisgrieß, roh	roh	Getreide & Beilagen	60	Polenta / Maisgrieß (roh)	CORNMEAL,DEGERMED,UNENR,YEL
+08164	Polenta, gekocht	gekocht	Getreide & Beilagen	250		CEREALS,CORN GRITS,YEL,REG & QUICK,ENR,CKD W/ H2O,WO/ SALT
+20466	Hartweizengrieß, roh	roh	Getreide & Beilagen	50		SEMOLINA,UNENRICHED
+11352	Kartoffeln, roh	roh	Getreide & Beilagen	200	Kartoffeln	POTATOES,FLESH & SKN,RAW
+11367	Salzkartoffeln (geschält), gekocht	gekocht	Getreide & Beilagen	250		POTATOES,BLD,CKD WO/ SKN,FLESH,WO/ SALT
+11365	Pellkartoffeln, gekocht	gekocht	Getreide & Beilagen	250		POTATOES,BLD,CKD IN SKN,FLESH,WO/SALT
+11674	Ofenkartoffel (mit Schale), gebacken	gebacken	Getreide & Beilagen	250		POTATOES,BKD,FLESH & SKN,WO/ SALT
+11507	Süßkartoffel, roh	roh	Getreide & Beilagen	200	Süßkartoffel	SWEET POTATO,RAW,UNPREP
+11510	Süßkartoffel, gekocht	gekocht	Getreide & Beilagen	200		SWEET POTATO,CKD,BLD,WO/ SKN
+11508	Süßkartoffel, gebacken	gebacken	Getreide & Beilagen	200		SWEET POTATO,CKD,BKD IN SKN,FLESH,WO/ SALT
+11402	Pommes frites (TK), roh	roh	Getreide & Beilagen	150		POTATOES,FRENCH FR,ALL TYPES,SALT ADDED IN PROC,FRZ,UNPREP
+11403	Pommes frites (Backofen), gebacken	gebacken	Getreide & Beilagen	150	Pommes frites (zubereitet)	POTATOES,FRENCH FR,ALL TYPES,SALT ADDED IN PROC,FRZ,OVEN HTD
+11934	Kartoffelpüree (mit Milch & Butter), zubereitet	zubereitet	Getreide & Beilagen	200	Kartoffelpüree (zubereitet)	POTATOES,MSHD,HOME-PREPARED,WHL MILK & BUTTER ADDED
+08120	Haferflocken	roh	Frühstück & Cerealien	50	Haferflocken	CEREALS,OATS,REG & QUICK,NOT FORT,DRY
+08121	Haferbrei (mit Wasser), gekocht	gekocht	Frühstück & Cerealien	250		CEREALS,OATS,REG & QUICK,UNENR,CKD W/ H2O,WO/ SALT
+20033	Haferkleie	roh	Frühstück & Cerealien	30	Haferkleie	OAT BRAN,RAW
+08020	Cornflakes		Frühstück & Cerealien	30	Cornflakes	CEREALS RTE,KELLOGG,KELLOGG'S CORN FLAKES
+43241	Müsli (Schweizer Art, mit Früchten)		Frühstück & Cerealien	50		CEREALS RTE,FAMILIA
+08037	Granola / Knuspermüsli	geröstet	Frühstück & Cerealien	50	Granola / Knuspermüsli	CEREALS RTE,GRANOLA,HOMEMADE
+20078	Weizenkeime	roh	Frühstück & Cerealien	15		WHEAT GERM,CRUDE
+18069	Toastbrot (Weizen)		Brot & Backwaren	50	Toastbrot (Weizen)	BREAD,WHITE,COMMLY PREP (INCL SOFT BREAD CRUMBS)
+18075	Weizenvollkornbrot (US-Art)		Brot & Backwaren	50		BREAD,WHOLE-WHEAT,COMM. PREPARED
+28397	Mehrkornbrot		Brot & Backwaren	50		BREAD,MULTI-GRAIN (INCLUDES WHOLE-GRAIN)
+18060	Roggenbrot (US-Art)		Brot & Backwaren	50		BREAD,RYE
+18044	Pumpernickel		Brot & Backwaren	50	Pumpernickel	BREAD,PUMPERNICKEL
+18029	Baguette / Weißbrot		Brot & Backwaren	60		Bread, french
+18353	Brötchen (Weizen)		Brot & Backwaren	60	Brötchen (Weizen)	ROLLS,HARD (INCL KAISER)
+18348	Vollkornbrötchen, weich (US-Art)		Brot & Backwaren	60		ROLLS,DINNER,WHOLE-WHEAT
+18408	Bagel		Brot & Backwaren	100	Bagel	BAGELS,PLN,UNENR,WO/CA PROP (INCL ONION,POPPY,SESAME)
+18239	Croissant (Butter)		Brot & Backwaren	60	Croissant	CROISSANTS,BUTTER
+18364	Wrap / Tortilla (Weizen)		Brot & Backwaren	60	Wrap / Tortilla (Weizen)	TORTILLAS,RTB OR -FRY,FLR,REFR
+28295	Vollkorn-Wrap		Brot & Backwaren	60		TORTILLAS,RTB OR -FRY,WHL WHEAT
+18413	Pita (Weizen)		Brot & Backwaren	60		BREAD,PITA,WHITE,UNENR
+18216	Knäckebrot (Roggen)		Brot & Backwaren	20	Knäckebrot (Roggen)	CRACKERS,CRISPBREAD,RYE
+19816	Reiswaffeln (Vollkorn, natur)		Brot & Backwaren	10	Reiswaffeln	RICE CAKES,BROWN RICE,PLN,UNSALTED
+20481	Weizenmehl Type 405	roh	Brot & Backwaren	50	Weizenmehl Type 405	WHEAT FLR,WHITE,ALL-PURPOSE,UNENR
+20080	Weizenvollkornmehl	roh	Brot & Backwaren	50		WHEAT FLOUR,WHOLE-GRAIN
+20064	Roggenmehl mittel	roh	Brot & Backwaren	50		RYE FLOUR,MEDIUM
+20027	Speisestärke (Mais)	roh	Brot & Backwaren	20		CORNSTARCH
+16069	Linsen braun, roh	roh	Hülsenfrüchte	60		LENTILS,RAW
+16144	Linsen rot, roh	roh	Hülsenfrüchte	60	Linsen rot (roh)	LENTILS,PINK OR RED,RAW
+16070	Linsen, gekocht	gekocht	Hülsenfrüchte	200	Linsen (gekocht)	LENTILS,MATURE SEEDS,CKD,BLD,WO/SALT
+16056	Kichererbsen, roh	roh	Hülsenfrüchte	60		CHICKPEAS (GARBANZO BNS,BENGAL GM),MATURE SEEDS,RAW
+16057	Kichererbsen, gekocht	gekocht	Hülsenfrüchte	150		CHICKPEAS ,MATURE SEEDS,CKD,BLD,WO/SALT
+16358	Kichererbsen (Dose, abgetropft)	Konserve	Hülsenfrüchte	130	Kichererbsen (Dose, abgetropft)	CHICKPEAS,MAT SEEDS,CND,DRND SOL
+16032	Kidneybohnen, roh	roh	Hülsenfrüchte	60		BEANS,KIDNEY,RED,MATURE SEEDS,RAW
+16033	Kidneybohnen, gekocht	gekocht	Hülsenfrüchte	150		BEANS,KIDNEY,RED,MATURE SEEDS,CKD,BLD,WO/SALT
+16145	Kidneybohnen (Dose, abgetropft)	Konserve	Hülsenfrüchte	130	Kidneybohnen (Dose, abgetropft)	BEANS,KIDNEY,RED,MATURE SEEDS,CND,DRND SOL
+16014	Schwarze Bohnen, roh	roh	Hülsenfrüchte	60		BEANS,BLACK,MATURE SEEDS,RAW
+16015	Schwarze Bohnen, gekocht	gekocht	Hülsenfrüchte	150		BEANS,BLACK,MATURE SEEDS,CKD,BLD,WO/SALT
+16018	Schwarze Bohnen (Dose)	Konserve	Hülsenfrüchte	130		BEANS,BLACK TURTLE,MATURE SEEDS,CND
+16049	Weiße Bohnen, roh	roh	Hülsenfrüchte	60		BEANS,WHITE,MATURE SEEDS,RAW
+16050	Weiße Bohnen, gekocht	gekocht	Hülsenfrüchte	150		BEANS,WHITE,MATURE SEEDS,CKD,BLD,WO/SALT
+16051	Weiße Bohnen (Dose)	Konserve	Hülsenfrüchte	130		BEANS,WHITE,MATURE SEEDS,CND
+16043	Pintobohnen, gekocht	gekocht	Hülsenfrüchte	150		BEANS,PINTO,MATURE SEEDS,CKD,BLD,WO/SALT
+16146	Pintobohnen (Dose, abgetropft)	Konserve	Hülsenfrüchte	130		BEANS,PINTO,CND,DRND SOL
+16080	Mungbohnen, roh	roh	Hülsenfrüchte	60		MUNG BNS,MATURE SEEDS,RAW
+16081	Mungbohnen, gekocht	gekocht	Hülsenfrüchte	150		MUNG BNS,MATURE SEEDS,CKD,BLD,WO/SALT
+16085	Schälerbsen, roh	roh	Hülsenfrüchte	60		PEAS,GRN,SPLIT,MATURE SEEDS,RAW
+16086	Schälerbsen, gekocht	gekocht	Hülsenfrüchte	150		PEAS,SPLIT,MATURE SEEDS,CKD,BLD,WO/SALT
+11312	Erbsen (TK)	roh	Hülsenfrüchte	150	Erbsen (TK)	PEAS,GRN,FRZ,UNPREP
+11313	Erbsen (TK), gekocht	gekocht	Hülsenfrüchte	150		PEAS,GRN,FRZ,CKD,BLD,DRND,WO/SALT
+11211	Edamame (TK)	roh	Hülsenfrüchte	100	Edamame (TK)	EDAMAME,FRZ,UNPREP
+11212	Edamame, gekocht	gekocht	Hülsenfrüchte	100		EDAMAME,FRZ,PREP
+16006	Baked Beans (Dose, vegetarisch)	Konserve	Hülsenfrüchte	200		BEANS,BKD,CND,PLN OR VEGETARIAN
+16426	Tofu natur (fest)		Pflanzliche Proteine	100	Tofu natur	TOFU,RAW,FIRM,PREP W/CA SULFATE
+16159	Tofu extra fest		Pflanzliche Proteine	100		TOFU,EX FIRM,PREP W/NIGARI
+16162	Seidentofu		Pflanzliche Proteine	100		MORI-NU,TOFU,SILKEN,FIRM
+16129	Tofu, frittiert	gebraten	Pflanzliche Proteine	100		TOFU,FRIED
+16114	Tempeh	roh	Pflanzliche Proteine	100	Tempeh	TEMPEH
+16174	Tempeh, gekocht	gekocht	Pflanzliche Proteine	100		TEMPEH,CKD
+48052	Weizengluten (Seitan-Basis)		Pflanzliche Proteine	30		VITAL WHEAT GLUTEN
+16106	Soja-Fleischersatz (TVP), getrocknet	getrocknet	Pflanzliche Proteine	50		MEAT EXTENDER
+16122	Sojaproteinisolat		Pflanzliche Proteine	30		SOY PROTEIN ISOLATE
+16117	Sojamehl, entölt		Pflanzliche Proteine	30		SOY FLOUR,DEFATTED
+16108	Sojabohnen, roh	roh	Pflanzliche Proteine	60		SOYBEANS,MATURE SEEDS,RAW
+16109	Sojabohnen, gekocht	gekocht	Pflanzliche Proteine	150		SOYBEANS,MATURE CKD,BLD,WO/SALT
+11090	Brokkoli, roh	roh	Gemüse	150	Brokkoli	BROCCOLI,RAW
+11091	Brokkoli, gekocht	gekocht	Gemüse	150		BROCCOLI,CKD,BLD,DRND,WO/SALT
+11135	Blumenkohl, roh	roh	Gemüse	150	Blumenkohl	CAULIFLOWER,RAW
+11136	Blumenkohl, gekocht	gekocht	Gemüse	150		CAULIFLOWER,CKD,BLD,DRND,WO/SALT
+11477	Zucchini, roh	roh	Gemüse	200	Zucchini	SQUASH,SMMR,ZUCCHINI,INCL SKN,RAW
+11478	Zucchini, gekocht	gekocht	Gemüse	200		SQUASH,SMMR,ZUCCHINI,INCL SKN,CKD,BLD,DRND,WO/SALT
+11457	Spinat, roh	roh	Gemüse	100	Spinat (frisch)	SPINACH,RAW
+11458	Spinat, gekocht	gekocht	Gemüse	150		SPINACH,CKD,BLD,DRND,WO/ SALT
+11463	Blattspinat, TK	TK	Gemüse	150	Blattspinat (TK)	SPINACH,FRZ,CHOPD OR LEAF,UNPREP
+11233	Grünkohl, roh	roh	Gemüse	100		KALE,RAW
+11234	Grünkohl, gekocht	gekocht	Gemüse	150		KALE,CKD,BLD,DRND,WO/SALT
+11124	Karotten, roh	roh	Gemüse	100	Karotte	CARROTS,RAW
+11125	Karotten, gekocht	gekocht	Gemüse	150		CARROTS,CKD,BLD,DRND,WO/SALT
+11821	Paprika rot, roh	roh	Gemüse	150	Paprika rot	PEPPERS,SWT,RED,RAW
+11823	Paprika rot, gekocht	gekocht	Gemüse	150		PEPPERS,SWT,RED,CKD,BLD,DRND,WO/SALT
+11333	Paprika grün, roh	roh	Gemüse	150		PEPPERS,SWT,GRN,RAW
+11951	Paprika gelb, roh	roh	Gemüse	150		PEPPERS,SWEET,YELLOW,RAW
+11529	Tomaten, roh	roh	Gemüse	120	Tomate	TOMATOES,RED,RIPE,RAW,YEAR RND AVERAGE
+11530	Tomaten, gekocht	gekocht	Gemüse	150		TOMATOES,RED,RIPE,CKD
+11205	Salatgurke, roh	roh	Gemüse	150	Gurke	CUCUMBER,WITH PEEL,RAW
+11252	Eisbergsalat, roh	roh	Gemüse	80	Eisbergsalat	LETTUCE,ICEBERG (INCL CRISPHEAD TYPES),RAW
+11251	Römersalat, roh	roh	Gemüse	80		LETTUCE,COS OR ROMAINE,RAW
+11250	Kopfsalat, roh	roh	Gemüse	80		LETTUCE,BUTTERHEAD (INCL BOSTON&BIBB TYPES),RAW
+11190	Feldsalat, roh	roh	Gemüse	50	Feldsalat	CORNSALAD,RAW
+11959	Rucola, roh	roh	Gemüse	40	Rucola	ARUGULA,RAW
+11952	Radicchio, roh	roh	Gemüse	50		RADICCHIO,RAW
+11260	Champignons, roh	roh	Gemüse	100	Champignons	MUSHROOMS,WHITE,RAW
+11263	Champignons, gebraten	gebraten	Gemüse	100		MUSHROOMS,WHITE,STIR-FRIED
+11264	Champignons, Konserve (abgetropft)	Konserve	Gemüse	100		MUSHROOMS,CND,DRND SOL
+11238	Shiitake, roh	roh	Gemüse	100		MUSHROOMS,SHIITAKE,RAW
+11987	Austernpilze, roh	roh	Gemüse	100		MUSHROOMS,OYSTER,RAW
+11282	Zwiebeln, roh	roh	Gemüse	50	Zwiebel	ONIONS,RAW
+11286	Zwiebeln, gebraten	gebraten	Gemüse	50		ONIONS,YEL,SAUTEED
+11291	Frühlingszwiebeln, roh	roh	Gemüse	30		ONIONS,SPRING OR SCALLIONS (INCL TOPS&BULB),RAW
+11215	Knoblauch, roh	roh	Gemüse	5	Knoblauch	GARLIC,RAW
+11246	Lauch, roh	roh	Gemüse	100		LEEKS,(BULB&LOWER LEAF-PORTION),RAW
+11247	Lauch, gekocht	gekocht	Gemüse	100		LEEKS,(BULB&LOWER LEAF-PORTION),CKD,BLD,DRND,WO/SALT
+11052	Grüne Bohnen, roh	roh	Gemüse	150	Grüne Bohnen	BEANS,SNAP,GREEN,RAW
+11053	Grüne Bohnen, gekocht	gekocht	Gemüse	150		BEANS,SNAP,GRN,CKD,BLD,DRND,WO/SALT
+11060	Grüne Bohnen, TK	TK	Gemüse	150		BEANS,SNAP,GRN,FRZ,ALL STYLES,UNPREP
+11011	Spargel, roh	roh	Gemüse	200	Spargel	ASPARAGUS,RAW
+11012	Spargel, gekocht	gekocht	Gemüse	200		ASPARAGUS,CKD,BLD,DRND
+11098	Rosenkohl, roh	roh	Gemüse	150	Rosenkohl	BRUSSELS SPROUTS,RAW
+11099	Rosenkohl, gekocht	gekocht	Gemüse	150		BRUSSELS SPROUTS,CKD,BLD,DRND,WO/SALT
+11109	Weißkohl, roh	roh	Gemüse	100		CABBAGE,RAW
+11110	Weißkohl, gekocht	gekocht	Gemüse	150		CABBAGE,CKD,BLD,DRND,WO/SALT
+11112	Rotkohl, roh	roh	Gemüse	100	Rotkohl	CABBAGE,RED,RAW
+11113	Rotkohl, gekocht	gekocht	Gemüse	150		CABBAGE,RED,CKD,BLD,DRND,WO/SALT
+11114	Wirsing, roh	roh	Gemüse	100		CABBAGE,SAVOY,RAW
+11115	Wirsing, gekocht	gekocht	Gemüse	150		CABBAGE,SAVOY,CKD,BLD,DRND,WO/SALT
+11241	Kohlrabi, roh	roh	Gemüse	150	Kohlrabi	KOHLRABI,RAW
+11242	Kohlrabi, gekocht	gekocht	Gemüse	150		KOHLRABI,CKD,BLD,DRND,WO/SALT
+11143	Staudensellerie, roh	roh	Gemüse	100	Staudensellerie	CELERY,RAW
+11141	Knollensellerie, roh	roh	Gemüse	100		CELERIAC,RAW
+11957	Fenchel, roh	roh	Gemüse	100		FENNEL,BULB,RAW
+11298	Pastinaken, roh	roh	Gemüse	100		PARSNIPS,RAW
+11209	Aubergine, roh	roh	Gemüse	150	Aubergine	EGGPLANT,RAW
+11210	Aubergine, gekocht	gekocht	Gemüse	150		EGGPLANT,CKD,BLD,DRND,WO/SALT
+11422	Kürbis, roh	roh	Gemüse	200		PUMPKIN,RAW
+11423	Kürbis, gekocht	gekocht	Gemüse	200		PUMPKIN,CKD,BLD,DRND,WO/SALT
+11485	Butternut-Kürbis, roh	roh	Gemüse	200		SQUASH,WNTR,BUTTERNUT,RAW
+11080	Rote Bete, roh	roh	Gemüse	100		BEETS,RAW
+11081	Rote Bete, gekocht	gekocht	Gemüse	100		BEETS,CKD,BLD,DRND
+11429	Radieschen, roh	roh	Gemüse	50		RADISHES,RAW
+11430	Rettich, roh	roh	Gemüse	100		RADISHES,ORIENTAL,RAW
+11168	Zuckermais, gekocht	gekocht	Gemüse	100		CORN,SWT,YEL,CKD,BLD,DRND,WO/SALT
+11172	Mais, Konserve (abgetropft)	Konserve	Gemüse	80	Mais (Dose, abgetropft)	CORN,SWT,YEL,CND,WHL KERNEL,DRND SOL
+11300	Zuckerschoten, roh	roh	Gemüse	100		PEAS,EDIBLE-PODDED,RAW
+11301	Zuckerschoten, gekocht	gekocht	Gemüse	100		PEAS,EDIBLE-PODDED,BLD,DRND,WO/ SALT
+11439	Sauerkraut, Konserve	Konserve	Gemüse	150	Sauerkraut	SAUERKRAUT,CND,SOL&LIQUIDS
+09195	Oliven grün, Konserve	Konserve	Gemüse	30	Oliven grün	OLIVES,PICKLED,CND OR BTLD,GRN
+09193	Oliven schwarz, Konserve	Konserve	Gemüse	30		OLIVES,RIPE,CND (SMALL-EXTRA LRG)
+09037	Avocado, roh	roh	Gemüse	80	Avocado	AVOCADOS,RAW,ALL COMM VAR
+11531	Tomaten gehackt, Konserve	Konserve	Gemüse	200	Tomaten gehackt (Dose)	TOMATOES,RED,RIPE,CND,PACKED IN TOMATO JUC
+11547	Tomaten passiert, Konserve	Konserve	Gemüse	100	Tomaten passiert	TOMATO PRODUCTS,CND,PUREE,WO/SALT
+11546	Tomatenmark, Konserve	Konserve	Gemüse	20	Tomatenmark	TOMATO PRODUCTS,CND,PASTE,WO/ SALT ADDED
+11955	Tomaten, getrocknet	getrocknet	Gemüse	20		TOMATOES,SUN-DRIED
+11583	Gemüsemischung, TK	TK	Gemüse	150	Gemüse gemischt	VEGETABLES,MXD,FRZ,UNPREP
+09003	Apfel, roh	roh	Obst	150	Apfel	APPLES,RAW,WITH SKIN
+09019	Apfelmus ungesüßt, Konserve	Konserve	Obst	100	Apfelmus ungesüßt	APPLESAUCE,CND,UNSWTND,WO/ADDED VIT C (INCLUDES USDA COMMOD)
+09252	Birne, roh	roh	Obst	150	Birne	PEARS,RAW
+09040	Banane, roh	roh	Obst	120	Banane	BANANAS,RAW
+09200	Orange, roh	roh	Obst	150	Orange	ORANGES,RAW,ALL COMM VAR
+09218	Mandarine, roh	roh	Obst	80	Mandarine	TANGERINES,(MANDARIN ORANGES),RAW
+09433	Clementine, roh	roh	Obst	75		CLEMENTINES,RAW
+09111	Grapefruit, roh	roh	Obst	200	Grapefruit	GRAPEFRUIT,RAW,PINK&RED&WHITE,ALL AREAS
+09150	Zitrone, roh	roh	Obst	60	Zitrone	LEMONS,RAW,WITHOUT PEEL
+09159	Limette, roh	roh	Obst	50		LIMES,RAW
+09148	Kiwi, roh	roh	Obst	75	Kiwi	KIWIFRUIT,GRN,RAW
+09176	Mango, roh	roh	Obst	150	Mango	MANGOS,RAW
+09266	Ananas, roh	roh	Obst	150	Ananas	PINEAPPLE,RAW,ALL VAR
+09267	Ananas, Konserve (in Wasser)	Konserve	Obst	150		PINEAPPLE,CND,H2O PK,SOL&LIQUIDS
+09132	Weintrauben, roh	roh	Obst	125	Weintrauben	GRAPES,RED OR GRN (EURO TYPE,SUCH AS THOMPSON SEEDLESS),RAW
+09316	Erdbeeren, roh	roh	Obst	150	Erdbeeren	STRAWBERRIES,RAW
+09318	Erdbeeren, TK	TK	Obst	150		STRAWBERRIES,FRZ,UNSWTND
+09050	Heidelbeeren, roh	roh	Obst	125	Heidelbeeren	BLUEBERRIES,RAW
+09054	Heidelbeeren, TK	TK	Obst	125		BLUEBERRIES,FRZ,UNSWTND
+09302	Himbeeren, roh	roh	Obst	125	Himbeeren	RASPBERRIES,RAW
+09518	Himbeeren, TK	TK	Obst	125		RASPBERRIES,FRZ,UNSWTND
+09042	Brombeeren, roh	roh	Obst	125		BLACKBERRIES,RAW
+09048	Brombeeren, TK	TK	Obst	125		BLACKBERRIES,FRZ,UNSWTND
+09084	Johannisbeeren rot, roh	roh	Obst	100		CURRANTS,RED&WHITE,RAW
+09079	Cranberries, getrocknet (gesüßt)	getrocknet	Obst	30		CRANBERRIES,DRIED,SWTND
+09070	Kirschen, roh	roh	Obst	150	Kirschen	CHERRIES,SWEET,RAW
+09063	Sauerkirschen, roh	roh	Obst	150		CHERRIES,SOUR,RED,RAW
+09279	Pflaumen, roh	roh	Obst	100	Pflaumen	PLUMS,RAW
+09291	Pflaumen, getrocknet	getrocknet	Obst	30		PLUMS,DRIED (PRUNES),UNCKD
+09236	Pfirsich, roh	roh	Obst	150	Pfirsich	PEACHES,YEL,RAW
+09237	Pfirsiche, Konserve (in Wasser)	Konserve	Obst	150		PEACHES,CND,H2O PK,SOL&LIQUIDS
+09191	Nektarine, roh	roh	Obst	150	Nektarine	NECTARINES,RAW
+09021	Aprikosen, roh	roh	Obst	100		APRICOTS,RAW
+09032	Aprikosen, getrocknet	getrocknet	Obst	30		APRICOTS,DRIED,SULFURED,UNCKD
+09326	Wassermelone, roh	roh	Obst	250	Wassermelone	WATERMELON,RAW
+09184	Honigmelone, roh	roh	Obst	200		MELONS,HONEYDEW,RAW
+09181	Cantaloupe-Melone, roh	roh	Obst	200		MELONS,CANTALOUPE,RAW
+09226	Papaya, roh	roh	Obst	150		PAPAYAS,RAW
+09286	Granatapfel, roh	roh	Obst	100		POMEGRANATES,RAW
+09089	Feigen, roh	roh	Obst	50		FIGS,RAW
+09094	Feigen, getrocknet	getrocknet	Obst	30		FIGS,DRIED,UNCOOKED
+09087	Datteln, getrocknet	getrocknet	Obst	30	Datteln (getrocknet)	DATES,DEGLET NOOR
+09298	Rosinen, getrocknet	getrocknet	Obst	30	Rosinen	RAISINS,SEEDLESS
+09307	Rhabarber, roh	roh	Obst	100		RHUBARB,RAW

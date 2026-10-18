@@ -255,21 +255,63 @@ test('Lebensmittel: Suche ignoriert Umlaute und Groß-/Kleinschreibung, alle Wö
   assert.equal(searchFoods(foods, '').length, 4);
 });
 
-test('Lebensmittel: neue Grund-Lebensmittel werden einmalig ergänzt, eigene bleiben unverändert', async () => {
-  const { normalize, defaults } = await import('../public/js/store.js');
+test('Lebensmittel-Datenbank: Quelle, Pflichtwerte, keine Dubletten, roh und gekocht getrennt', async () => {
   const { SEED_FOODS } = await import('../public/js/seed.js');
-  assert.ok(SEED_FOODS.length >= 200);
+  const { USDA_FOODS } = await import('../public/js/fooddb.js');
+  assert.ok(USDA_FOODS.length >= 400, 'mindestens 400 geprüfte Einträge');
+  const names = SEED_FOODS.map((f) => f.name.toLowerCase()), refs = SEED_FOODS.map((f) => f.ref);
+  assert.equal(new Set(names).size, names.length, 'doppelte Namen');
+  assert.equal(new Set(refs).size, refs.length, 'doppelte Quell-IDs');
+  for (const f of SEED_FOODS) {
+    for (const k of ['kcal', 'p', 'c', 'f']) assert.ok(Number.isFinite(f[k]) && f[k] >= 0, `${f.name}: ${k}`);
+    assert.ok(f.p + f.c + f.f + (f.fiber || 0) <= 101, `${f.name}: mehr als 100 g je 100 g`);
+    for (const k of ['fiber', 'sugar', 'satFat', 'salt']) assert.ok(f[k] === null || (Number.isFinite(f[k]) && f[k] >= 0), `${f.name}: ${k}`);
+    assert.ok(f.verified ? f.src === 'USDA SR28' && /^usda:\d{5}$/.test(f.ref) : f.src === 'Richtwert', `${f.name}: Quelle`);
+    assert.equal(f.kj, Math.round(f.kcal * 4.184));
+  }
+  // Roh und gekocht sind getrennte Einträge mit eigenen Werten
+  const rice = (n) => SEED_FOODS.find((f) => f.name === n);
+  assert.equal(rice('Reis weiß, roh').kcal, 365);
+  assert.equal(rice('Reis weiß, gekocht').kcal, 130);
+  const pairs = SEED_FOODS.filter((f) => f.state === 'roh' && SEED_FOODS.some((g) => g !== f && g.name.split(',')[0] === f.name.split(',')[0] && ['gekocht', 'gebraten', 'gegrillt', 'gebacken'].includes(g.state)));
+  assert.ok(pairs.length >= 40, `nur ${pairs.length} Roh/gegart-Paare`);
+});
+
+test('Lebensmittel-Import: wiederholbar, eigene Einträge bleiben, unveränderte alte Grundwerte werden geprüft', async () => {
+  const { normalize, defaults, addSeedFoods } = await import('../public/js/store.js');
+  const { SEED_FOODS, LEGACY_FOODS } = await import('../public/js/seed.js');
   const fresh = defaults();
   assert.equal(fresh.foods.length, SEED_FOODS.length);
-  // älterer Stand ohne foodSeed, mit eigener Variante eines Grund-Lebensmittels
+  assert.deepEqual(addSeedFoods(fresh), { upgraded: 0, added: 0, skipped: 0 }, 'neuer Stand: nichts zu tun');
+  // Stand Version 2: alte Grund-Lebensmittel, eins geändert, eins gelöscht, ein eigenes mit USDA-Namen
   const old = defaults();
-  old.foods = [{ id: 'x', name: 'Banane', kcal: 999, p: 0, c: 0, f: 0, portion: 1, fav: true, used: 7, barcode: '' }];
-  delete old.settings.foodSeed;
+  const L = (n) => LEGACY_FOODS.find((l) => l.name === n);
+  old.foods = LEGACY_FOODS.map((l, i) => ({ id: 'f' + i, name: l.name, kcal: l.kcal, p: l.p, c: l.c, f: l.f, portion: l.portion, fav: false, used: 0, barcode: '' }))
+    .filter((f) => f.name !== 'Apfel');
+  Object.assign(old.foods.find((f) => f.name === 'Banane'), { fav: true, used: 9 });
+  old.foods.find((f) => f.name === 'Haferflocken').kcal = 371; // vom Nutzer geändert
+  old.foods.push({ id: 'own', name: 'Brokkoli, gekocht', kcal: 1, p: 0, c: 0, f: 0, portion: 100, fav: false, used: 0, barcode: '' });
+  old.settings.foodSeed = 2;
   const s = normalize(old);
-  assert.equal(s.foods.filter((f) => f.name === 'Banane').length, 1);
-  assert.equal(s.foods.find((f) => f.name === 'Banane').kcal, 999);
-  assert.equal(s.foods.length, SEED_FOODS.length);
-  // gelöschte kommen nicht zurück
-  s.foods = s.foods.filter((f) => f.name !== 'Kokosöl');
-  assert.ok(!normalize(s).foods.some((f) => f.name === 'Kokosöl'));
+  const banana = s.foods.find((f) => f.id === old.foods.find((x) => x.name === 'Banane' || x.id === 'f' + LEGACY_FOODS.indexOf(L('Banane'))).id);
+  assert.equal(banana.ref, 'usda:09040'); assert.equal(banana.kcal, 89); assert.ok(banana.fav); assert.equal(banana.used, 9);
+  assert.equal(s.foods.find((f) => f.name === 'Haferflocken').kcal, 371, 'geänderte Werte bleiben');
+  assert.ok(!s.foods.some((f) => f.ref === 'usda:09003' || f.name.startsWith('Apfel, roh')), 'gelöschtes kommt nicht zurück');
+  assert.equal(s.foods.filter((f) => f.name.toLowerCase() === 'brokkoli, gekocht').length, 1);
+  assert.equal(s.foods.find((f) => f.name === 'Brokkoli, gekocht').kcal, 1, 'eigener Eintrag bleibt');
+  const names = s.foods.map((f) => f.name.toLowerCase());
+  assert.equal(new Set(names).size, names.length, 'keine Dubletten nach dem Import');
+  // Wiederholung ändert nichts
+  const before = JSON.stringify(s.foods);
+  s.settings.foodSeed = 2;
+  addSeedFoods(s);
+  assert.equal(JSON.stringify(s.foods), before);
+});
+
+test('Gespeicherte Mahlzeit skalieren', async () => {
+  const { scaleEntry } = await import('../public/js/logic.js');
+  const e = scaleEntry({ name: 'Reis', amount: 80, per: { kcal: 365, p: 7.1, c: 78.7, f: 0.7 }, kcal: 292, p: 5.7, c: 63, f: 0.6 }, 1.5);
+  assert.equal(e.amount, 120); assert.equal(Math.round(e.kcal), 438);
+  const q = scaleEntry({ name: 'Döner', amount: null, per: null, kcal: 700, p: 35, c: 60, f: 30 }, 0.5);
+  assert.equal(q.kcal, 350); assert.equal(q.p, 17.5);
 });
